@@ -1,6 +1,6 @@
 %define DATE 20060721
 %define gcc_version 4.1.1
-%define gcc_release 13
+%define gcc_release 13.0.lxo.1
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64
@@ -141,6 +141,8 @@ Patch32: gcc41-java-libdotdotlib.patch
 Patch33: gcc41-java-plugins.patch
 Patch34: gcc41-java-backport-gcjplugin.patch
 Patch35: gcc41-java-backport-class-loader.patch
+
+Patch1001: gcc41-s390-rh199604.patch
 
 %define _gnu %{nil}
 %ifarch sparc
@@ -458,6 +460,8 @@ which are required to run programs compiled with the GNAT.
 %patch33 -p0 -b .java-plugins~
 %patch34 -p0 -b .java-gcjplugin~
 %patch35 -p0 -b .java-class-loader~
+
+%patch1001 -p0 -b .s390-rh199604~
 
 sed -i -e 's/4\.1\.2/4.1.1/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -1520,6 +1524,10 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Jul 27 2006 Alexandre Oliva <aoliva@redhat.com> 4.1.1-13.0.lxo.1
+- Fix reload problem that breaks openssl on s390.  (BZ#199640, perhaps
+also PR target/28146)
+
 * Tue Jul 25 2006 Alexandre Oliva <aoliva@redhat.com> 4.1.1-13
 - Backport fix by Andrew Haley for build problems related with the
 bootstrap ClassLoader.
