@@ -1,6 +1,6 @@
 %define DATE 20060721
 %define gcc_version 4.1.1
-%define gcc_release 13.0.lxo.1
+%define gcc_release 13.0.lxo.2
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64
@@ -1524,8 +1524,11 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Aug 16 2006 Alexandre Oliva <aoliva@redhat.com> 4.1.1-13.0.lxo.2
+- Improve fix for openssl on s390.  (BZ#199604, target/28146)
+
 * Thu Jul 27 2006 Alexandre Oliva <aoliva@redhat.com> 4.1.1-13.0.lxo.1
-- Fix reload problem that breaks openssl on s390.  (BZ#199640, perhaps
+- Fix reload problem that breaks openssl on s390.  (BZ#199604, perhaps
 also PR target/28146)
 
 * Tue Jul 25 2006 Alexandre Oliva <aoliva@redhat.com> 4.1.1-13
