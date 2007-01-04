@@ -553,6 +553,7 @@ fi
 %ifarch ppc
   CC=`pwd`/../usr/bin/gcc
   export PATH=`pwd`/../usr/bin:$PATH
+  export LD_LIBRARY_PATH=`pwd`/../usr/lib
 %endif
 OPT_FLAGS=`echo "$OPT_FLAGS" | sed -e 's/[[:blank:]]\+/ /g'`
 case "$OPT_FLAGS" in
