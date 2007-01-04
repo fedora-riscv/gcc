@@ -1,10 +1,11 @@
+ExclusiveArch: ppc
 %define DATE 20070102
 %define gcc_version 4.1.1
-%define gcc_release 50
+%define gcc_release 50.ada
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
-%ifarch %{ix86} x86_64 ia64
+%ifarch %{ix86} x86_64 ia64 ppc
 %define build_ada 1
 %else
 %define build_ada 0
@@ -58,7 +59,11 @@ BuildRequires: /lib/libc.so.6 /usr/lib/libc.so /lib64/libc.so.6 /usr/lib64/libc.
 %endif
 %if %{build_ada}
 # Ada requires Ada to build
+%ifarch ppc
+Source4: gcc-gnat-4.1.1-47.ppc.tar.gz
+%else
 BuildRequires: gcc-gnat >= 3.1, libgnat >= 3.1
+%endif
 %endif
 %ifarch ia64
 BuildRequires: libunwind >= 0.98
@@ -506,6 +511,9 @@ if [ -d libstdc++-v3/config/abi/sparc64-linux-gnu ]; then
   rm -rf libstdc++-v3/config/abi/sparc64-linux-gnu/32
 fi
 %endif
+%ifarch ppc
+tar xfz %SOURCE4
+%endif
 
 %build
 
@@ -542,6 +550,10 @@ EOF
   chmod +x gcc64
   CC=`pwd`/gcc64
 fi
+%endif
+%ifarch ppc
+  CC=`pwd`/../usr/bin/gcc
+  export PATH=`pwd`/../usr/bin:$PATH
 %endif
 OPT_FLAGS=`echo "$OPT_FLAGS" | sed -e 's/[[:blank:]]\+/ /g'`
 case "$OPT_FLAGS" in
@@ -1545,6 +1557,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Jan  3 2007 Jakub Jelinek <jakub@redhat.com> 4.1.1-50.ada
+- Build with ADA on PowerPC
+
 * Wed Jan  3 2007 Jakub Jelinek <jakub@redhat.com> 4.1.1-50
 - backwards compatibility with old layout of struct _Unwind_Context
   (#220627)
