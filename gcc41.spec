@@ -33,6 +33,7 @@ Source0: gcc-%{version}-%{DATE}.tar.bz2
 Source1: libgcc_post_upgrade.c
 Source2: README.libgcjwebplugin.so
 Source3: protoize.1
+Source4: gcc-gnat-4.1.1-47.ppc.tar.gz
 URL: http://gcc.gnu.org
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 # Need binutils with -pie support >= 2.14.90.0.4-4
@@ -59,9 +60,7 @@ BuildRequires: /lib/libc.so.6 /usr/lib/libc.so /lib64/libc.so.6 /usr/lib64/libc.
 %endif
 %if %{build_ada}
 # Ada requires Ada to build
-%ifarch ppc
-Source4: gcc-gnat-4.1.1-47.ppc.tar.gz
-%else
+%ifnarch ppc
 BuildRequires: gcc-gnat >= 3.1, libgnat >= 3.1
 %endif
 %endif
