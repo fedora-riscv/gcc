@@ -387,6 +387,35 @@ register void *__thread_self __asm ("g7");
 	   : inline_syscall_clobbers, "$20", "$21");		\
 	_sc_ret = _sc_0, _sc_err = _sc_19;			\
 }
+#elif defined __arm__ && defined __ARM_EABI__
+# define INTERNAL_SYSCALL_DECL(err) do { } while (0)
+# define INTERNAL_SYSCALL(name, err, nr, args...)		\
+  ({								\
+	register int _r0 __asm__("r0");				\
+	register int _nr __asm__("r7");				\
+	LOAD_ARGS_##nr(args)					\
+	_nr = __NR_##name;					\
+	asm volatile ("swi\t0\t@ syscall " #name "\n\t"		\
+	: "=r" (_r0)						\
+	: "r" (_nr) ASM_ARGS_##nr				\
+	: "memory");						\
+	_r0; })
+# define INTERNAL_SYSCALL_ERROR_P(val, err) \
+  ((unsigned int) (val) >= 0xfffff001u)
+# define ASM_ARGS_0
+# define ASM_ARGS_1	, "r" (_r0)
+# define ASM_ARGS_2	, "r" (_r0), "r" (_r1)
+# define ASM_ARGS_3	, "r" (_r0), "r" (_r1), "r" (_r2)
+# define LOAD_ARGS_0()
+# define LOAD_ARGS_1(r0)					\
+	_r0 = (int)r0;
+# define LOAD_ARGS_2(r0, r1)					\
+	_r0 = (int)r0;						\
+	register int _r1 __asm__("r1") = (int)r1;
+# define LOAD_ARGS_3(r0, r1, r2)				\
+	_r0 = (int)r0;						\
+	register int _r1 __asm__("r1") = (int)r1;		\
+	register int _r2 __asm__("r2") = (int)r2;
 #endif
 
 int main (int argc, char **argv)

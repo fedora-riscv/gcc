@@ -1,6 +1,6 @@
-%define DATE 20070503
+%define DATE 20070821
 %define gcc_version 4.1.2
-%define gcc_release 12
+%define gcc_release 18
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -25,8 +25,11 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}
-License: GPL
+Release: %{gcc_release}%{?dist}
+# libgcc, libgfortran, libmudflap and crtstuff have an exception which allows
+# linking it into any kind of programs or shared libraries without
+# restrictions.
+License: GPLv2+ and GPLv2+ with exceptions
 Group: Development/Languages
 Source0: gcc-%{version}-%{DATE}.tar.bz2
 Source1: libgcc_post_upgrade.c
@@ -118,35 +121,33 @@ Patch6: gcc41-ada-pr18302.patch
 Patch7: gcc41-ada-tweaks.patch
 Patch8: gcc41-java-slow_pthread_self.patch
 Patch9: gcc41-ppc32-retaddr.patch
-Patch10: gcc41-amdfam10.patch
-Patch11: gcc41-dsohandle.patch
-Patch12: gcc41-rh184446.patch
-Patch13: gcc41-pr20297-test.patch
-Patch14: gcc41-objc-rh185398.patch
-Patch15: gcc41-tests.patch
-Patch16: gcc41-hash-style-gnu.patch
-Patch17: gcc41-java-libdotdotlib.patch
-Patch18: gcc41-pr28709.patch
-Patch19: gcc41-pr28755.patch
-Patch20: gcc41-pr27898.patch
-Patch21: gcc41-pr27567.patch
-Patch22: gcc41-pr29272.patch
-Patch23: gcc41-pr29059.patch
-Patch24: gcc41-strncat-chk.patch
-Patch25: gcc41-pr29299.patch
-Patch26: gcc41-java-bogus-debugline.patch
-Patch27: gcc41-libjava-visibility.patch
-Patch28: gcc41-pr31187.patch
-Patch29: gcc41-dtor-relro.patch
-Patch30: gcc41-rh234515.patch
-Patch31: gcc41-libgomp-ncpus.patch
-Patch32: gcc41-rh236895.patch
-Patch33: gcc41-pr28482.patch
-Patch34: gcc41-rh235008.patch
-Patch35: gcc41-pr31748.patch
-Patch36: gcc41-tls-data-alignment.patch
+Patch10: gcc41-dsohandle.patch
+Patch11: gcc41-rh184446.patch
+Patch12: gcc41-pr20297-test.patch
+Patch13: gcc41-hash-style-gnu.patch
+Patch14: gcc41-java-libdotdotlib.patch
+Patch15: gcc41-pr28755.patch
+Patch16: gcc41-pr27898.patch
+Patch17: gcc41-java-bogus-debugline.patch
+Patch18: gcc41-libjava-visibility.patch
+Patch19: gcc41-pr32139.patch
+Patch20: gcc41-rh236895.patch
+Patch21: gcc41-rh235008.patch
+Patch22: gcc41-build-id.patch
+Patch23: gcc41-pr28690.patch
+Patch24: gcc41-rh247256.patch
+Patch25: gcc41-pr22244.patch
+Patch26: gcc41-pr32678.patch
+Patch27: gcc41-pr32912.patch
+Patch28: gcc41-sparc-niagara.patch
+Patch29: gcc41-ppc-tramp.patch
+Patch30: gcc41-rh253102.patch
 
+# On ARM EABI systems, we do want -gnueabi to be part of the
+# target triple.
+%ifnarch %{arm}
 %define _gnu %{nil}
+%endif
 %ifarch sparc
 %define gcc_target_platform sparc64-%{_vendor}-%{_target_os}
 %endif
@@ -433,33 +434,27 @@ which are required to run programs compiled with the GNAT.
 %patch7 -p0 -b .ada-tweaks~
 %patch8 -p0 -b .java-slow_pthread_self~
 %patch9 -p0 -b .ppc32-retaddr~
-%patch10 -p0 -b .amdfam10~
-%patch11 -p0 -b .dsohandle~
-%patch12 -p0 -b .rh184446~
-%patch13 -p0 -E -b .pr20297-test~
-%patch14 -p0 -b .objc-rh185398~
-%patch15 -p0 -b .tests~
-%patch16 -p0 -b .hash-style-gnu~
-%patch17 -p0 -b .java-libdotdotlib~
-%patch18 -p0 -b .pr28709~
-%patch19 -p0 -b .pr28755~
-%patch20 -p0 -b .pr27898~
-%patch21 -p0 -b .pr27567~
-%patch22 -p0 -b .pr29272~
-%patch23 -p0 -b .pr29059~
-%patch24 -p0 -b .strncat-chk~
-%patch25 -p0 -b .pr29299~
-%patch26 -p0 -b .java-bogus-debugline~
-%patch27 -p0 -b .libjava-visibility~
-%patch28 -p0 -b .pr31187~
-%patch29 -p0 -b .dtor-relro~
-%patch30 -p0 -b .rh234515~
-%patch31 -p0 -b .libgomp-ncpus~
-%patch32 -p0 -b .rh236895~
-%patch33 -p0 -b .pr28482~
-%patch34 -p0 -b .rh235008~
-%patch35 -p0 -b .pr31748~
-%patch36 -p0 -b .tls-data-alignment~
+%patch10 -p0 -b .dsohandle~
+%patch11 -p0 -b .rh184446~
+%patch12 -p0 -E -b .pr20297-test~
+%patch13 -p0 -b .hash-style-gnu~
+%patch14 -p0 -b .java-libdotdotlib~
+%patch15 -p0 -b .pr28755~
+%patch16 -p0 -b .pr27898~
+%patch17 -p0 -b .java-bogus-debugline~
+%patch18 -p0 -b .libjava-visibility~
+%patch19 -p0 -b .pr32139~
+%patch20 -p0 -b .rh236895~
+%patch21 -p0 -b .rh235008~
+#%patch22 -p0 -b .build-id~
+%patch23 -p0 -b .pr28690~
+%patch24 -p0 -b .rh247256~
+%patch25 -p0 -b .pr22244~
+%patch26 -p0 -b .pr32678~
+%patch27 -p0 -b .pr32912~
+%patch28 -p0 -b .sparc-niagara~
+%patch29 -p0 -b .ppc-tramp~
+%patch30 -p0 -b .rh253102~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -751,6 +746,17 @@ EOF
     break
   fi
 done
+
+# Nuke bits/stdc++.h.gch dirs
+# 1) there is no bits/stdc++.h header installed, so when gch file can't be
+#    used, compilation fails
+# 2) sometimes it is hard to match the exact options used for building
+#    libstdc++-v3 or they aren't desirable
+# 3) there are multilib issues, conflicts etc. with this
+# 4) it is huge
+# People can always precompile on their own whatever they want, but
+# shipping this for everybody is unnecessary.
+rm -rf $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/stdc++.h.gch
 
 %ifarch sparc sparc64
 ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
@@ -1583,6 +1589,57 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Aug 27 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-18.fc7
+- update from gcc-4_1-branch (-r124365:127672)
+  - PRs c++/32112, c++/17763, rtl-optimization/32450, target/31331,
+	target/32641, target/32660, tree-optimization/32681,
+	boehm-gc/21940, boehm-gc/21942, target/28307, target/32506,
+	tree-optimization/31966, tree-optimization/32533,
+	inline-asm/32109, rtl-optimization/28011, target/32389,
+	libfortran/31409, libfortran/31880, libfortran/31964,
+	rtl-optimization/31691, target/31022, target/31480, target/31701,
+	target/31876, target/32163, tree-optimization/26998
+- fix ppc32 libgcc.a(tramp.o), so that binaries using trampolines
+  aren't forced to use bss PLT
+- fix a fortran charlen sharing bug (#253102)
+- fix ICE with X|~X or X^~X with vectors (PR middle-end/32912)
+- nuke bits/stdc++.gch directories from libstdc++-devel (#253304)
+- fix fortran Tx format handling (Jerry DeLisle, #252152,
+  PR libgfortran/32678)
+- add support for Sun UltraSPARC T1 chips - -mcpu=niagara (David S. Miller)
+- don't NRV optimize fields inside anonymous unions (PR c++/32992)
+- fortran debuginfo improvements for constant bound arrays (#248541,
+  PR fortran/22244)
+- update License tag
+- backport ARM fixes from trunk (#246800)
+  - PRs middle-end/24998, target/28516, target/30486
+- fix simplify_plus_minus with ppc{,64} power6 tuning (regression from
+  4.1.1-52.el5.2, #247256)
+- fix OpenMP handling of Fortran POINTER non-array vars (PR fortran/32550)
+- gomp update from gcc-4_2-branch (-r125917:125918)
+  - PR middle-end/32362
+- on ppc{,64} when tuning for power6{,x}, try to put the base
+  register as first operand in instructions to improve
+  performance (Peter Bergner, #225425, PR middle-end/28690)
+- on ppc64 emit nop after a call and disallow sibling calls
+  if the target function is not defined in the same object file
+  (David Edelsohn, #245424)
+- gomp parallel sections fix and fix for checking whether combined
+  parallel can be used (PR libgomp/32468)
+- gomp updates from the trunk (-r125541:125542, -r125543:125544) and
+  from gcc-4_2-branch (-r125184:125185)
+  - PRs tree-optimization/31769, c++/32177
+- don't set TREE_READONLY on C++ objects that need runtime initialization
+  (PRs c++/31806, c++/31809)
+- fix computation of common pointer type (PR tree-optimization/32139)
+- precompute const and pure fn calls inside another fn call arguments
+  with accumulating outgoing args
+  (PRs middle-end/32285, tree-optimization/30493)
+- fix handling of RESULT_DECLs in points-to analysis
+  (#243438, PR tree-optimization/32353)
+- work around java.lang.reflect.Modifier.INTERPRETED clash with
+  java.lang.reflect.Modifier.SYNTHETIC (Andrew Haley, #240720)
+
 * Thu May  3 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-12
 - update from gcc-4_1-branch (-r124100:124365)
   - PRs c++/30016, c++/30221, middle-end/30761, target/18989,

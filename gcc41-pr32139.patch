@@ -1,0 +1,58 @@
+2007-06-01  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/32139
+	* c-typeck.c (common_pointer_type): Set TYPE_READONLY
+	and TYPE_VOLATILE on the merged pointed to FUNCTION_TYPE
+	only if both pointed_to_1 and pointed_to_2 are TYPE_READONLY
+	resp. TYPE_VOLATILE.
+
+	* gcc.c-torture/compile/20070531-1.c: New test.
+
+--- gcc/c-typeck.c.jj	2007-04-25 10:13:52.000000000 +0200
++++ gcc/c-typeck.c	2007-06-01 10:51:53.000000000 +0200
+@@ -499,6 +499,7 @@ common_pointer_type (tree t1, tree t2)
+   tree pointed_to_1, mv1;
+   tree pointed_to_2, mv2;
+   tree target;
++  int type_quals;
+ 
+   /* Save time if the two types are the same.  */
+ 
+@@ -526,10 +527,19 @@ common_pointer_type (tree t1, tree t2)
+   if (TREE_CODE (mv2) != ARRAY_TYPE)
+     mv2 = TYPE_MAIN_VARIANT (pointed_to_2);
+   target = composite_type (mv1, mv2);
+-  t1 = build_pointer_type (c_build_qualified_type
+-			   (target,
+-			    TYPE_QUALS (pointed_to_1) |
+-			    TYPE_QUALS (pointed_to_2)));
++  type_quals = TYPE_QUALS (pointed_to_1) | TYPE_QUALS (pointed_to_2);
++  if (TREE_CODE (pointed_to_1) == FUNCTION_TYPE)
++    {
++      /* TYPE_READONLY and TYPE_VOLATILE on FUNCTION_TYPE should be
++	 logically ANDed, not ORed, as if one function is
++	 __attribute__((const)) and the other is not, the common type
++	 must be conservatively not __attribute__((const))
++	 and similarly for __attribute__((noreturn)).  */
++      type_quals &= ~(TYPE_QUAL_CONST | TYPE_QUAL_VOLATILE);
++      type_quals |= (TYPE_QUALS (pointed_to_1) & TYPE_QUALS (pointed_to_2))
++		    & (TYPE_QUAL_CONST | TYPE_QUAL_VOLATILE);
++    }
++  t1 = build_pointer_type (c_build_qualified_type (target, type_quals));
+   return build_type_attribute_variant (t1, attributes);
+ }
+ 
+--- gcc/testsuite/gcc.c-torture/compile/20070531-1.c.jj	2007-05-31 13:47:22.000000000 +0200
++++ gcc/testsuite/gcc.c-torture/compile/20070531-1.c	2007-06-01 10:57:15.000000000 +0200
+@@ -0,0 +1,11 @@
++/* PR tree-optimization/32139 */
++int foo (void);
++int bar (void) __attribute__ ((const));
++
++int
++test (int x)
++{
++  int a = (x == 10000 ? foo : bar) ();
++  int b = (x == 10000 ? foo : bar) ();
++  return a + b;
++}

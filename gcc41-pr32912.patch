@@ -1,0 +1,138 @@
+2007-08-20  Jakub Jelinek  <jakub@redhat.com>
+
+	PR middle-end/32912
+	* fold-const.c (fold_binary): Only optimize X | ~X and X ^ ~X for
+	integral types.
+
+	* gcc.dg/pr32912-1.c: New test.
+	* gcc.dg/pr32912-2.c: New test.
+
+--- gcc/fold-const.c.jj	2007-08-13 15:11:18.000000000 +0200
++++ gcc/fold-const.c	2007-08-20 15:49:05.000000000 +0200
+@@ -8079,6 +8079,7 @@ fold_binary (enum tree_code code, tree t
+ 
+       /* ~X | X is -1.  */
+       if (TREE_CODE (arg0) == BIT_NOT_EXPR
++	  && INTEGRAL_TYPE_P (TREE_TYPE (arg1))
+ 	  && operand_equal_p (TREE_OPERAND (arg0, 0), arg1, 0))
+ 	{
+ 	  t1 = build_int_cst (type, -1);
+@@ -8088,6 +8089,7 @@ fold_binary (enum tree_code code, tree t
+ 
+       /* X | ~X is -1.  */
+       if (TREE_CODE (arg1) == BIT_NOT_EXPR
++	  && INTEGRAL_TYPE_P (TREE_TYPE (arg0))
+ 	  && operand_equal_p (arg0, TREE_OPERAND (arg1, 0), 0))
+ 	{
+ 	  t1 = build_int_cst (type, -1);
+@@ -8175,6 +8177,7 @@ fold_binary (enum tree_code code, tree t
+ 
+       /* ~X ^ X is -1.  */
+       if (TREE_CODE (arg0) == BIT_NOT_EXPR
++	  && INTEGRAL_TYPE_P (TREE_TYPE (arg1))
+ 	  && operand_equal_p (TREE_OPERAND (arg0, 0), arg1, 0))
+ 	{
+ 	  t1 = build_int_cst (type, -1);
+@@ -8184,6 +8187,7 @@ fold_binary (enum tree_code code, tree t
+ 
+       /* X ^ ~X is -1.  */
+       if (TREE_CODE (arg1) == BIT_NOT_EXPR
++	  && INTEGRAL_TYPE_P (TREE_TYPE (arg0))
+ 	  && operand_equal_p (arg0, TREE_OPERAND (arg1, 0), 0))
+ 	{
+ 	  t1 = build_int_cst (type, -1);
+--- gcc/testsuite/gcc.dg/pr32912-1.c.jj	2007-08-20 14:43:05.000000000 +0200
++++ gcc/testsuite/gcc.dg/pr32912-1.c	2007-08-20 14:43:23.000000000 +0200
+@@ -0,0 +1,44 @@
++/* PR middle-end/32912 */
++/* { dg-do run } */
++/* { dg-options "-O2 -w" } */
++
++extern void abort (void);
++
++typedef int __m128i __attribute__ ((__vector_size__ (16)));
++
++__m128i a, b, c, d, e, f;
++
++void
++foo (__m128i x)
++{
++  a = x ^ ~x;
++  b = ~x ^ x;
++  c = x | ~x;
++  d = ~x | x;
++  e = x & ~x;
++  f = ~x & x;
++}
++
++int
++main (void)
++{
++  union { __m128i v; int i[sizeof (__m128i) / sizeof (int)]; } u;
++  int i;
++
++  for (i = 0; i < sizeof (u.i) / sizeof (u.i[0]); i++)
++    u.i[i] = i * 49 - 36;
++  foo (u.v);
++#define check(x, val) \
++  u.v = (x); \
++  for (i = 0; i < sizeof (u.i) / sizeof (u.i[0]); i++) \
++    if (u.i[i] != (val)) \
++      abort ()
++
++  check (a, ~0);
++  check (b, ~0);
++  check (c, ~0);
++  check (d, ~0);
++  check (e, 0);
++  check (f, 0);
++  return 0;
++}
+--- gcc/testsuite/gcc.dg/pr32912-2.c.jj	2007-08-20 15:58:47.000000000 +0200
++++ gcc/testsuite/gcc.dg/pr32912-2.c	2007-08-20 15:55:32.000000000 +0200
+@@ -0,0 +1,45 @@
++/* { dg-do run } */
++/* { dg-options "-O2 -w" } */
++
++extern void abort (void);
++
++typedef int __m128i __attribute__ ((__vector_size__ (16)));
++
++__m128i a, b, c, d, e, f;
++
++__m128i
++foo (void)
++{
++  __m128i x = { 0x11111111, 0x22222222, 0x44444444 };
++  return x;
++}
++
++__m128i
++bar (void)
++{
++  __m128i x = { 0x11111111, 0x22222222, 0x44444444 };
++  return ~x;
++}
++
++int
++main (void)
++{
++  union { __m128i v; int i[sizeof (__m128i) / sizeof (int)]; } u, v;
++  int i;
++
++  u.v = foo ();
++  v.v = bar ();
++  for (i = 0; i < sizeof (u.i) / sizeof (u.i[0]); i++)
++    {
++      if (u.i[i] != ~v.i[i])
++	abort ();
++      if (i < 3)
++	{
++	  if (u.i[i] != (0x11111111 << i))
++	    abort ();
++	}
++      else if (u.i[i])
++	abort ();
++    }
++  return 0;
++}

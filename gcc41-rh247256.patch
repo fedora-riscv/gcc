@@ -1,0 +1,42 @@
+2007-07-10  Jakub Jelinek  <jakub@redhat.com>
+
+	* simplify-rtx.c (simplify_plus_minus_op_data_cmp): If both operands
+	are REGs and TARGET_INDEX_OPERAND_FIRST, sort lower REGNOs first.
+
+	* gcc.dg/20070710-1.c: New test.
+
+--- gcc/simplify-rtx.c.jj	2006-08-11 17:32:05.000000000 +0200
++++ gcc/simplify-rtx.c	2007-07-09 22:53:26.000000000 +0200
+@@ -2608,6 +2608,12 @@ simplify_plus_minus_op_data_cmp (const v
+ 	    - commutative_operand_precedence (d1->op));
+   if (result)
+     return result;
++
++  /* Group together equal REGs to do more simplification.  */
++  if (TARGET_INDEX_OPERAND_FIRST && REG_P (d1->op) && REG_P (d2->op)
++      && REGNO (d1->op) != REGNO (d2->op))
++    return REGNO (d1->op) - REGNO (d2->op);
++
+   return d1->ix - d2->ix;
+ }
+ 
+--- gcc/testsuite/gcc.dg/20070710-1.c.jj	2007-07-10 09:32:43.000000000 +0200
++++ gcc/testsuite/gcc.dg/20070710-1.c	2007-07-10 09:31:39.000000000 +0200
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++/* { dg-options "-O2 -ffast-math" } */
++
++extern float sqrtf (float);
++
++float
++foo (const float *m)
++{
++  float x = m[0] + m[1] + m[2] + 1.0f;
++  float s;
++
++  if (x > 0.001)
++    s = 0.5f / sqrtf (x);
++  else
++    s = 2.0f * sqrtf (1.0f + m[0] - m[1] - m[2]);
++  return s;
++}
