@@ -1,0 +1,608 @@
+2007-08-31  Jakub Jelinek  <jakub@redhat.com>
+
+	* cp-tree.h (cp_disregard_inline_limits): New prototype.
+	* decl.c (cp_disregard_inline_limits): New function.
+	* cp-objcp-common.h
+	(LANG_HOOKS_TREE_INLINING_DISREGARD_INLINE_LIMITS): Define.
+
+2007-08-30  Jakub Jelinek  <jakub@redhat.com>
+
+	* gcc.dg/inline-24.c: New test.
+	* g++.dg/opt/inline11.C: New test.
+
+2007-08-27  Alexandre Oliva  <aoliva@redhat.com>
+
+	* doc/extend.texi (gnu_inline funtion attribute): Document C++
+	behavior.
+
+	* decl.c (GNU_INLINE_P): New.
+	(duplicate_decls): Handle gnu_inline.  Merge attributes and
+	some flags in overriding definitions.
+	(redeclaration_error_message): Handle gnu_inline.
+	(start_preparsed_function): Likewise.
+
+	* g++.dg/ext/gnu-inline-common.h: New.
+	* g++.dg/ext/gnu-inline-global-reject.C: New.
+	* g++.dg/ext/gnu-inline-global.C: New.
+	* g++.dg/ext/gnu-inline-namespace.C: New.
+	* g++.dg/ext/gnu-inline-anon-namespace.C: New.
+	* g++.dg/ext/gnu-inline-class.C: New.
+	* g++.dg/ext/gnu-inline-class-static.C: New.
+	* g++.dg/ext/gnu-inline-template-class.C: New.
+	* g++.dg/ext/gnu-inline-template-func.C: New.
+
+--- gcc/cp/cp-tree.h.jj	2007-08-31 09:47:43.000000000 +0200
++++ gcc/cp/cp-tree.h	2007-08-31 14:09:08.000000000 +0200
+@@ -4417,6 +4417,7 @@ extern linkage_kind decl_linkage		(tree)
+ extern tree cp_walk_subtrees (tree*, int*, walk_tree_fn,
+ 			      void*, struct pointer_set_t*);
+ extern int cp_cannot_inline_tree_fn		(tree*);
++extern int cp_disregard_inline_limits		(tree);
+ extern tree cp_add_pending_fn_decls		(void*,tree);
+ extern int cp_auto_var_in_fn_p			(tree,tree);
+ extern tree fold_if_not_in_template		(tree);
+--- gcc/cp/decl.c.jj	2007-08-31 09:47:43.000000000 +0200
++++ gcc/cp/decl.c	2007-08-31 14:27:12.000000000 +0200
+@@ -1097,6 +1097,10 @@ check_redeclaration_exception_specificat
+     }
+ }
+ 
++#define GNU_INLINE_P(fn) (DECL_DECLARED_INLINE_P (fn)			\
++			  && lookup_attribute ("gnu_inline",		\
++					       DECL_ATTRIBUTES (fn)))
++
+ /* If NEWDECL is a redeclaration of OLDDECL, merge the declarations.
+    If the redeclaration is invalid, a diagnostic is issued, and the
+    error_mark_node is returned.  Otherwise, OLDDECL is returned.
+@@ -1626,19 +1630,45 @@ duplicate_decls (tree newdecl, tree oldd
+ 	= chainon (DECL_TEMPLATE_SPECIALIZATIONS (olddecl),
+ 		   DECL_TEMPLATE_SPECIALIZATIONS (newdecl));
+ 
++      DECL_ATTRIBUTES (old_result)
++	= (*targetm.merge_decl_attributes) (old_result, new_result);
++
+       if (DECL_FUNCTION_TEMPLATE_P (newdecl))
+ 	{
+-	  DECL_INLINE (old_result)
+-	    |= DECL_INLINE (new_result);
+-	  DECL_DECLARED_INLINE_P (old_result)
+-	    |= DECL_DECLARED_INLINE_P (new_result);
+-	  check_redeclaration_exception_specification (newdecl, olddecl);
++	  if (GNU_INLINE_P (old_result) != GNU_INLINE_P (new_result)
++	      && DECL_INITIAL (new_result))
++	    {
++	      if (DECL_INITIAL (old_result))
++		{
++		  DECL_INLINE (old_result) = 0;
++		  DECL_UNINLINABLE (old_result) = 1;
++		}
++	      else
++		{
++		  DECL_INLINE (old_result) = DECL_INLINE (new_result);
++		  DECL_UNINLINABLE (old_result) = DECL_UNINLINABLE (new_result);
++		}
++	      DECL_EXTERNAL (old_result) = DECL_EXTERNAL (new_result);
++	      DECL_NOT_REALLY_EXTERN (old_result)
++		= DECL_NOT_REALLY_EXTERN (new_result);
++	      DECL_INTERFACE_KNOWN (old_result)
++		= DECL_INTERFACE_KNOWN (new_result);
++	      DECL_DECLARED_INLINE_P (old_result)
++		= DECL_DECLARED_INLINE_P (new_result);
++	    }
++	  else
++	    {
++	      DECL_INLINE (old_result)
++		|= DECL_INLINE (new_result);
++	      DECL_DECLARED_INLINE_P (old_result)
++		|= DECL_DECLARED_INLINE_P (new_result);
++	      check_redeclaration_exception_specification (newdecl, olddecl);
++	    }
+ 	}
+ 
+       /* If the new declaration is a definition, update the file and
+ 	 line information on the declaration.  */
+-      if (DECL_INITIAL (old_result) == NULL_TREE
+-	  && DECL_INITIAL (new_result) != NULL_TREE)
++      if (DECL_INITIAL (new_result) != NULL_TREE)
+ 	{
+ 	  DECL_SOURCE_LOCATION (olddecl)
+ 	    = DECL_SOURCE_LOCATION (old_result)
+@@ -1795,9 +1825,29 @@ duplicate_decls (tree newdecl, tree oldd
+   new_template = NULL_TREE;
+   if (DECL_LANG_SPECIFIC (newdecl) && DECL_LANG_SPECIFIC (olddecl))
+     {
+-      DECL_INTERFACE_KNOWN (newdecl) |= DECL_INTERFACE_KNOWN (olddecl);
+-      DECL_NOT_REALLY_EXTERN (newdecl) |= DECL_NOT_REALLY_EXTERN (olddecl);
+-      DECL_COMDAT (newdecl) |= DECL_COMDAT (olddecl);
++      bool old_decl_gnu_inline;
++
++      if ((DECL_INTERFACE_KNOWN (olddecl)
++	   && TREE_CODE (olddecl) == FUNCTION_DECL)
++	  || (TREE_CODE (olddecl) == TEMPLATE_DECL
++	      && TREE_CODE (DECL_TEMPLATE_RESULT (olddecl)) == FUNCTION_DECL))
++	{
++	  tree fn = olddecl;
++
++	  if (TREE_CODE (fn) == TEMPLATE_DECL)
++	    fn = DECL_TEMPLATE_RESULT (olddecl);
++
++	  old_decl_gnu_inline = GNU_INLINE_P (fn) && DECL_INITIAL (fn);
++	}
++      else
++	old_decl_gnu_inline = false;
++
++      if (!old_decl_gnu_inline)
++	{
++	  DECL_INTERFACE_KNOWN (newdecl) |= DECL_INTERFACE_KNOWN (olddecl);
++	  DECL_NOT_REALLY_EXTERN (newdecl) |= DECL_NOT_REALLY_EXTERN (olddecl);
++	  DECL_COMDAT (newdecl) |= DECL_COMDAT (olddecl);
++	}
+       DECL_TEMPLATE_INSTANTIATED (newdecl)
+ 	|= DECL_TEMPLATE_INSTANTIATED (olddecl);
+ 
+@@ -1871,6 +1921,13 @@ duplicate_decls (tree newdecl, tree oldd
+ 	  /* [temp.expl.spec/14] We don't inline explicit specialization
+ 	     just because the primary template says so.  */
+ 	}
++      else if (new_defines_function && DECL_INITIAL (olddecl))
++	{
++	  /* C++ is always in in unit-at-a-time mode, so we never
++	     inline re-defined extern inline functions.  */
++	  DECL_INLINE (newdecl) = 0;
++	  DECL_UNINLINABLE (newdecl) = 1;
++	}
+       else
+ 	{
+ 	  if (DECL_PENDING_INLINE_INFO (newdecl) == 0)
+@@ -2113,9 +2170,25 @@ redeclaration_error_message (tree newdec
+ 	{
+ 	  if (DECL_NAME (olddecl) == NULL_TREE)
+ 	    return "%q#D not declared in class";
+-	  else
++	  else if (!GNU_INLINE_P (olddecl)
++		   || GNU_INLINE_P (newdecl))
+ 	    return "redefinition of %q#D";
+ 	}
++
++      if (DECL_DECLARED_INLINE_P (olddecl) && DECL_DECLARED_INLINE_P (newdecl))
++	{
++	  bool olda = GNU_INLINE_P (olddecl);
++	  bool newa = GNU_INLINE_P (newdecl);
++
++	  if (olda != newa)
++	    {
++	      if (newa)
++		return "%q+D redeclared inline with %<gnu_inline%> attribute";
++	      else
++		return "%q+D redeclared inline without %<gnu_inline%> attribute";
++	    }
++	}
++
+       return 0;
+     }
+   else if (TREE_CODE (newdecl) == TEMPLATE_DECL)
+@@ -2141,9 +2214,24 @@ redeclaration_error_message (tree newdec
+       ot = DECL_TEMPLATE_RESULT (olddecl);
+       if (DECL_TEMPLATE_INFO (ot))
+ 	ot = DECL_TEMPLATE_RESULT (template_for_substitution (ot));
+-      if (DECL_INITIAL (nt) && DECL_INITIAL (ot))
++      if (DECL_INITIAL (nt) && DECL_INITIAL (ot)
++	  && (!GNU_INLINE_P (ot) || GNU_INLINE_P (nt)))
+ 	return "redefinition of %q#D";
+ 
++      if (DECL_DECLARED_INLINE_P (ot) && DECL_DECLARED_INLINE_P (nt))
++	{
++	  bool olda = GNU_INLINE_P (ot);
++	  bool newa = GNU_INLINE_P (nt);
++
++	  if (olda != newa)
++	    {
++	      if (newa)
++		return "%q+D redeclared inline with %<gnu_inline%> attribute";
++	      else
++		return "%q+D redeclared inline without %<gnu_inline%> attribute";
++	    }
++	}
++
+       return NULL;
+     }
+   else if (TREE_CODE (newdecl) == VAR_DECL
+@@ -10447,6 +10535,14 @@ start_preparsed_function (tree decl1, tr
+       && lookup_attribute ("noinline", attrs))
+     warning (0, "inline function %q+D given attribute noinline", decl1);
+ 
++  /* Handle gnu_inline attribute.  */
++  if (GNU_INLINE_P (decl1))
++    {
++      DECL_EXTERNAL (decl1) = 1;
++      DECL_NOT_REALLY_EXTERN (decl1) = 0;
++      DECL_INTERFACE_KNOWN (decl1) = 1;
++    }
++
+   if (DECL_MAYBE_IN_CHARGE_CONSTRUCTOR_P (decl1))
+     /* This is a constructor, we must ensure that any default args
+        introduced by this definition are propagated to the clones
+@@ -10702,8 +10798,9 @@ start_preparsed_function (tree decl1, tr
+   else
+     {
+       /* This is a definition, not a reference.
+-	 So clear DECL_EXTERNAL.  */
+-      DECL_EXTERNAL (decl1) = 0;
++	 So clear DECL_EXTERNAL, unless this is a GNU extern inline.  */
++      if (!GNU_INLINE_P (decl1))
++	DECL_EXTERNAL (decl1) = 0;
+ 
+       if ((DECL_DECLARED_INLINE_P (decl1)
+ 	   || DECL_TEMPLATE_INSTANTIATION (decl1))
+@@ -11698,4 +11795,17 @@ cxx_comdat_group (tree decl)
+   return IDENTIFIER_POINTER (name);
+ }
+ 
++/* We want to inline __gnu_inline__ functions even if this would
++   violate inlining limits.  Some glibc and linux constructs depend on
++   such functions always being inlined when optimizing.  */
++
++int
++cp_disregard_inline_limits (tree fn)
++{
++  if (lookup_attribute ("always_inline", DECL_ATTRIBUTES (fn)) != NULL)
++    return 1;
++
++  return (!flag_really_no_inline && GNU_INLINE_P (fn));
++}
++
+ #include "gt-cp-decl.h"
+--- gcc/cp/cp-objcp-common.h.jj	2007-02-20 22:37:34.000000000 +0100
++++ gcc/cp/cp-objcp-common.h	2007-08-31 13:58:32.000000000 +0200
+@@ -107,6 +107,9 @@ extern tree objcp_tsubst_copy_and_build 
+ #undef LANG_HOOKS_TREE_INLINING_CANNOT_INLINE_TREE_FN
+ #define LANG_HOOKS_TREE_INLINING_CANNOT_INLINE_TREE_FN \
+   cp_cannot_inline_tree_fn
++#undef LANG_HOOKS_TREE_INLINING_DISREGARD_INLINE_LIMITS
++#define LANG_HOOKS_TREE_INLINING_DISREGARD_INLINE_LIMITS \
++  cp_disregard_inline_limits
+ #undef LANG_HOOKS_TREE_INLINING_ADD_PENDING_FN_DECLS
+ #define LANG_HOOKS_TREE_INLINING_ADD_PENDING_FN_DECLS \
+   cp_add_pending_fn_decls
+--- gcc/doc/extend.texi.jj	2007-08-31 09:47:40.000000000 +0200
++++ gcc/doc/extend.texi	2007-08-31 13:00:28.000000000 +0200
+@@ -1587,8 +1587,8 @@ refer to the single copy in the library.
+ definitions of the functions need not be precisely the same, although
+ if they do not have the same effect your program may behave oddly.
+ 
+-If the function is neither @code{extern} nor @code{static}, then the
+-function is compiled as a standalone function, as well as being
++In C, if the function is neither @code{extern} nor @code{static}, then
++the function is compiled as a standalone function, as well as being
+ inlined where possible.
+ 
+ This is how GCC traditionally handled functions declared
+@@ -1606,6 +1606,10 @@ assume that it is always present, whethe
+ In versions prior to 4.3, the only effect of explicitly including it is
+ to disable warnings about using inline functions in C99 mode.
+ 
++In C++, this attribute does not depend on @code{extern} in any way,
++but it still requires the @code{inline} keyword to enable its special
++behavior.
++
+ @cindex @code{flatten} function attribute
+ @item flatten
+ Generally, inlining into a function is limited.  For a function marked with
+--- gcc/testsuite/gcc.dg/inline-24.c.jj	2007-08-31 14:11:45.000000000 +0200
++++ gcc/testsuite/gcc.dg/inline-24.c	2007-08-30 18:43:55.000000000 +0200
+@@ -0,0 +1,28 @@
++/* Verify that gnu_inline inlines disregard inlining limits.  */
++/* { dg-do link } */
++/* { dg-options "-O2" } */
++
++extern int foo (int);
++extern int baz (int);
++
++extern inline __attribute__((gnu_inline))
++int foo (int x)
++{
++  int i;
++  if (!__builtin_constant_p (x))
++    {
++#define B(n) baz (1##n) + baz (2##n) + baz (3##n) \
++	     + baz (4##n) + baz (5##n) + baz (6##n)
++#define C(n) B(1##n) + B(2##n) + B(3##n) + B(4##n) + B(5##n) + B(6##n)
++#define D(n) C(1##n) + C(2##n) + C(3##n) + C(4##n) + C(5##n) + C(6##n)
++      return D(0) + D(1) + D(2) + D(3) + D(4)
++	     + D(5) + D(6) + D(7) + D(8) + D(9);
++    }
++  return 0;
++}
++
++int
++main (void)
++{
++  return foo (0);
++}
+--- gcc/testsuite/g++.dg/opt/inline11.C.jj	2007-08-31 14:12:05.000000000 +0200
++++ gcc/testsuite/g++.dg/opt/inline11.C	2007-08-30 18:43:55.000000000 +0200
+@@ -0,0 +1,28 @@
++/* Verify that gnu_inline inlines disregard inlining limits.  */
++/* { dg-do link } */
++/* { dg-options "-O2" } */
++
++extern int foo (int);
++extern int baz (int);
++
++extern inline __attribute__((gnu_inline))
++int foo (int x)
++{
++  int i;
++  if (!__builtin_constant_p (x))
++    {
++#define B(n) baz (1##n) + baz (2##n) + baz (3##n) \
++	     + baz (4##n) + baz (5##n) + baz (6##n)
++#define C(n) B(1##n) + B(2##n) + B(3##n) + B(4##n) + B(5##n) + B(6##n)
++#define D(n) C(1##n) + C(2##n) + C(3##n) + C(4##n) + C(5##n) + C(6##n)
++      return D(0) + D(1) + D(2) + D(3) + D(4)
++	     + D(5) + D(6) + D(7) + D(8) + D(9);
++    }
++  return 0;
++}
++
++int
++main (void)
++{
++  return foo (0);
++}
+--- gcc/testsuite/g++.dg/ext/gnu-inline-global-reject.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-global-reject.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,55 @@
++/* Test __attribute__((gnu_inline)).
++
++   Check that we reject various forms of duplicate definitions.
++*/
++
++/* { dg-do compile } */
++
++#include "gnu-inline-common.h"
++
++#undef fn
++#define fn pfx(func_decl_inline_before)
++decl(inline, fn) // { dg-error "previous" "" }
++gnuindef(fn, 0) // { dg-error "redeclared" "" }
++
++#undef fn
++#define fn pfx(func_decl_inline_after)
++gnuindef(fn, 0) // { dg-error "previous" "" }
++decl(inline, fn) // { dg-error "redeclared" "" }
++
++#undef fn
++#define fn pfx(func_def_gnuin_redef)
++gnuindef(fn, 0) // { dg-error "previous" "" }
++gnuindef(fn, 1) // { dg-error "redefinition" "" }
++
++#undef fn
++#define fn pfx(func_def_inline_redef)
++def(inline, fn, 0) // { dg-error "previous" "" }
++def(inline, fn, 1) // { dg-error "redefinition" "" }
++
++#undef fn
++#define fn pfx(func_def_inline_after)
++gnuindef(fn, 0) // { dg-error "previous" "" }
++def(inline, fn, 1) // { dg-error "redeclare" "" }
++
++#undef fn
++#define fn pfx(func_def_inline_before)
++def(inline, fn, 0) // { dg-error "previous" "" }
++gnuindef(fn, 1) // { dg-error "redefinition" "" }
++
++#undef fn
++#define fn pfx(func_def_before)
++def(, fn, 0) // { dg-error "previous" "" }
++gnuindef(fn, 1) // { dg-error "redefinition" "" }
++
++#undef fn
++#define fn pfx(func_decl_static_inline_before)
++decl(static inline, fn) // { dg-error "previous" "" }
++gnuindef(fn, 0) // { dg-error "redeclared" "" }
++
++#undef fn
++#define fn pfx(func_def_static_inline_after)
++decl(static, fn)
++gnuindef(fn, 0) // { dg-error "previous" "" }
++decl(static, fn)
++def(static inline, fn, 1) // { dg-error "redeclare" "" }
+--- gcc/testsuite/g++.dg/ext/gnu-inline-template-func.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-template-func.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler-not "func5" } } */
++
++#define defpfx template <typename T>
++
++#include "gnu-inline-global.C"
++
++template int func1<int>(void);
++template int func2<int>(void);
++template int func3<int>(void);
++template int func4<int>(void);
++template int func5<int>(void);
+--- gcc/testsuite/g++.dg/ext/gnu-inline-common.h.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-common.h	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,24 @@
++#ifndef gnu
++# define gnu_inline __attribute__((gnu_inline)) inline
++#endif
++
++#define declspec(spec, name) spec int name (void)
++#ifdef IN_CLASS
++# define decl(spec, name)
++#else
++# define decl(spec, name) defpfx declspec(spec, name);
++#endif
++#define def(spec, name, ret) defpfx declspec(spec, name) { return ret; }
++#define gnuindef(name, ret) def(gnu_inline, name, ret)
++
++#ifndef pfx
++# ifdef IN_CLASS
++#  define pfx(x) IN_CLASS::x
++# else
++#  define pfx(x) x
++# endif
++#endif
++
++#ifndef defpfx
++# define defpfx
++#endif
+--- gcc/testsuite/g++.dg/ext/gnu-inline-anon-namespace.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-anon-namespace.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,11 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler-not "func1" } } */
++/* { dg-final { scan-assembler-not "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler-not "func4" } } */
++/* { dg-final { scan-assembler-not "func5" } } */
++
++namespace {
++#include "gnu-inline-global.C"
++}
+--- gcc/testsuite/g++.dg/ext/gnu-inline-class-static.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-class-static.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,20 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler "func5" } } */
++
++#undef IN_CLASS
++#define IN_CLASS gnu_test_static
++
++struct IN_CLASS {
++  static int func1(void);
++  static int func2(void);
++  static int func3(void);
++  static int func4(void);
++  static int func5(void);
++};
++
++#include "gnu-inline-global.C"
+--- gcc/testsuite/g++.dg/ext/gnu-inline-global.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-global.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,50 @@
++/* Test __attribute__((gnu_inline)).
++
++   Check that __attribute__((gnu_inline)) has no effect, in the
++   absence of extern and/or inline.
++
++   Check that we don't get out-of-line definitions for extern inline
++   gnu_inline functions, regardless of declarations or definitions.
++
++   Check that such functions can be overridden by out-of-line
++   definitions.
++
++ */
++
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler-not "func5" } } */
++
++#include "gnu-inline-common.h"
++
++#undef fn
++#define fn pfx(func1) // must be emitted out-of-line
++gnuindef(fn, 0)
++def(, fn, 2)
++
++#undef fn
++#define fn pfx(func2) // must be emitted out-of-line
++decl(extern, fn)
++gnuindef(fn, 0)
++def(, fn, 2)
++
++#undef fn
++#define fn pfx(func3) // must not be emitted
++decl(extern, fn)
++gnuindef(fn, 0)
++
++#undef fn
++#define fn pfx(func4) // must be emitted out-of-line
++decl(extern, fn)
++gnuindef(fn, 0)
++def(, fn, 1)
++
++#undef fn
++#define fn pfx(func5) // must NOT be emitted, because it's static and unused
++decl(static, fn)
++gnuindef(fn, 0)
++def(, fn, 1)
+--- gcc/testsuite/g++.dg/ext/gnu-inline-template-class.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-template-class.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,22 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler "func5" } } */
++
++template <typename T> struct gnu_test {
++  int func1(void);
++  int func2(void);
++  int func3(void);
++  int func4(void);
++  int func5(void);
++};
++
++#define defpfx template <typename T>
++#define IN_CLASS gnu_test<T>
++
++#include "gnu-inline-global.C"
++
++template struct gnu_test<int>;
+--- gcc/testsuite/g++.dg/ext/gnu-inline-namespace.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-namespace.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,11 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler-not "func5" } } */
++
++namespace gnu_test {
++#include "gnu-inline-global.C"
++}
+--- gcc/testsuite/g++.dg/ext/gnu-inline-class.C.jj	2007-08-31 13:00:28.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/gnu-inline-class.C	2007-08-31 13:00:28.000000000 +0200
+@@ -0,0 +1,19 @@
++/* { dg-do compile } */
++/* { dg-options "-O" } */ // such that static functions are optimized out
++/* { dg-final { scan-assembler "func1" } } */
++/* { dg-final { scan-assembler "func2" } } */
++/* { dg-final { scan-assembler-not "func3" } } */
++/* { dg-final { scan-assembler "func4" } } */
++/* { dg-final { scan-assembler "func5" } } */
++
++#define IN_CLASS gnu_test
++
++struct IN_CLASS {
++  int func1(void);
++  int func2(void);
++  int func3(void);
++  int func4(void);
++  int func5(void);
++};
++
++#include "gnu-inline-global.C"

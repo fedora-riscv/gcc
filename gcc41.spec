@@ -1,6 +1,6 @@
 %define DATE 20070821
 %define gcc_version 4.1.2
-%define gcc_release 18
+%define gcc_release 20
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -142,6 +142,9 @@ Patch27: gcc41-pr32912.patch
 Patch28: gcc41-sparc-niagara.patch
 Patch29: gcc41-ppc-tramp.patch
 Patch30: gcc41-rh253102.patch
+Patch31: gcc41-c++-gnu_inline.patch
+Patch32: gcc41-ppc-sync-qihi.patch
+Patch33: gcc41-ppc64-ia64-GNU-stack.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -455,6 +458,9 @@ which are required to run programs compiled with the GNAT.
 %patch28 -p0 -b .sparc-niagara~
 %patch29 -p0 -b .ppc-tramp~
 %patch30 -p0 -b .rh253102~
+%patch31 -p0 -b .c++-gnu_inline~
+%patch32 -p0 -b .ppc-sync-qihi~
+%patch33 -p0 -b .ppc64-ia64-GNU-stack~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -879,7 +885,7 @@ mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgfortran.*a .
 mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgfortranbegin.*a .
 mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libobjc.*a .
 mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgomp.*a .
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libmudflap{,th}.*a .
+mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libmudflap{,th}.*a $FULLLPATH/
 mv -f $RPM_BUILD_ROOT%{_prefix}/include/mf-runtime.h include/
 
 %ifarch sparc ppc
@@ -901,9 +907,12 @@ mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libgfortran.*a 64/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libgfortranbegin.*a 64/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libobjc.*a 64/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libgomp.*a 64/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libmudflap{,th}.*a 64/
 ln -sf lib32/libstdc++.a libstdc++.a
 ln -sf ../lib64/libstdc++.a 64/libstdc++.a
+ln -sf lib32/libmudflap.a libmudflap.a
+ln -sf ../lib64/libmudflap.a 64/libmudflap.a
+ln -sf lib32/libmudflapth.a libmudflapth.a
+ln -sf ../lib64/libmudflapth.a 64/libmudflapth.a
 %endif
 %ifarch %{multilib_64_archs}
 mkdir -p 32
@@ -923,11 +932,14 @@ mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libgfortran.*a 32/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libgfortranbegin.*a 32/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libobjc.*a 32/
 mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libgomp.*a 32/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libmudflap{,th}.*a 32/
 %endif
 %ifarch sparc64 ppc64
 ln -sf ../lib32/libstdc++.a 32/libstdc++.a
 ln -sf lib64/libstdc++.a libstdc++.a
+ln -sf ../lib32/libmudflap.a 32/libmudflap.a
+ln -sf lib64/libmudflap.a libmudflap.a
+ln -sf ../lib32/libmudflapth.a 32/libmudflapth.a
+ln -sf lib64/libmudflapth.a libmudflapth.a
 %if %{build_java}
 ln -sf ../lib32/libgcj_bc.so 32/libgcj_bc.so
 ln -sf lib64/libgcj_bc.so libgcj_bc.so
@@ -935,6 +947,8 @@ ln -sf lib64/libgcj_bc.so libgcj_bc.so
 %else
 %ifarch %{multilib_64_archs}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libstdc++.a 32/libstdc++.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libmudflap.a 32/libmudflap.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libmudflapth.a 32/libmudflapth.a
 %if %{build_java}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libgcj_bc.so 32/libgcj_bc.so
 %endif
@@ -1211,6 +1225,10 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgcc_s.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgomp.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgomp.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflap.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflapth.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflap.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflapth.so
 %endif
 %ifarch %{multilib_64_archs}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32
@@ -1221,6 +1239,16 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libgcc_s.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libgomp.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libgomp.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflap.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflapth.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflap.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflapth.so
+%endif
+%ifarch sparc sparc64 ppc ppc64
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.so
 %endif
 %dir %{_prefix}/libexec/getconf
 %{_prefix}/libexec/getconf/default
@@ -1568,27 +1596,34 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mf-runtime.h
+%ifarch sparc ppc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libmudflap.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libmudflapth.a
+%endif
+%ifarch sparc64 ppc64
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libmudflap.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libmudflapth.a
+%endif
+%ifnarch sparc sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.so
-%ifarch sparc ppc
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflap.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflapth.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflap.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libmudflapth.so
-%endif
-%ifarch %{multilib_64_archs}
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflap.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflapth.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflap.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflapth.so
 %endif
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sat Sep  1 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-20.fc7
+- fix libmudflap-devel multilib conflict on ppc/ppc64 and sparc/sparc64
+  (#270281)
+- backport __attribute__((__gnu_inline__)) support for C++
+- fix ppc/ppc64 __sync_* builtins with aligned 8 or 16-bit values
+- don't set executable flag on .note.GNU-stack on ppc64/ia64 even
+  when trampolines are used - trampolines on those architectures
+  don't need executable stack
+
 * Mon Aug 27 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-18.fc7
 - update from gcc-4_1-branch (-r124365:127672)
   - PRs c++/32112, c++/17763, rtl-optimization/32450, target/31331,
