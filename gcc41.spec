@@ -1,6 +1,6 @@
 %define DATE 20070821
 %define gcc_version 4.1.2
-%define gcc_release 20
+%define gcc_release 21
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -145,6 +145,9 @@ Patch30: gcc41-rh253102.patch
 Patch31: gcc41-c++-gnu_inline.patch
 Patch32: gcc41-ppc-sync-qihi.patch
 Patch33: gcc41-ppc64-ia64-GNU-stack.patch
+Patch34: gcc41-builtin-chk-anticipated.patch
+Patch35: gcc41-builtin-throw.patch
+Patch36: gcc41-builtin-va-arg-pack.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -461,6 +464,9 @@ which are required to run programs compiled with the GNAT.
 %patch31 -p0 -b .c++-gnu_inline~
 %patch32 -p0 -b .ppc-sync-qihi~
 %patch33 -p0 -b .ppc64-ia64-GNU-stack~
+%patch34 -p0 -b .builtin-chk-anticipated~
+%patch35 -p0 -b .builtin-throw~
+%patch36 -p0 -b .builtin-va-arg-pack~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -1615,6 +1621,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Sep  6 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-21.fc7
+- backport __builtin_va_arg_pack () support
+- make sure __builtin_{,v}{,f}{print,scan}f, __builtin_{,f}printf_unlocked
+  and __builtin___{,v}{,f}printf_chk can throw
+- handle __*_chk builtins without __builtin_ in the name as anticipated in
+  C++
+
 * Sat Sep  1 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-20.fc7
 - fix libmudflap-devel multilib conflict on ppc/ppc64 and sparc/sparc64
   (#270281)
