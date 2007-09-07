@@ -1,6 +1,6 @@
 %define DATE 20070821
 %define gcc_version 4.1.2
-%define gcc_release 21
+%define gcc_release 22
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -1621,6 +1621,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Sep  7 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-22.fc7
+- fix __builtin_va_arg_pack () support for C++
+
 * Thu Sep  6 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-21.fc7
 - backport __builtin_va_arg_pack () support
 - make sure __builtin_{,v}{,f}{print,scan}f, __builtin_{,f}printf_unlocked
