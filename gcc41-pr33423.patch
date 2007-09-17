@@ -1,0 +1,61 @@
+2007-09-15  Jakub Jelinek  <jakub@redhat.com>
+
+	PR middle-end/33423
+	* builtins.c (expand_builtin_memory_chk): Handle COMPOUND_EXPRs
+	returned by build_call_expr.
+
+	* gcc.c-torture/compile/20070915-1.c: New test.
+
+--- gcc/builtins.c.jj	2007-09-14 21:07:41.000000000 +0200
++++ gcc/builtins.c	2007-09-16 22:31:40.000000000 +0200
+@@ -10383,6 +10383,13 @@ expand_builtin_memory_chk (tree exp, rtx
+ 	return 0;
+ 
+       fn = build_function_call_expr (fn, arglist);
++      STRIP_TYPE_NOPS (fn);
++      while (TREE_CODE (fn) == COMPOUND_EXPR)
++	{
++	  expand_expr (TREE_OPERAND (fn, 0), const0_rtx, VOIDmode,
++		       EXPAND_NORMAL);
++	  fn = TREE_OPERAND (fn, 1);
++	}
+       if (TREE_CODE (fn) == CALL_EXPR)
+ 	CALL_EXPR_TAILCALL (fn) = CALL_EXPR_TAILCALL (exp);
+       return expand_expr (fn, target, mode, EXPAND_NORMAL);
+@@ -10432,6 +10439,13 @@ expand_builtin_memory_chk (tree exp, rtx
+ 	      if (!fn)
+ 		return 0;
+ 	      fn = build_function_call_expr (fn, arglist);
++	      STRIP_TYPE_NOPS (fn);
++	      while (TREE_CODE (fn) == COMPOUND_EXPR)
++		{
++		  expand_expr (TREE_OPERAND (fn, 0), const0_rtx, VOIDmode,
++			       EXPAND_NORMAL);
++		  fn = TREE_OPERAND (fn, 1);
++		}
+ 	      if (TREE_CODE (fn) == CALL_EXPR)
+ 		CALL_EXPR_TAILCALL (fn) = CALL_EXPR_TAILCALL (exp);
+ 	      return expand_expr (fn, target, mode, EXPAND_NORMAL);
+--- gcc/testsuite/gcc.c-torture/compile/20070915-1.c.jj	2007-09-16 22:29:37.000000000 +0200
++++ gcc/testsuite/gcc.c-torture/compile/20070915-1.c	2007-09-16 22:29:37.000000000 +0200
+@@ -0,0 +1,20 @@
++/* PR middle-end/33423 */
++
++static struct
++{
++  char buf[15];
++} u2;
++
++void
++test6 (void)
++{
++  int len;
++  char *p;
++
++  for (len = 0; len < 2; len++)
++    {
++      p = __builtin___memset_chk (u2.buf, '\0', len, 15);
++      if (p != u2.buf)
++	return;
++    }
++}

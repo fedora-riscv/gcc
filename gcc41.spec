@@ -1,6 +1,6 @@
 %define DATE 20070821
 %define gcc_version 4.1.2
-%define gcc_release 23
+%define gcc_release 24
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -150,6 +150,8 @@ Patch35: gcc41-builtin-throw.patch
 Patch36: gcc41-builtin-va-arg-pack.patch
 Patch37: gcc41-builtin-va-arg-pack-len.patch
 Patch38: gcc41-pr27954.patch
+Patch39: gcc41-pr33423.patch
+Patch40: gcc41-scanf-fmt-check.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -471,6 +473,8 @@ which are required to run programs compiled with the GNAT.
 %patch36 -p0 -b .builtin-va-arg-pack~
 %patch37 -p0 -b .builtin-va-arg-pack-len~
 %patch38 -p0 -b .pr27954~
+%patch39 -p0 -b .pr33423~
+%patch40 -p0 -b .scanf-fmt-check~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -1625,6 +1629,12 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Sep 17 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-24.fc7
+- fix ICE on __builtin_mem*_chk if it couldn't be folded until
+  expand time and at that point it can avoid a call (PR middle-end/33423)
+- handle the upcoming POSIX 'm' *scanf allocation modifier in
+  GCC format checking, fix up some details about %as/%aS/%a[
+
 * Fri Sep 14 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-23.fc7
 - backport __builtin_va_arg_pack_len () support
 - fix Fortran error recovery with DATA (Jerry DeLisle, #281331,
