@@ -1,0 +1,242 @@
+2007-09-24  Keith Seitz  <keiths@redhat.com>
+
+	* include/jvm.h (struct natThread): Add new field 'frame'.
+	* include/java-interp.h (_Jv_Frame): Use _Jv_ThreadStackPeek,
+	_Jv_ThreadStackPop, and _Jv_ThreadStackPush instead of
+	java.lang.Thread.frame.
+	(~_Jv_Frame): Use _Jv_ThreadStackPop.
+	* java/lang/natThread.cc (_Jv_ThreadStackPeek): New function.
+	(_Jv_ThreadStackPush): New function.
+	(_Jv_ThreadStackPop): New function.
+	* java/lang/Thread.java (frame): Remove field to restore
+	C++ ABI compatibility.
+	* gnu/classpath/jdwp/natVMVirtualMachine.cc (getFrames): Use
+	_Jv_ThreadStackPeek.
+	(getFrame): Likewise.
+	* gnu/classpath/jdwp/natVMFrame.cc (getFrameDepth): Likewise.
+	* jvmti.cc (getLocalFrame): Likewise.
+	(_Jv_JVMTI_GetFrameCount): Likewise.
+	(_Jv_JVMTI_GetThreadState): Likewise.
+	(_Jv_JVMTI_GetStackTrace): Likewise.
+	* interpret.cc (_Jv_ReportJVMTIExceptionThrow): Likewise.
+	* headers.txt (java/lang/Thread.h): Prepend declarations
+	for _Jv_ThreadStackPeek, _Jv_ThreadStackPush, and _Jv_ThreadStackPop.
+	Add as friend functions.
+	* jni.cc (_Jv_JNIMethod::call): Push a frame onto the stack when
+	calling a JNI method.
+
+--- libjava/interpret.cc	(revision 128603)
++++ libjava/interpret.cc	(working copy)
+@@ -1709,7 +1709,7 @@
+ _Jv_ReportJVMTIExceptionThrow (jthrowable ex)
+ {
+   jthread thread = ::java::lang::Thread::currentThread ();
+-  _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++  _Jv_Frame *frame = _Jv_ThreadStackPeek (thread);
+   jmethodID throw_meth = frame->self->get_method ();
+   jlocation throw_loc = -1;
+   if (frame->frame_type == frame_interpreter)
+--- libjava/include/java-interp.h	(revision 128603)
++++ libjava/include/java-interp.h	(working copy)
+@@ -391,14 +391,14 @@
+   {
+     self = s;
+     frame_type = type;
+-    next = (_Jv_Frame *) thr->frame;
+-    thr->frame = (gnu::gcj::RawData *) this;
++    next = _Jv_ThreadStackPeek (thr);
++    _Jv_ThreadStackPush (thr, this);
+     thread = thr;
+   }
+ 
+   ~_Jv_Frame ()
+   {
+-    thread->frame = (gnu::gcj::RawData *) next;
++    _Jv_ThreadStackPop (thread);
+   }
+ 
+   int depth ()
+--- libjava/include/jvm.h	(revision 128603)
++++ libjava/include/jvm.h	(working copy)
+@@ -34,6 +34,8 @@
+ 
+ #include <sysdep/locks.h>
+ 
++class _Jv_Frame;
++
+ /* Macro for possible unused arguments.  */
+ #define MAYBE_UNUSED __attribute__((__unused__))
+ 
+@@ -767,6 +769,12 @@
+ 
+   // Each thread has its own JNI object.
+   _Jv_JNIEnv *jni_env;
++
++  // Describes the topmost frame in the thread's composite
++  // (interp + JNI) stack. Added here to maintain C++ ABI
++  // compatibility with previous versions. Newer versions
++  // of gcj put this in java/lang/Thread.java.
++  _Jv_Frame *frame;
+ };
+ 
+ #endif /* __JAVA_JVM_H__ */
+--- libjava/jni.cc	(revision 128603)
++++ libjava/jni.cc	(working copy)
+@@ -2343,6 +2343,10 @@
+   // Copy over passed-in arguments.
+   memcpy (&real_args[offset], args, _this->args_raw_size);
+ 
++  // Add a frame to the composite (interpreted + JNI) call stack
++  java::lang::Thread *thread = java::lang::Thread::currentThread ();
++  _Jv_NativeFrame nat_frame (_this, thread);
++
+   // The actual call to the JNI function.
+ #if FFI_NATIVE_RAW_API
+   ffi_raw_call (&_this->jni_cif, (void (*)()) _this->function,
+--- libjava/jvmti.cc	(revision 128603)
++++ libjava/jvmti.cc	(working copy)
+@@ -228,7 +228,7 @@
+   THREAD_CHECK_VALID (thread);
+   THREAD_CHECK_IS_ALIVE (thread);
+   
+-  _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++  _Jv_Frame *frame = _Jv_ThreadStackPeek (thread);
+   
+   for (int i = 0; i < depth; i++)
+     {    
+@@ -516,7 +516,7 @@
+   THREAD_CHECK_VALID (thread);
+   THREAD_CHECK_IS_ALIVE (thread);
+    
+-  _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++  _Jv_Frame *frame = _Jv_ThreadStackPeek (thread);
+   (*frame_count) = frame->depth ();
+   return JVMTI_ERROR_NONE;
+ }
+@@ -543,7 +543,7 @@
+       if (thread->isInterrupted ())
+ 	state |= JVMTI_THREAD_STATE_INTERRUPTED;
+ 
+-      _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++      _Jv_Frame *frame = _Jv_ThreadStackPeek (thread);
+       if (frame != NULL && frame->frame_type == frame_native)
+ 	state |= JVMTI_THREAD_STATE_IN_NATIVE;
+ 
+@@ -1273,7 +1273,7 @@
+   ILLEGAL_ARGUMENT (start_depth >= (*frame_count));
+   ILLEGAL_ARGUMENT (start_depth < (-(*frame_count)));
+   
+-  _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++  _Jv_Frame *frame = _Jv_ThreadStackPeek (thread);
+ 
+   // If start_depth is negative use this to determine at what depth to start
+   // the trace by adding it to the length of the call stack.  This allows the
+--- libjava/headers.txt	(revision 128603)
++++ libjava/headers.txt	(working copy)
+@@ -6,6 +6,7 @@
+ 
+ class java/lang/Thread
+ prepend class _Jv_JNIEnv;
++prepend class _Jv_Frame;
+ prepend #define _JV_NOT_OWNER 1
+ prepend #define _JV_INTERRUPTED 2
+ prepend _Jv_JNIEnv * _Jv_GetCurrentJNIEnv ();
+@@ -17,6 +18,9 @@
+ prepend jint _Jv_DetachCurrentThread ();
+ prepend struct _Jv_Thread_t;
+ prepend _Jv_Thread_t* _Jv_ThreadGetData (java::lang::Thread* thread);
++prepend _Jv_Frame *_Jv_ThreadStackPeek (java::lang::Thread *thread);
++prepend void _Jv_ThreadStackPush (java::lang::Thread *thread, _Jv_Frame *frame);
++prepend void _Jv_ThreadStackPop (java::lang::Thread *thread);
+ friend _Jv_JNIEnv * ::_Jv_GetCurrentJNIEnv ();
+ friend void ::_Jv_SetCurrentJNIEnv (_Jv_JNIEnv *env);
+ friend void ::_Jv_ThreadRun (java::lang::Thread* thread);
+@@ -24,6 +28,9 @@
+ friend java::lang::Thread* ::_Jv_AttachCurrentThread (jstring name, java::lang::ThreadGroup* group);
+ friend java::lang::Thread* ::_Jv_AttachCurrentThreadAsDaemon (jstring name, java::lang::ThreadGroup* group);
+ friend jint (::_Jv_DetachCurrentThread) ();
++friend _Jv_Frame *::_Jv_ThreadStackPeek (java::lang::Thread *thread);
++friend void ::_Jv_ThreadStackPush (java::lang::Thread *thread, _Jv_Frame *frame);
++friend void ::_Jv_ThreadStackPop (java::lang::Thread *thread);
+ 
+ class java/lang/String
+ prepend jchar* _Jv_GetStringChars (jstring str);
+--- libjava/gnu/classpath/jdwp/natVMFrame.cc	(revision 128603)
++++ libjava/gnu/classpath/jdwp/natVMFrame.cc	(working copy)
+@@ -181,7 +181,7 @@
+ getFrameDepth (_Jv_Frame *frame)
+ {
+   jint depth = 0;
+-  _Jv_Frame *top_frame = (_Jv_Frame *) frame->thread->frame;
++  _Jv_Frame *top_frame = _Jv_ThreadStackPeek (frame->thread);
+   jint num_frames = VMVirtualMachine::getFrameCount (frame->thread);
+   
+   while (frame != top_frame)
+--- libjava/gnu/classpath/jdwp/natVMVirtualMachine.cc	(revision 128603)
++++ libjava/gnu/classpath/jdwp/natVMVirtualMachine.cc	(working copy)
+@@ -553,7 +553,7 @@
+      
+   frame_list = new ::java::util::ArrayList (num_frames);
+   
+-  _Jv_Frame *vm_frame = reinterpret_cast<_Jv_Frame *> (thread->frame);
++  _Jv_Frame *vm_frame = _Jv_ThreadStackPeek (thread);
+   
+   // Take start frames off the top of the stack
+   while (vm_frame != NULL && start > 0)
+@@ -584,7 +584,7 @@
+ {
+   using namespace gnu::classpath::jdwp::exception;
+   
+-  _Jv_Frame *vm_frame = (_Jv_Frame *) thread->frame;
++  _Jv_Frame *vm_frame = _Jv_ThreadStackPeek (thread);
+   jint depth = 0;
+   _Jv_Frame *frame = reinterpret_cast<_Jv_Frame *> (frameID); 
+   
+--- libjava/java/lang/Thread.java	(revision 128603)
++++ libjava/java/lang/Thread.java	(working copy)
+@@ -186,9 +186,6 @@
+   // This describes the top-most interpreter frame for this thread.
+   RawData interp_frame;
+   
+-  // This describes the top most frame in the composite (interp + JNI) stack
+-  RawData frame;
+-
+   // Current state.
+   volatile int state;
+ 
+--- libjava/java/lang/natThread.cc	(revision 128603)
++++ libjava/java/lang/natThread.cc	(working copy)
+@@ -15,6 +15,7 @@
+ #include <gcj/cni.h>
+ #include <jvm.h>
+ #include <java-threads.h>
++#include <java-interp.h>
+ 
+ #include <gnu/gcj/RawDataManaged.h>
+ #include <java/lang/Thread.h>
+@@ -525,3 +526,25 @@
+ 
+   return 0;
+ }
++
++_Jv_Frame *
++_Jv_ThreadStackPeek (java::lang::Thread *thread)
++{
++  struct natThread *nt = (natThread *) thread->data;
++  return nt->frame;
++}
++
++void
++_Jv_ThreadStackPush (java::lang::Thread *thread, _Jv_Frame *frame)
++{
++  struct natThread *nt = (natThread *) thread->data;
++  nt->frame = frame;
++}
++
++void
++_Jv_ThreadStackPop (java::lang::Thread *thread)
++{
++  struct natThread *nt = (natThread *) thread->data;
++  _Jv_Frame *next = nt->frame->next;
++  nt->frame = next;
++}

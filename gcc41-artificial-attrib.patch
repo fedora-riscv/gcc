@@ -1,0 +1,4198 @@
+2007-09-23  Jakub Jelinek  <jakub@redhat.com>
+
+	* tree.h (block_nonartificial_location): New prototype.
+	* tree.c (block_nonartificial_location): New function.
+	* dwarf2out.c (gen_subprogram_die): Add DW_AT_artificial
+	if artificial attribute is present on abstract inline decl.
+	* c-common.c (handle_artificial_attribute): New function.
+	(c_common_attribute_table): Add artificial attribute.
+	* final.c (override_filename, override_linenum): New variables.
+	(final_scan_insn): For DBX_DEBUG or SDB_DEBUG, set override_filename
+	and override_linenum if inside of a block inlined from
+	__attribute__((__artificial__)) function.
+	(notice_source_line): Honor override_filename and override_linenum.
+	* doc/extend.texi: Document __attribute__((__artificial__)).
+	* config/i386/emmintrin.h: Add __artificial__ attribute to
+	all __always_inline__ functions.
+	* config/i386/mmintrin.h: Likewise.
+	* config/i386/mm3dnow.h: Likewise.
+	* config/i386/pmmintrin.h: Likewise.
+	* config/i386/ammintrin.h: Likewise.
+	* config/i386/xmmintrin.h: Likewise.
+
+--- gcc/doc/extend.texi.jj	2007-09-25 12:23:05.000000000 +0200
++++ gcc/doc/extend.texi	2007-09-25 15:04:15.000000000 +0200
+@@ -1589,7 +1589,8 @@ attributes are currently defined for fun
+ @code{section}, @code{constructor}, @code{destructor}, @code{used},
+ @code{unused}, @code{deprecated}, @code{weak}, @code{malloc},
+ @code{alias}, @code{warn_unused_result}, @code{nonnull},
+-@code{gnu_inline} and @code{externally_visible}.  Several other
++@code{gnu_inline}, @code{externally_visible} and @code{artificial}.
++Several other
+ attributes are defined for functions on particular target systems.  Other
+ attributes, including @code{section} are supported for variables declarations
+ (@pxref{Variable Attributes}) and for types (@pxref{Type Attributes}).
+@@ -1671,6 +1672,14 @@ In C++, this attribute does not depend o
+ but it still requires the @code{inline} keyword to enable its special
+ behavior.
+ 
++@cindex @code{artificial} function attribute
++@item artificial
++This attribute is useful for small inline wrappers which if possible
++should appear during debugging as a unit, depending on the debug
++info format it will either mean marking the function as artificial
++or using the caller location for all instructions within the inlined
++body.
++
+ @cindex @code{flatten} function attribute
+ @item flatten
+ Generally, inlining into a function is limited.  For a function marked with
+--- gcc/tree.c.jj	2007-04-03 13:18:26.000000000 +0200
++++ gcc/tree.c	2007-09-25 15:01:49.000000000 +0200
+@@ -7638,4 +7638,40 @@ empty_body_p (tree stmt)
+   return true;
+ }
+ 
++/* If BLOCK is inlined from an __attribute__((__artificial__))
++   routine, return pointer to location from where it has been
++   called.  */
++location_t *
++block_nonartificial_location (tree block)
++{
++  location_t *ret = NULL;
++
++  while (block && TREE_CODE (block) == BLOCK
++	 && BLOCK_ABSTRACT_ORIGIN (block))
++    {
++      tree ao = BLOCK_ABSTRACT_ORIGIN (block);
++
++      while (TREE_CODE (ao) == BLOCK && BLOCK_ABSTRACT_ORIGIN (ao))
++	ao = BLOCK_ABSTRACT_ORIGIN (ao);
++
++      if (TREE_CODE (ao) == FUNCTION_DECL)
++	{
++	  /* If AO is an artificial inline, point RET to the
++	     call site locus at which it has been inlined and continue
++	     the loop, in case AO's caller is also an artificial
++	     inline.  */
++	  if (DECL_DECLARED_INLINE_P (ao)
++	      && lookup_attribute ("artificial", DECL_ATTRIBUTES (ao)))
++	    ret = &BLOCK_SOURCE_LOCATION (block);
++	  else
++	    break;
++	}
++      else if (TREE_CODE (ao) != BLOCK)
++	break;
++
++      block = BLOCK_SUPERCONTEXT (block);
++    }
++  return ret;
++}
++
+ #include "gt-tree.h"
+--- gcc/tree.h.jj	2007-09-25 12:20:12.000000000 +0200
++++ gcc/tree.h	2007-09-25 15:02:37.000000000 +0200
+@@ -4270,6 +4270,8 @@ extern tree build_addr (tree, tree);
+ extern bool fields_compatible_p (tree, tree);
+ extern tree find_compatible_field (tree, tree);
+ 
++extern location_t *block_nonartificial_location (tree);
++
+ /* In function.c */
+ extern void expand_main_function (void);
+ extern void init_dummy_function_start (void);
+--- gcc/final.c.jj	2007-02-20 22:39:12.000000000 +0100
++++ gcc/final.c	2007-09-25 15:01:49.000000000 +0200
+@@ -141,6 +141,10 @@ static int high_function_linenum;
+ /* Filename of last NOTE.  */
+ static const char *last_filename;
+ 
++/* Override filename and line number.  */
++static const char *override_filename;
++static int override_linenum;
++
+ /* Whether to force emission of a line note before the next insn.  */
+ static bool force_source_line = false;
+   
+@@ -1822,6 +1826,18 @@ final_scan_insn (rtx insn, FILE *file, i
+ 	      /* Mark this block as output.  */
+ 	      TREE_ASM_WRITTEN (NOTE_BLOCK (insn)) = 1;
+ 	    }
++	  if (write_symbols == DBX_DEBUG
++	      || write_symbols == SDB_DEBUG)
++	    {
++	      location_t *locus_ptr
++		= block_nonartificial_location (NOTE_BLOCK (insn));
++
++	      if (locus_ptr != NULL)
++		{
++		  override_filename = LOCATION_FILE (*locus_ptr);
++		  override_linenum = LOCATION_LINE (*locus_ptr);
++		}
++	    }
+ 	  break;
+ 
+ 	case NOTE_INSN_BLOCK_END:
+@@ -1841,6 +1857,24 @@ final_scan_insn (rtx insn, FILE *file, i
+ 
+ 	      (*debug_hooks->end_block) (high_block_linenum, n);
+ 	    }
++	  if (write_symbols == DBX_DEBUG
++	      || write_symbols == SDB_DEBUG)
++	    {
++	      tree outer_block = BLOCK_SUPERCONTEXT (NOTE_BLOCK (insn));
++	      location_t *locus_ptr
++		= block_nonartificial_location (outer_block);
++
++	      if (locus_ptr != NULL)
++		{
++		  override_filename = LOCATION_FILE (*locus_ptr);
++		  override_linenum = LOCATION_LINE (*locus_ptr);
++		}
++	      else
++		{
++		  override_filename = NULL;
++		  override_linenum = 0;
++		}
++	    }
+ 	  break;
+ 
+ 	case NOTE_INSN_DELETED_LABEL:
+@@ -2521,8 +2555,19 @@ final_scan_insn (rtx insn, FILE *file, i
+ static bool
+ notice_source_line (rtx insn)
+ {
+-  const char *filename = insn_file (insn);
+-  int linenum = insn_line (insn);
++  const char *filename;
++  int linenum;
++
++  if (override_filename)
++    {
++      filename = override_filename;
++      linenum = override_linenum;
++    }
++  else
++    {
++      filename = insn_file (insn);
++      linenum = insn_line (insn);
++    }
+ 
+   if (filename
+       && (force_source_line
+--- gcc/dwarf2out.c.jj	2007-04-03 13:13:27.000000000 +0200
++++ gcc/dwarf2out.c	2007-09-25 15:01:49.000000000 +0200
+@@ -11667,6 +11667,10 @@ gen_subprogram_die (tree decl, dw_die_re
+             add_AT_unsigned (subr_die, DW_AT_inline, DW_INL_not_inlined);
+ 	}
+ 
++      if (DECL_DECLARED_INLINE_P (decl)
++	  && lookup_attribute ("artificial", DECL_ATTRIBUTES (decl)))
++	add_AT_flag (subr_die, DW_AT_artificial, 1);
++
+       equate_decl_number_to_die (decl, subr_die);
+     }
+   else if (!DECL_EXTERNAL (decl))
+--- gcc/c-common.c.jj	2007-03-27 15:40:15.000000000 +0200
++++ gcc/c-common.c	2007-09-25 15:01:49.000000000 +0200
+@@ -505,8 +505,8 @@ static tree handle_noreturn_attribute (t
+ static tree handle_noinline_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_always_inline_attribute (tree *, tree, tree, int,
+ 					    bool *);
+-static tree handle_gnu_inline_attribute (tree *, tree, tree, int,
+-					 bool *);
++static tree handle_gnu_inline_attribute (tree *, tree, tree, int, bool *);
++static tree handle_artificial_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_flatten_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_used_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_unused_attribute (tree *, tree, tree, int, bool *);
+@@ -577,6 +577,8 @@ const struct attribute_spec c_common_att
+ 			      handle_always_inline_attribute },
+   { "gnu_inline",             0, 0, true,  false, false,
+ 			      handle_gnu_inline_attribute },
++  { "artificial",             0, 0, true,  false, false,
++			      handle_artificial_attribute },
+   { "flatten",                0, 0, true,  false, false,
+                               handle_flatten_attribute },
+   { "used",                   0, 0, true,  false, false,
+@@ -4180,6 +4182,29 @@ handle_gnu_inline_attribute (tree *node,
+   return NULL_TREE;
+ }
+ 
++/* Handle an "artificial" attribute; arguments as in
++   struct attribute_spec.handler.  */
++
++static tree
++handle_artificial_attribute (tree *node, tree name,
++			     tree ARG_UNUSED (args),
++			     int ARG_UNUSED (flags),
++			     bool *no_add_attrs)
++{
++  if (TREE_CODE (*node) == FUNCTION_DECL && DECL_DECLARED_INLINE_P (*node))
++    {
++      /* Do nothing else, just set the attribute.  We'll get at
++	 it later with lookup_attribute.  */
++    }
++  else
++    {
++      warning (OPT_Wattributes, "%qE attribute ignored", name);
++      *no_add_attrs = true;
++    }
++
++  return NULL_TREE;
++}
++
+ /* Handle a "flatten" attribute; arguments as in
+    struct attribute_spec.handler.  */
+ 
+--- gcc/config/i386/mmintrin.h.jj	2007-03-27 15:40:18.000000000 +0200
++++ gcc/config/i386/mmintrin.h	2007-09-25 15:06:30.000000000 +0200
+@@ -43,26 +43,26 @@ typedef short __v4hi __attribute__ ((__v
+ typedef char __v8qi __attribute__ ((__vector_size__ (8)));
+ 
+ /* Empty the multimedia state.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_empty (void)
+ {
+   __builtin_ia32_emms ();
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _m_empty (void)
+ {
+   _mm_empty ();
+ }
+ 
+ /* Convert I to a __m64 object.  The integer is zero-extended to 64-bits.  */
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi32_si64 (int __i)
+ {
+   return (__m64) __builtin_ia32_vec_init_v2si (__i, 0);
+ }
+ 
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _m_from_int (int __i)
+ {
+   return _mm_cvtsi32_si64 (__i);
+@@ -72,26 +72,26 @@ _m_from_int (int __i)
+ /* Convert I to a __m64 object.  */
+ 
+ /* Intel intrinsic.  */
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _m_from_int64 (long long __i)
+ {
+   return (__m64) __i;
+ }
+ 
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_m64 (long long __i)
+ {
+   return (__m64) __i;
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64x_si64 (long long __i)
+ {
+   return (__m64) __i;
+ }
+ 
+-static __inline __m64  __attribute__((__always_inline__))
++static __inline __m64  __attribute__((__always_inline__, __artificial__))
+ _mm_set_pi64x (long long __i)
+ {
+   return (__m64) __i;
+@@ -99,13 +99,13 @@ _mm_set_pi64x (long long __i)
+ #endif
+ 
+ /* Convert the lower 32 bits of the __m64 object into an integer.  */
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_si32 (__m64 __i)
+ {
+   return __builtin_ia32_vec_ext_v2si ((__v2si)__i, 0);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _m_to_int (__m64 __i)
+ {
+   return _mm_cvtsi64_si32 (__i);
+@@ -115,20 +115,20 @@ _m_to_int (__m64 __i)
+ /* Convert the __m64 object to a 64bit integer.  */
+ 
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _m_to_int64 (__m64 __i)
+ {
+   return (long long)__i;
+ }
+ 
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtm64_si64 (__m64 __i)
+ {
+   return (long long)__i;
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_si64x (__m64 __i)
+ {
+   return (long long)__i;
+@@ -138,13 +138,13 @@ _mm_cvtsi64_si64x (__m64 __i)
+ /* Pack the four 16-bit values from M1 into the lower four 8-bit values of
+    the result, and the four 16-bit values from M2 into the upper four 8-bit
+    values of the result, all with signed saturation.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_packs_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_packsswb ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_packsswb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_packs_pi16 (__m1, __m2);
+@@ -153,13 +153,13 @@ _m_packsswb (__m64 __m1, __m64 __m2)
+ /* Pack the two 32-bit values from M1 in to the lower two 16-bit values of
+    the result, and the two 32-bit values from M2 into the upper two 16-bit
+    values of the result, all with signed saturation.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_packs_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_packssdw ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_packssdw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_packs_pi32 (__m1, __m2);
+@@ -168,13 +168,13 @@ _m_packssdw (__m64 __m1, __m64 __m2)
+ /* Pack the four 16-bit values from M1 into the lower four 8-bit values of
+    the result, and the four 16-bit values from M2 into the upper four 8-bit
+    values of the result, all with unsigned saturation.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_packs_pu16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_packuswb ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_packuswb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_packs_pu16 (__m1, __m2);
+@@ -182,13 +182,13 @@ _m_packuswb (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the four 8-bit values from the high half of M1 with the four
+    8-bit values from the high half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpckhbw ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpckhbw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpackhi_pi8 (__m1, __m2);
+@@ -196,13 +196,13 @@ _m_punpckhbw (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the two 16-bit values from the high half of M1 with the two
+    16-bit values from the high half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpckhwd ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpckhwd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpackhi_pi16 (__m1, __m2);
+@@ -210,13 +210,13 @@ _m_punpckhwd (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the 32-bit value from the high half of M1 with the 32-bit
+    value from the high half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpckhdq ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpckhdq (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpackhi_pi32 (__m1, __m2);
+@@ -224,13 +224,13 @@ _m_punpckhdq (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the four 8-bit values from the low half of M1 with the four
+    8-bit values from the low half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpcklbw ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpcklbw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpacklo_pi8 (__m1, __m2);
+@@ -238,13 +238,13 @@ _m_punpcklbw (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the two 16-bit values from the low half of M1 with the two
+    16-bit values from the low half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpcklwd ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpcklwd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpacklo_pi16 (__m1, __m2);
+@@ -252,59 +252,59 @@ _m_punpcklwd (__m64 __m1, __m64 __m2)
+ 
+ /* Interleave the 32-bit value from the low half of M1 with the 32-bit
+    value from the low half of M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_punpckldq ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_punpckldq (__m64 __m1, __m64 __m2)
+ {
+   return _mm_unpacklo_pi32 (__m1, __m2);
+ }
+ 
+ /* Add the 8-bit values in M1 to the 8-bit values in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_add_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_add_pi8 (__m1, __m2);
+ }
+ 
+ /* Add the 16-bit values in M1 to the 16-bit values in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_add_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_add_pi16 (__m1, __m2);
+ }
+ 
+ /* Add the 32-bit values in M1 to the 32-bit values in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_add_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddd ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_add_pi32 (__m1, __m2);
+ }
+ 
+ /* Add the 64-bit values in M1 to the 64-bit values in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_add_si64 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddq ((long long)__m1, (long long)__m2);
+@@ -312,13 +312,13 @@ _mm_add_si64 (__m64 __m1, __m64 __m2)
+ 
+ /* Add the 8-bit values in M1 to the 8-bit values in M2 using signed
+    saturated arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_adds_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddsb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddsb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_adds_pi8 (__m1, __m2);
+@@ -326,13 +326,13 @@ _m_paddsb (__m64 __m1, __m64 __m2)
+ 
+ /* Add the 16-bit values in M1 to the 16-bit values in M2 using signed
+    saturated arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_adds_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddsw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddsw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_adds_pi16 (__m1, __m2);
+@@ -340,13 +340,13 @@ _m_paddsw (__m64 __m1, __m64 __m2)
+ 
+ /* Add the 8-bit values in M1 to the 8-bit values in M2 using unsigned
+    saturated arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_adds_pu8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddusb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddusb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_adds_pu8 (__m1, __m2);
+@@ -354,59 +354,59 @@ _m_paddusb (__m64 __m1, __m64 __m2)
+ 
+ /* Add the 16-bit values in M1 to the 16-bit values in M2 using unsigned
+    saturated arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_adds_pu16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_paddusw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_paddusw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_adds_pu16 (__m1, __m2);
+ }
+ 
+ /* Subtract the 8-bit values in M2 from the 8-bit values in M1.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_sub_pi8 (__m1, __m2);
+ }
+ 
+ /* Subtract the 16-bit values in M2 from the 16-bit values in M1.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_sub_pi16 (__m1, __m2);
+ }
+ 
+ /* Subtract the 32-bit values in M2 from the 32-bit values in M1.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubd ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_sub_pi32 (__m1, __m2);
+ }
+ 
+ /* Add the 64-bit values in M1 to the 64-bit values in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_si64 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubq ((long long)__m1, (long long)__m2);
+@@ -414,13 +414,13 @@ _mm_sub_si64 (__m64 __m1, __m64 __m2)
+ 
+ /* Subtract the 8-bit values in M2 from the 8-bit values in M1 using signed
+    saturating arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_subs_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubsb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubsb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_subs_pi8 (__m1, __m2);
+@@ -428,13 +428,13 @@ _m_psubsb (__m64 __m1, __m64 __m2)
+ 
+ /* Subtract the 16-bit values in M2 from the 16-bit values in M1 using
+    signed saturating arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_subs_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubsw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubsw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_subs_pi16 (__m1, __m2);
+@@ -442,13 +442,13 @@ _m_psubsw (__m64 __m1, __m64 __m2)
+ 
+ /* Subtract the 8-bit values in M2 from the 8-bit values in M1 using
+    unsigned saturating arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_subs_pu8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubusb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubusb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_subs_pu8 (__m1, __m2);
+@@ -456,13 +456,13 @@ _m_psubusb (__m64 __m1, __m64 __m2)
+ 
+ /* Subtract the 16-bit values in M2 from the 16-bit values in M1 using
+    unsigned saturating arithmetic.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_subs_pu16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_psubusw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psubusw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_subs_pu16 (__m1, __m2);
+@@ -471,13 +471,13 @@ _m_psubusw (__m64 __m1, __m64 __m2)
+ /* Multiply four 16-bit values in M1 by four 16-bit values in M2 producing
+    four 32-bit intermediate results, which are then summed by pairs to
+    produce two 32-bit results.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_madd_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pmaddwd ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmaddwd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_madd_pi16 (__m1, __m2);
+@@ -485,13 +485,13 @@ _m_pmaddwd (__m64 __m1, __m64 __m2)
+ 
+ /* Multiply four signed 16-bit values in M1 by four signed 16-bit values in
+    M2 and produce the high 16 bits of the 32-bit results.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_mulhi_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pmulhw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmulhw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_mulhi_pi16 (__m1, __m2);
+@@ -499,226 +499,226 @@ _m_pmulhw (__m64 __m1, __m64 __m2)
+ 
+ /* Multiply four 16-bit values in M1 by four 16-bit values in M2 and produce
+    the low 16 bits of the results.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_mullo_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pmullw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmullw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_mullo_pi16 (__m1, __m2);
+ }
+ 
+ /* Shift four 16-bit values in M left by COUNT.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sll_pi16 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psllw ((__v4hi)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psllw (__m64 __m, __m64 __count)
+ {
+   return _mm_sll_pi16 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_slli_pi16 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psllw ((__v4hi)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psllwi (__m64 __m, int __count)
+ {
+   return _mm_slli_pi16 (__m, __count);
+ }
+ 
+ /* Shift two 32-bit values in M left by COUNT.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sll_pi32 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_pslld ((__v2si)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pslld (__m64 __m, __m64 __count)
+ {
+   return _mm_sll_pi32 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_slli_pi32 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_pslld ((__v2si)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pslldi (__m64 __m, int __count)
+ {
+   return _mm_slli_pi32 (__m, __count);
+ }
+ 
+ /* Shift the 64-bit value in M left by COUNT.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sll_si64 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psllq ((long long)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psllq (__m64 __m, __m64 __count)
+ {
+   return _mm_sll_si64 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_slli_si64 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psllq ((long long)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psllqi (__m64 __m, int __count)
+ {
+   return _mm_slli_si64 (__m, __count);
+ }
+ 
+ /* Shift four 16-bit values in M right by COUNT; shift in the sign bit.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sra_pi16 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psraw ((__v4hi)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psraw (__m64 __m, __m64 __count)
+ {
+   return _mm_sra_pi16 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srai_pi16 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psraw ((__v4hi)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrawi (__m64 __m, int __count)
+ {
+   return _mm_srai_pi16 (__m, __count);
+ }
+ 
+ /* Shift two 32-bit values in M right by COUNT; shift in the sign bit.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sra_pi32 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psrad ((__v2si)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrad (__m64 __m, __m64 __count)
+ {
+   return _mm_sra_pi32 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srai_pi32 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psrad ((__v2si)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psradi (__m64 __m, int __count)
+ {
+   return _mm_srai_pi32 (__m, __count);
+ }
+ 
+ /* Shift four 16-bit values in M right by COUNT; shift in zeros.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srl_pi16 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psrlw ((__v4hi)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrlw (__m64 __m, __m64 __count)
+ {
+   return _mm_srl_pi16 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srli_pi16 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psrlw ((__v4hi)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrlwi (__m64 __m, int __count)
+ {
+   return _mm_srli_pi16 (__m, __count);
+ }
+ 
+ /* Shift two 32-bit values in M right by COUNT; shift in zeros.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srl_pi32 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psrld ((__v2si)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrld (__m64 __m, __m64 __count)
+ {
+   return _mm_srl_pi32 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srli_pi32 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psrld ((__v2si)__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrldi (__m64 __m, int __count)
+ {
+   return _mm_srli_pi32 (__m, __count);
+ }
+ 
+ /* Shift the 64-bit value in M left by COUNT; shift in zeros.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srl_si64 (__m64 __m, __m64 __count)
+ {
+   return (__m64) __builtin_ia32_psrlq ((long long)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrlq (__m64 __m, __m64 __count)
+ {
+   return _mm_srl_si64 (__m, __count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_srli_si64 (__m64 __m, int __count)
+ {
+   return (__m64) __builtin_ia32_psrlq ((long long)__m, (long long)__count);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psrlqi (__m64 __m, int __count)
+ {
+   return _mm_srli_si64 (__m, __count);
+ }
+ 
+ /* Bit-wise AND the 64-bit values in M1 and M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_and_si64 (__m64 __m1, __m64 __m2)
+ {
+   return __builtin_ia32_pand (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pand (__m64 __m1, __m64 __m2)
+ {
+   return _mm_and_si64 (__m1, __m2);
+@@ -726,39 +726,39 @@ _m_pand (__m64 __m1, __m64 __m2)
+ 
+ /* Bit-wise complement the 64-bit value in M1 and bit-wise AND it with the
+    64-bit value in M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_andnot_si64 (__m64 __m1, __m64 __m2)
+ {
+   return __builtin_ia32_pandn (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pandn (__m64 __m1, __m64 __m2)
+ {
+   return _mm_andnot_si64 (__m1, __m2);
+ }
+ 
+ /* Bit-wise inclusive OR the 64-bit values in M1 and M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_or_si64 (__m64 __m1, __m64 __m2)
+ {
+   return __builtin_ia32_por (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_por (__m64 __m1, __m64 __m2)
+ {
+   return _mm_or_si64 (__m1, __m2);
+ }
+ 
+ /* Bit-wise exclusive OR the 64-bit values in M1 and M2.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_xor_si64 (__m64 __m1, __m64 __m2)
+ {
+   return __builtin_ia32_pxor (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pxor (__m64 __m1, __m64 __m2)
+ {
+   return _mm_xor_si64 (__m1, __m2);
+@@ -766,25 +766,25 @@ _m_pxor (__m64 __m1, __m64 __m2)
+ 
+ /* Compare eight 8-bit values.  The result of the comparison is 0xFF if the
+    test is true and zero if false.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpeqb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpeqb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpeq_pi8 (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_pi8 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpgtb ((__v8qi)__m1, (__v8qi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpgtb (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpgt_pi8 (__m1, __m2);
+@@ -792,25 +792,25 @@ _m_pcmpgtb (__m64 __m1, __m64 __m2)
+ 
+ /* Compare four 16-bit values.  The result of the comparison is 0xFFFF if
+    the test is true and zero if false.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpeqw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpeqw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpeq_pi16 (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_pi16 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpgtw ((__v4hi)__m1, (__v4hi)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpgtw (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpgt_pi16 (__m1, __m2);
+@@ -818,53 +818,53 @@ _m_pcmpgtw (__m64 __m1, __m64 __m2)
+ 
+ /* Compare two 32-bit values.  The result of the comparison is 0xFFFFFFFF if
+    the test is true and zero if false.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpeqd ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpeqd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpeq_pi32 (__m1, __m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_pi32 (__m64 __m1, __m64 __m2)
+ {
+   return (__m64) __builtin_ia32_pcmpgtd ((__v2si)__m1, (__v2si)__m2);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pcmpgtd (__m64 __m1, __m64 __m2)
+ {
+   return _mm_cmpgt_pi32 (__m1, __m2);
+ }
+ 
+ /* Creates a 64-bit zero.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_setzero_si64 (void)
+ {
+   return (__m64)0LL;
+ }
+ 
+ /* Creates a vector of two 32-bit values; I0 is least significant.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set_pi32 (int __i1, int __i0)
+ {
+   return (__m64) __builtin_ia32_vec_init_v2si (__i0, __i1);
+ }
+ 
+ /* Creates a vector of four 16-bit values; W0 is least significant.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set_pi16 (short __w3, short __w2, short __w1, short __w0)
+ {
+   return (__m64) __builtin_ia32_vec_init_v4hi (__w0, __w1, __w2, __w3);
+ }
+ 
+ /* Creates a vector of eight 8-bit values; B0 is least significant.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set_pi8 (char __b7, char __b6, char __b5, char __b4,
+ 	     char __b3, char __b2, char __b1, char __b0)
+ {
+@@ -873,19 +873,19 @@ _mm_set_pi8 (char __b7, char __b6, char 
+ }
+ 
+ /* Similar, but with the arguments in reverse order.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_setr_pi32 (int __i0, int __i1)
+ {
+   return _mm_set_pi32 (__i1, __i0);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_setr_pi16 (short __w0, short __w1, short __w2, short __w3)
+ {
+   return _mm_set_pi16 (__w3, __w2, __w1, __w0);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_setr_pi8 (char __b0, char __b1, char __b2, char __b3,
+ 	      char __b4, char __b5, char __b6, char __b7)
+ {
+@@ -893,21 +893,21 @@ _mm_setr_pi8 (char __b0, char __b1, char
+ }
+ 
+ /* Creates a vector of two 32-bit values, both elements containing I.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set1_pi32 (int __i)
+ {
+   return _mm_set_pi32 (__i, __i);
+ }
+ 
+ /* Creates a vector of four 16-bit values, all elements containing W.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set1_pi16 (short __w)
+ {
+   return _mm_set_pi16 (__w, __w, __w, __w);
+ }
+ 
+ /* Creates a vector of eight 8-bit values, all elements containing B.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_set1_pi8 (char __b)
+ {
+   return _mm_set_pi8 (__b, __b, __b, __b, __b, __b, __b, __b);
+--- gcc/config/i386/pmmintrin.h.jj	2007-06-26 13:38:46.000000000 +0200
++++ gcc/config/i386/pmmintrin.h	2007-09-25 15:01:52.000000000 +0200
+@@ -48,79 +48,79 @@
+ #define _MM_GET_DENORMALS_ZERO_MODE() \
+   (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_addsub_ps (__m128 __X, __m128 __Y)
+ {
+   return (__m128) __builtin_ia32_addsubps ((__v4sf)__X, (__v4sf)__Y);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_hadd_ps (__m128 __X, __m128 __Y)
+ {
+   return (__m128) __builtin_ia32_haddps ((__v4sf)__X, (__v4sf)__Y);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_hsub_ps (__m128 __X, __m128 __Y)
+ {
+   return (__m128) __builtin_ia32_hsubps ((__v4sf)__X, (__v4sf)__Y);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_movehdup_ps (__m128 __X)
+ {
+   return (__m128) __builtin_ia32_movshdup ((__v4sf)__X);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_moveldup_ps (__m128 __X)
+ {
+   return (__m128) __builtin_ia32_movsldup ((__v4sf)__X);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_addsub_pd (__m128d __X, __m128d __Y)
+ {
+   return (__m128d) __builtin_ia32_addsubpd ((__v2df)__X, (__v2df)__Y);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_hadd_pd (__m128d __X, __m128d __Y)
+ {
+   return (__m128d) __builtin_ia32_haddpd ((__v2df)__X, (__v2df)__Y);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_hsub_pd (__m128d __X, __m128d __Y)
+ {
+   return (__m128d) __builtin_ia32_hsubpd ((__v2df)__X, (__v2df)__Y);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_loaddup_pd (double const *__P)
+ {
+   return _mm_load1_pd (__P);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_movedup_pd (__m128d __X)
+ {
+   return _mm_shuffle_pd (__X, __X, _MM_SHUFFLE2 (0,0));
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_lddqu_si128 (__m128i const *__P)
+ {
+   return (__m128i) __builtin_ia32_lddqu ((char const *)__P);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_monitor (void const * __P, unsigned int __E, unsigned int __H)
+ {
+   __builtin_ia32_monitor (__P, __E, __H);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_mwait (unsigned int __E, unsigned int __H)
+ {
+   __builtin_ia32_mwait (__E, __H);
+--- gcc/config/i386/mm3dnow.h.jj	2007-02-20 22:38:59.000000000 +0100
++++ gcc/config/i386/mm3dnow.h	2007-09-25 15:01:52.000000000 +0200
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2004 Free Software Foundation, Inc.
++/* Copyright (C) 2004, 2007 Free Software Foundation, Inc.
+ 
+    This file is part of GCC.
+ 
+--- gcc/config/i386/xmmintrin.h.jj	2007-06-26 13:38:46.000000000 +0200
++++ gcc/config/i386/xmmintrin.h	2007-09-25 15:06:47.000000000 +0200
+@@ -88,7 +88,7 @@ enum _mm_hint
+ #define _MM_FLUSH_ZERO_OFF    0x0000
+ 
+ /* Create a vector of zeros.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_setzero_ps (void)
+ {
+   return __extension__ (__m128){ 0.0f, 0.0f, 0.0f, 0.0f };
+@@ -98,55 +98,55 @@ _mm_setzero_ps (void)
+    floating-point) values of A and B; the upper three SPFP values are
+    passed through from A.  */
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_add_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_addss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_subss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_mul_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_mulss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_div_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_divss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_sqrt_ss (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_sqrtss ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_rcp_ss (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_rcpss ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_rsqrt_ss (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_rsqrtss ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_min_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_minss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_max_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_maxss ((__v4sf)__A, (__v4sf)__B);
+@@ -154,55 +154,55 @@ _mm_max_ss (__m128 __A, __m128 __B)
+ 
+ /* Perform the respective operation on the four SPFP values in A and B.  */
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_add_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_addps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_sub_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_subps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_mul_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_mulps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_div_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_divps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_sqrt_ps (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_sqrtps ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_rcp_ps (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_rcpps ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_rsqrt_ps (__m128 __A)
+ {
+   return (__m128) __builtin_ia32_rsqrtps ((__v4sf)__A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_min_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_minps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_max_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_maxps ((__v4sf)__A, (__v4sf)__B);
+@@ -210,25 +210,25 @@ _mm_max_ps (__m128 __A, __m128 __B)
+ 
+ /* Perform logical bit-wise operations on 128-bit values.  */
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_and_ps (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_andps (__A, __B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_andnot_ps (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_andnps (__A, __B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_or_ps (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_orps (__A, __B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_xor_ps (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_xorps (__A, __B);
+@@ -238,25 +238,25 @@ _mm_xor_ps (__m128 __A, __m128 __B)
+    comparison is true, place a mask of all ones in the result, otherwise a
+    mask of zeros.  The upper three SPFP values are passed through from A.  */
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpeqss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpltss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmple_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpless ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movss ((__v4sf) __A,
+@@ -266,7 +266,7 @@ _mm_cmpgt_ss (__m128 __A, __m128 __B)
+ 								__A));
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpge_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movss ((__v4sf) __A,
+@@ -276,25 +276,25 @@ _mm_cmpge_ss (__m128 __A, __m128 __B)
+ 								__A));
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpneq_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpneqss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnlt_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpnltss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnle_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpnless ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpngt_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movss ((__v4sf) __A,
+@@ -304,7 +304,7 @@ _mm_cmpngt_ss (__m128 __A, __m128 __B)
+ 								 __A));
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnge_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movss ((__v4sf) __A,
+@@ -314,13 +314,13 @@ _mm_cmpnge_ss (__m128 __A, __m128 __B)
+ 								 __A));
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpord_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpordss ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpunord_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpunordss ((__v4sf)__A, (__v4sf)__B);
+@@ -330,73 +330,73 @@ _mm_cmpunord_ss (__m128 __A, __m128 __B)
+    element, if the comparison is true, place a mask of all ones in the
+    result, otherwise a mask of zeros.  */
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpeqps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpltps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmple_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpleps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpgtps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpge_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpgeps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpneq_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpneqps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnlt_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpnltps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnle_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpnleps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpngt_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpngtps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnge_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpngeps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpord_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpordps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cmpunord_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_cmpunordps ((__v4sf)__A, (__v4sf)__B);
+@@ -405,73 +405,73 @@ _mm_cmpunord_ps (__m128 __A, __m128 __B)
+ /* Compare the lower SPFP values of A and B and return 1 if true
+    and 0 if false.  */
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comieq_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comieq ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comilt_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comilt ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comile_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comile ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comigt_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comigt ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comige_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comige ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comineq_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_comineq ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomieq_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomieq ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomilt_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomilt ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomile_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomile ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomigt_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomigt ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomige_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomige ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomineq_ss (__m128 __A, __m128 __B)
+ {
+   return __builtin_ia32_ucomineq ((__v4sf)__A, (__v4sf)__B);
+@@ -479,13 +479,13 @@ _mm_ucomineq_ss (__m128 __A, __m128 __B)
+ 
+ /* Convert the lower SPFP value to a 32-bit integer according to the current
+    rounding mode.  */
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvtss_si32 (__m128 __A)
+ {
+   return __builtin_ia32_cvtss2si ((__v4sf) __A);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvt_ss2si (__m128 __A)
+ {
+   return _mm_cvtss_si32 (__A);
+@@ -496,14 +496,14 @@ _mm_cvt_ss2si (__m128 __A)
+    current rounding mode.  */
+ 
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtss_si64 (__m128 __A)
+ {
+   return __builtin_ia32_cvtss2si64 ((__v4sf) __A);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtss_si64x (__m128 __A)
+ {
+   return __builtin_ia32_cvtss2si64 ((__v4sf) __A);
+@@ -512,26 +512,26 @@ _mm_cvtss_si64x (__m128 __A)
+ 
+ /* Convert the two lower SPFP values to 32-bit integers according to the
+    current rounding mode.  Return the integers in packed form.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtps_pi32 (__m128 __A)
+ {
+   return (__m64) __builtin_ia32_cvtps2pi ((__v4sf) __A);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvt_ps2pi (__m128 __A)
+ {
+   return _mm_cvtps_pi32 (__A);
+ }
+ 
+ /* Truncate the lower SPFP value to a 32-bit integer.  */
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvttss_si32 (__m128 __A)
+ {
+   return __builtin_ia32_cvttss2si ((__v4sf) __A);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvtt_ss2si (__m128 __A)
+ {
+   return _mm_cvttss_si32 (__A);
+@@ -541,14 +541,14 @@ _mm_cvtt_ss2si (__m128 __A)
+ /* Truncate the lower SPFP value to a 32-bit integer.  */
+ 
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvttss_si64 (__m128 __A)
+ {
+   return __builtin_ia32_cvttss2si64 ((__v4sf) __A);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvttss_si64x (__m128 __A)
+ {
+   return __builtin_ia32_cvttss2si64 ((__v4sf) __A);
+@@ -557,26 +557,26 @@ _mm_cvttss_si64x (__m128 __A)
+ 
+ /* Truncate the two lower SPFP values to 32-bit integers.  Return the
+    integers in packed form.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvttps_pi32 (__m128 __A)
+ {
+   return (__m64) __builtin_ia32_cvttps2pi ((__v4sf) __A);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtt_ps2pi (__m128 __A)
+ {
+   return _mm_cvttps_pi32 (__A);
+ }
+ 
+ /* Convert B to a SPFP value and insert it as element zero in A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi32_ss (__m128 __A, int __B)
+ {
+   return (__m128) __builtin_ia32_cvtsi2ss ((__v4sf) __A, __B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvt_si2ss (__m128 __A, int __B)
+ {
+   return _mm_cvtsi32_ss (__A, __B);
+@@ -586,14 +586,14 @@ _mm_cvt_si2ss (__m128 __A, int __B)
+ /* Convert B to a SPFP value and insert it as element zero in A.  */
+ 
+ /* Intel intrinsic.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_ss (__m128 __A, long long __B)
+ {
+   return (__m128) __builtin_ia32_cvtsi642ss ((__v4sf) __A, __B);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64x_ss (__m128 __A, long long __B)
+ {
+   return (__m128) __builtin_ia32_cvtsi642ss ((__v4sf) __A, __B);
+@@ -602,20 +602,20 @@ _mm_cvtsi64x_ss (__m128 __A, long long _
+ 
+ /* Convert the two 32-bit values in B to SPFP form and insert them
+    as the two lower elements in A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpi32_ps (__m128 __A, __m64 __B)
+ {
+   return (__m128) __builtin_ia32_cvtpi2ps ((__v4sf) __A, (__v2si)__B);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvt_pi2ps (__m128 __A, __m64 __B)
+ {
+   return _mm_cvtpi32_ps (__A, __B);
+ }
+ 
+ /* Convert the four signed 16-bit values in A to SPFP form.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpi16_ps (__m64 __A)
+ {
+   __v4hi __sign;
+@@ -641,7 +641,7 @@ _mm_cvtpi16_ps (__m64 __A)
+ }
+ 
+ /* Convert the four unsigned 16-bit values in A to SPFP form.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpu16_ps (__m64 __A)
+ {
+   __v2si __hisi, __losi;
+@@ -661,7 +661,7 @@ _mm_cvtpu16_ps (__m64 __A)
+ }
+ 
+ /* Convert the low four signed 8-bit values in A to SPFP form.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpi8_ps (__m64 __A)
+ {
+   __v8qi __sign;
+@@ -678,7 +678,7 @@ _mm_cvtpi8_ps (__m64 __A)
+ }
+ 
+ /* Convert the low four unsigned 8-bit values in A to SPFP form.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpu8_ps(__m64 __A)
+ {
+   __A = (__m64) __builtin_ia32_punpcklbw ((__v8qi)__A, (__v8qi)0LL);
+@@ -686,7 +686,7 @@ _mm_cvtpu8_ps(__m64 __A)
+ }
+ 
+ /* Convert the four signed 32-bit values in A and B to SPFP form.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpi32x2_ps(__m64 __A, __m64 __B)
+ {
+   __v4sf __zero = (__v4sf) _mm_setzero_ps ();
+@@ -696,7 +696,7 @@ _mm_cvtpi32x2_ps(__m64 __A, __m64 __B)
+ }
+ 
+ /* Convert the four SPFP values in A to four signed 16-bit integers.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtps_pi16(__m128 __A)
+ {
+   __v4sf __hisf = (__v4sf)__A;
+@@ -707,7 +707,7 @@ _mm_cvtps_pi16(__m128 __A)
+ }
+ 
+ /* Convert the four SPFP values in A to four signed 8-bit integers.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtps_pi8(__m128 __A)
+ {
+   __v4hi __tmp = (__v4hi) _mm_cvtps_pi16 (__A);
+@@ -716,7 +716,7 @@ _mm_cvtps_pi8(__m128 __A)
+ 
+ /* Selects four specific SPFP values from A and B based on MASK.  */
+ #if 0
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_shuffle_ps (__m128 __A, __m128 __B, int __mask)
+ {
+   return (__m128) __builtin_ia32_shufps ((__v4sf)__A, (__v4sf)__B, __mask);
+@@ -728,14 +728,14 @@ _mm_shuffle_ps (__m128 __A, __m128 __B, 
+ 
+ 
+ /* Selects and interleaves the upper two SPFP values from A and B.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_unpckhps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+ /* Selects and interleaves the lower two SPFP values from A and B.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_unpcklps ((__v4sf)__A, (__v4sf)__B);
+@@ -743,28 +743,28 @@ _mm_unpacklo_ps (__m128 __A, __m128 __B)
+ 
+ /* Sets the upper two SPFP values with 64-bits of data loaded from P;
+    the lower two values are passed through from A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_loadh_pi (__m128 __A, __m64 const *__P)
+ {
+   return (__m128) __builtin_ia32_loadhps ((__v4sf)__A, (__v2si *)__P);
+ }
+ 
+ /* Stores the upper two SPFP values of A into P.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storeh_pi (__m64 *__P, __m128 __A)
+ {
+   __builtin_ia32_storehps ((__v2si *)__P, (__v4sf)__A);
+ }
+ 
+ /* Moves the upper two values of B into the lower two values of A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_movehl_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movhlps ((__v4sf)__A, (__v4sf)__B);
+ }
+ 
+ /* Moves the lower two values of B into the upper two values of A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_movelh_ps (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movlhps ((__v4sf)__A, (__v4sf)__B);
+@@ -772,146 +772,146 @@ _mm_movelh_ps (__m128 __A, __m128 __B)
+ 
+ /* Sets the lower two SPFP values with 64-bits of data loaded from P;
+    the upper two values are passed through from A.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_loadl_pi (__m128 __A, __m64 const *__P)
+ {
+   return (__m128) __builtin_ia32_loadlps ((__v4sf)__A, (__v2si *)__P);
+ }
+ 
+ /* Stores the lower two SPFP values of A into P.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storel_pi (__m64 *__P, __m128 __A)
+ {
+   __builtin_ia32_storelps ((__v2si *)__P, (__v4sf)__A);
+ }
+ 
+ /* Creates a 4-bit mask from the most significant bits of the SPFP values.  */
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_movemask_ps (__m128 __A)
+ {
+   return __builtin_ia32_movmskps ((__v4sf)__A);
+ }
+ 
+ /* Return the contents of the control register.  */
+-static __inline unsigned int __attribute__((__always_inline__))
++static __inline unsigned int __attribute__((__always_inline__, __artificial__))
+ _mm_getcsr (void)
+ {
+   return __builtin_ia32_stmxcsr ();
+ }
+ 
+ /* Read exception bits from the control register.  */
+-static __inline unsigned int __attribute__((__always_inline__))
++static __inline unsigned int __attribute__((__always_inline__, __artificial__))
+ _MM_GET_EXCEPTION_STATE (void)
+ {
+   return _mm_getcsr() & _MM_EXCEPT_MASK;
+ }
+ 
+-static __inline unsigned int __attribute__((__always_inline__))
++static __inline unsigned int __attribute__((__always_inline__, __artificial__))
+ _MM_GET_EXCEPTION_MASK (void)
+ {
+   return _mm_getcsr() & _MM_MASK_MASK;
+ }
+ 
+-static __inline unsigned int __attribute__((__always_inline__))
++static __inline unsigned int __attribute__((__always_inline__, __artificial__))
+ _MM_GET_ROUNDING_MODE (void)
+ {
+   return _mm_getcsr() & _MM_ROUND_MASK;
+ }
+ 
+-static __inline unsigned int __attribute__((__always_inline__))
++static __inline unsigned int __attribute__((__always_inline__, __artificial__))
+ _MM_GET_FLUSH_ZERO_MODE (void)
+ {
+   return _mm_getcsr() & _MM_FLUSH_ZERO_MASK;
+ }
+ 
+ /* Set the control register to I.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_setcsr (unsigned int __I)
+ {
+   __builtin_ia32_ldmxcsr (__I);
+ }
+ 
+ /* Set exception bits in the control register.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _MM_SET_EXCEPTION_STATE(unsigned int __mask)
+ {
+   _mm_setcsr((_mm_getcsr() & ~_MM_EXCEPT_MASK) | __mask);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _MM_SET_EXCEPTION_MASK (unsigned int __mask)
+ {
+   _mm_setcsr((_mm_getcsr() & ~_MM_MASK_MASK) | __mask);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _MM_SET_ROUNDING_MODE (unsigned int __mode)
+ {
+   _mm_setcsr((_mm_getcsr() & ~_MM_ROUND_MASK) | __mode);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _MM_SET_FLUSH_ZERO_MODE (unsigned int __mode)
+ {
+   _mm_setcsr((_mm_getcsr() & ~_MM_FLUSH_ZERO_MASK) | __mode);
+ }
+ 
+ /* Create a vector with element 0 as F and the rest zero.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_set_ss (float __F)
+ {
+   return __extension__ (__m128)(__v4sf){ __F, 0, 0, 0 };
+ }
+ 
+ /* Create a vector with all four elements equal to F.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_set1_ps (float __F)
+ {
+   return __extension__ (__m128)(__v4sf){ __F, __F, __F, __F };
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_set_ps1 (float __F)
+ {
+   return _mm_set1_ps (__F);
+ }
+ 
+ /* Create a vector with element 0 as *P and the rest zero.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_load_ss (float const *__P)
+ {
+   return _mm_set_ss (*__P);
+ }
+ 
+ /* Create a vector with all four elements equal to *P.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_load1_ps (float const *__P)
+ {
+   return _mm_set1_ps (*__P);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_load_ps1 (float const *__P)
+ {
+   return _mm_load1_ps (__P);
+ }
+ 
+ /* Load four SPFP values from P.  The address must be 16-byte aligned.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_load_ps (float const *__P)
+ {
+   return (__m128) *(__v4sf *)__P;
+ }
+ 
+ /* Load four SPFP values from P.  The address need not be 16-byte aligned.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_loadu_ps (float const *__P)
+ {
+   return (__m128) __builtin_ia32_loadups (__P);
+ }
+ 
+ /* Load four SPFP values in reverse order.  The address must be aligned.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_loadr_ps (float const *__P)
+ {
+   __v4sf __tmp = *(__v4sf *)__P;
+@@ -919,48 +919,48 @@ _mm_loadr_ps (float const *__P)
+ }
+ 
+ /* Create the vector [Z Y X W].  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_set_ps (const float __Z, const float __Y, const float __X, const float __W)
+ {
+   return __extension__ (__m128)(__v4sf){ __W, __X, __Y, __Z };
+ }
+ 
+ /* Create the vector [W X Y Z].  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_setr_ps (float __Z, float __Y, float __X, float __W)
+ {
+   return __extension__ (__m128)(__v4sf){ __Z, __Y, __X, __W };
+ }
+ 
+ /* Stores the lower SPFP value.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_ss (float *__P, __m128 __A)
+ {
+   *__P = __builtin_ia32_vec_ext_v4sf ((__v4sf)__A, 0);
+ }
+ 
+-static __inline float __attribute__((__always_inline__))
++static __inline float __attribute__((__always_inline__, __artificial__))
+ _mm_cvtss_f32 (__m128 __A)
+ {
+   return __builtin_ia32_vec_ext_v4sf ((__v4sf)__A, 0);
+ }
+ 
+ /* Store four SPFP values.  The address must be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_ps (float *__P, __m128 __A)
+ {
+   *(__v4sf *)__P = (__v4sf)__A;
+ }
+ 
+ /* Store four SPFP values.  The address need not be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storeu_ps (float *__P, __m128 __A)
+ {
+   __builtin_ia32_storeups (__P, (__v4sf)__A);
+ }
+ 
+ /* Store the lower SPFP value across four words.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store1_ps (float *__P, __m128 __A)
+ {
+   __v4sf __va = (__v4sf)__A;
+@@ -968,14 +968,14 @@ _mm_store1_ps (float *__P, __m128 __A)
+   _mm_storeu_ps (__P, __tmp);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_ps1 (float *__P, __m128 __A)
+ {
+   _mm_store1_ps (__P, __A);
+ }
+ 
+ /* Store four SPFP values in reverse order.  The address must be aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storer_ps (float *__P, __m128 __A)
+ {
+   __v4sf __va = (__v4sf)__A;
+@@ -984,7 +984,7 @@ _mm_storer_ps (float *__P, __m128 __A)
+ }
+ 
+ /* Sets the low SPFP value of A from the low value of B.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_move_ss (__m128 __A, __m128 __B)
+ {
+   return (__m128) __builtin_ia32_movss ((__v4sf)__A, (__v4sf)__B);
+@@ -992,13 +992,13 @@ _mm_move_ss (__m128 __A, __m128 __B)
+ 
+ /* Extracts one of the four words of A.  The selector N must be immediate.  */
+ #if 0
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_extract_pi16 (__m64 const __A, int const __N)
+ {
+   return __builtin_ia32_vec_ext_v4hi ((__v4hi)__A, __N);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _m_pextrw (__m64 const __A, int const __N)
+ {
+   return _mm_extract_pi16 (__A, __N);
+@@ -1011,13 +1011,13 @@ _m_pextrw (__m64 const __A, int const __
+ /* Inserts word D into one of four words of A.  The selector N must be
+    immediate.  */
+ #if 0
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_insert_pi16 (__m64 const __A, int const __D, int const __N)
+ {
+   return (__m64) __builtin_ia32_vec_set_v4hi ((__v4hi)__A, __D, __N);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pinsrw (__m64 const __A, int const __D, int const __N)
+ {
+   return _mm_insert_pi16 (__A, __D, __N);
+@@ -1029,65 +1029,65 @@ _m_pinsrw (__m64 const __A, int const __
+ #endif
+ 
+ /* Compute the element-wise maximum of signed 16-bit values.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_max_pi16 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pmaxsw ((__v4hi)__A, (__v4hi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmaxsw (__m64 __A, __m64 __B)
+ {
+   return _mm_max_pi16 (__A, __B);
+ }
+ 
+ /* Compute the element-wise maximum of unsigned 8-bit values.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_max_pu8 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pmaxub ((__v8qi)__A, (__v8qi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmaxub (__m64 __A, __m64 __B)
+ {
+   return _mm_max_pu8 (__A, __B);
+ }
+ 
+ /* Compute the element-wise minimum of signed 16-bit values.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_min_pi16 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pminsw ((__v4hi)__A, (__v4hi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pminsw (__m64 __A, __m64 __B)
+ {
+   return _mm_min_pi16 (__A, __B);
+ }
+ 
+ /* Compute the element-wise minimum of unsigned 8-bit values.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_min_pu8 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pminub ((__v8qi)__A, (__v8qi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pminub (__m64 __A, __m64 __B)
+ {
+   return _mm_min_pu8 (__A, __B);
+ }
+ 
+ /* Create an 8-bit mask of the signs of 8-bit values.  */
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_movemask_pi8 (__m64 __A)
+ {
+   return __builtin_ia32_pmovmskb ((__v8qi)__A);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _m_pmovmskb (__m64 __A)
+ {
+   return _mm_movemask_pi8 (__A);
+@@ -1095,13 +1095,13 @@ _m_pmovmskb (__m64 __A)
+ 
+ /* Multiply four unsigned 16-bit values in A by four unsigned 16-bit values
+    in B and produce the high 16 bits of the 32-bit results.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_mulhi_pu16 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pmulhuw ((__v4hi)__A, (__v4hi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pmulhuw (__m64 __A, __m64 __B)
+ {
+   return _mm_mulhi_pu16 (__A, __B);
+@@ -1110,13 +1110,13 @@ _m_pmulhuw (__m64 __A, __m64 __B)
+ /* Return a combination of the four 16-bit values in A.  The selector
+    must be an immediate.  */
+ #if 0
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_shuffle_pi16 (__m64 __A, int __N)
+ {
+   return (__m64) __builtin_ia32_pshufw ((__v4hi)__A, __N);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pshufw (__m64 __A, int __N)
+ {
+   return _mm_shuffle_pi16 (__A, __N);
+@@ -1130,39 +1130,39 @@ _m_pshufw (__m64 __A, int __N)
+ /* Conditionally store byte elements of A into P.  The high bit of each
+    byte in the selector N determines whether the corresponding byte from
+    A is stored.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_maskmove_si64 (__m64 __A, __m64 __N, char *__P)
+ {
+   __builtin_ia32_maskmovq ((__v8qi)__A, (__v8qi)__N, __P);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _m_maskmovq (__m64 __A, __m64 __N, char *__P)
+ {
+   _mm_maskmove_si64 (__A, __N, __P);
+ }
+ 
+ /* Compute the rounded averages of the unsigned 8-bit values in A and B.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_avg_pu8 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pavgb ((__v8qi)__A, (__v8qi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pavgb (__m64 __A, __m64 __B)
+ {
+   return _mm_avg_pu8 (__A, __B);
+ }
+ 
+ /* Compute the rounded averages of the unsigned 16-bit values in A and B.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_avg_pu16 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_pavgw ((__v4hi)__A, (__v4hi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_pavgw (__m64 __A, __m64 __B)
+ {
+   return _mm_avg_pu16 (__A, __B);
+@@ -1171,13 +1171,13 @@ _m_pavgw (__m64 __A, __m64 __B)
+ /* Compute the sum of the absolute differences of the unsigned 8-bit
+    values in A and B.  Return the value in the lower 16-bit word; the
+    upper words are cleared.  */
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_sad_pu8 (__m64 __A, __m64 __B)
+ {
+   return (__m64) __builtin_ia32_psadbw ((__v8qi)__A, (__v8qi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _m_psadbw (__m64 __A, __m64 __B)
+ {
+   return _mm_sad_pu8 (__A, __B);
+@@ -1186,7 +1186,7 @@ _m_psadbw (__m64 __A, __m64 __B)
+ /* Loads one cache line from address P to a location "closer" to the
+    processor.  The selector I specifies the type of prefetch operation.  */
+ #if 0
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_prefetch (void *__P, enum _mm_hint __I)
+ {
+   __builtin_prefetch (__P, 0, __I);
+@@ -1197,14 +1197,14 @@ _mm_prefetch (void *__P, enum _mm_hint _
+ #endif
+ 
+ /* Stores the data in A to the address P without polluting the caches.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_pi (__m64 *__P, __m64 __A)
+ {
+   __builtin_ia32_movntq ((unsigned long long *)__P, (unsigned long long)__A);
+ }
+ 
+ /* Likewise.  The address must be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_ps (float *__P, __m128 __A)
+ {
+   __builtin_ia32_movntps (__P, (__v4sf)__A);
+@@ -1212,7 +1212,7 @@ _mm_stream_ps (float *__P, __m128 __A)
+ 
+ /* Guarantees that every preceding store is globally visible before
+    any subsequent store.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_sfence (void)
+ {
+   __builtin_ia32_sfence ();
+@@ -1221,7 +1221,7 @@ _mm_sfence (void)
+ /* The execution of the next instruction is delayed by an implementation
+    specific amount of time.  The instruction does not modify the
+    architectural state.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_pause (void)
+ {
+   __asm__ __volatile__ ("rep; nop" : : );
+--- gcc/config/i386/ammintrin.h.jj	2007-06-26 13:38:46.000000000 +0200
++++ gcc/config/i386/ammintrin.h	2007-09-25 15:05:56.000000000 +0200
+@@ -37,19 +37,19 @@
+ /* We need definitions from the SSE3, SSE2 and SSE header files*/
+ #include <pmmintrin.h>
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_sd (double * __P, __m128d __Y)
+ {
+   __builtin_ia32_movntsd (__P, (__v2df) __Y);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_ss (float * __P, __m128 __Y)
+ {
+   __builtin_ia32_movntss (__P, (__v4sf) __Y);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_extract_si64 (__m128i __X, __m128i __Y)
+ {
+   return (__m128i) __builtin_ia32_extrq ((__v2di) __X, (__v16qi) __Y);
+@@ -58,7 +58,7 @@ _mm_extract_si64 (__m128i __X, __m128i _
+ #define _mm_extracti_si64(X, I, L) \
+ ((__m128i) __builtin_ia32_extrqi ((__v2di)(X), I, L))
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_insert_si64 (__m128i __X,__m128i __Y)
+ {
+   return (__m128i) __builtin_ia32_insertq ((__v2di)__X, (__v2di)__Y);
+--- gcc/config/i386/emmintrin.h.jj	2007-06-26 13:38:46.000000000 +0200
++++ gcc/config/i386/emmintrin.h	2007-09-25 15:06:19.000000000 +0200
+@@ -54,89 +54,89 @@ typedef double __m128d __attribute__ ((_
+  (((fp1) << 1) | (fp0))
+ 
+ /* Create a vector with element 0 as F and the rest zero.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_set_sd (double __F)
+ {
+   return __extension__ (__m128d){ __F, 0 };
+ }
+ 
+ /* Create a vector with both elements equal to F.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_set1_pd (double __F)
+ {
+   return __extension__ (__m128d){ __F, __F };
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_set_pd1 (double __F)
+ {
+   return _mm_set1_pd (__F);
+ }
+ 
+ /* Create a vector with the lower value X and upper value W.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_set_pd (double __W, double __X)
+ {
+   return __extension__ (__m128d){ __X, __W };
+ }
+ 
+ /* Create a vector with the lower value W and upper value X.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_setr_pd (double __W, double __X)
+ {
+   return __extension__ (__m128d){ __W, __X };
+ }
+ 
+ /* Create a vector of zeros.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_setzero_pd (void)
+ {
+   return __extension__ (__m128d){ 0.0, 0.0 };
+ }
+ 
+ /* Sets the low DPFP value of A from the low value of B.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_move_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d) __builtin_ia32_movsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+ /* Load two DPFP values from P.  The address must be 16-byte aligned.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_load_pd (double const *__P)
+ {
+   return *(__m128d *)__P;
+ }
+ 
+ /* Load two DPFP values from P.  The address need not be 16-byte aligned.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_loadu_pd (double const *__P)
+ {
+   return __builtin_ia32_loadupd (__P);
+ }
+ 
+ /* Create a vector with all two elements equal to *P.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_load1_pd (double const *__P)
+ {
+   return _mm_set1_pd (*__P);
+ }
+ 
+ /* Create a vector with element 0 as *P and the rest zero.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_load_sd (double const *__P)
+ {
+   return _mm_set_sd (*__P);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_load_pd1 (double const *__P)
+ {
+   return _mm_load1_pd (__P);
+ }
+ 
+ /* Load two DPFP values in reverse order.  The address must be aligned.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_loadr_pd (double const *__P)
+ {
+   __m128d __tmp = _mm_load_pd (__P);
+@@ -144,40 +144,40 @@ _mm_loadr_pd (double const *__P)
+ }
+ 
+ /* Store two DPFP values.  The address must be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_pd (double *__P, __m128d __A)
+ {
+   *(__m128d *)__P = __A;
+ }
+ 
+ /* Store two DPFP values.  The address need not be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storeu_pd (double *__P, __m128d __A)
+ {
+   __builtin_ia32_storeupd (__P, __A);
+ }
+ 
+ /* Stores the lower DPFP value.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_sd (double *__P, __m128d __A)
+ {
+   *__P = __builtin_ia32_vec_ext_v2df (__A, 0);
+ }
+ 
+-static __inline double __attribute__((__always_inline__))
++static __inline double __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsd_f64 (__m128d __A)
+ {
+   return __builtin_ia32_vec_ext_v2df (__A, 0);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storel_pd (double *__P, __m128d __A)
+ {
+   _mm_store_sd (__P, __A);
+ }
+ 
+ /* Stores the upper DPFP value.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storeh_pd (double *__P, __m128d __A)
+ {
+   *__P = __builtin_ia32_vec_ext_v2df (__A, 1);
+@@ -185,26 +185,26 @@ _mm_storeh_pd (double *__P, __m128d __A)
+ 
+ /* Store the lower DPFP value across two words.
+    The address must be 16-byte aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store1_pd (double *__P, __m128d __A)
+ {
+   _mm_store_pd (__P, __builtin_ia32_shufpd (__A, __A, _MM_SHUFFLE2 (0,0)));
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_pd1 (double *__P, __m128d __A)
+ {
+   _mm_store1_pd (__P, __A);
+ }
+ 
+ /* Store two DPFP values in reverse order.  The address must be aligned.  */
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storer_pd (double *__P, __m128d __A)
+ {
+   _mm_store_pd (__P, __builtin_ia32_shufpd (__A, __A, _MM_SHUFFLE2 (0,1)));
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi128_si32 (__m128i __A)
+ {
+   return __builtin_ia32_vec_ext_v4si ((__v4si)__A, 0);
+@@ -212,221 +212,221 @@ _mm_cvtsi128_si32 (__m128i __A)
+ 
+ #ifdef __x86_64__
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi128_si64 (__m128i __A)
+ {
+   return __builtin_ia32_vec_ext_v2di ((__v2di)__A, 0);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi128_si64x (__m128i __A)
+ {
+   return __builtin_ia32_vec_ext_v2di ((__v2di)__A, 0);
+ }
+ #endif
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_add_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_addpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_add_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_addsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_sub_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_subpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_sub_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_subsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_mul_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_mulpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_mul_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_mulsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_div_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_divpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_div_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_divsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_sqrt_pd (__m128d __A)
+ {
+   return (__m128d)__builtin_ia32_sqrtpd ((__v2df)__A);
+ }
+ 
+ /* Return pair {sqrt (A[0), B[1]}.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_sqrt_sd (__m128d __A, __m128d __B)
+ {
+   __v2df __tmp = __builtin_ia32_movsd ((__v2df)__A, (__v2df)__B);
+   return (__m128d)__builtin_ia32_sqrtsd ((__v2df)__tmp);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_min_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_minpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_min_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_minsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_max_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_maxpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_max_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_maxsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_and_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_andpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_andnot_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_andnpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_or_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_orpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_xor_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_xorpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpeqpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpltpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmple_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmplepd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpgtpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpge_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpgepd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpneq_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpneqpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnlt_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpnltpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnle_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpnlepd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpngt_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpngtpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnge_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpngepd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpord_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpordpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpunord_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpunordpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpeqsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpltsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmple_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmplesd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d) __builtin_ia32_movsd ((__v2df) __A,
+@@ -436,7 +436,7 @@ _mm_cmpgt_sd (__m128d __A, __m128d __B)
+ 								 __A));
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpge_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d) __builtin_ia32_movsd ((__v2df) __A,
+@@ -446,25 +446,25 @@ _mm_cmpge_sd (__m128d __A, __m128d __B)
+ 								 __A));
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpneq_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpneqsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnlt_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpnltsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnle_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpnlesd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpngt_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d) __builtin_ia32_movsd ((__v2df) __A,
+@@ -474,7 +474,7 @@ _mm_cmpngt_sd (__m128d __A, __m128d __B)
+ 								  __A));
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpnge_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d) __builtin_ia32_movsd ((__v2df) __A,
+@@ -484,85 +484,85 @@ _mm_cmpnge_sd (__m128d __A, __m128d __B)
+ 								  __A));
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpord_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpordsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cmpunord_sd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_cmpunordsd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comieq_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdeq ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comilt_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdlt ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comile_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdle ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comigt_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdgt ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comige_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdge ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_comineq_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_comisdneq ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomieq_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdeq ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomilt_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdlt ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomile_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdle ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomigt_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdgt ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomige_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdge ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_ucomineq_sd (__m128d __A, __m128d __B)
+ {
+   return __builtin_ia32_ucomisdneq ((__v2df)__A, (__v2df)__B);
+@@ -570,25 +570,25 @@ _mm_ucomineq_sd (__m128d __A, __m128d __
+ 
+ /* Create a vector of Qi, where i is the element number.  */
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set_epi64x (long long __q1, long long __q0)
+ {
+   return __extension__ (__m128i)(__v2di){ __q0, __q1 };
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set_epi64 (__m64 __q1,  __m64 __q0)
+ {
+   return _mm_set_epi64x ((long long)__q1, (long long)__q0);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set_epi32 (int __q3, int __q2, int __q1, int __q0)
+ {
+   return __extension__ (__m128i)(__v4si){ __q0, __q1, __q2, __q3 };
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set_epi16 (short __q7, short __q6, short __q5, short __q4,
+ 	       short __q3, short __q2, short __q1, short __q0)
+ {
+@@ -596,7 +596,7 @@ _mm_set_epi16 (short __q7, short __q6, s
+     __q0, __q1, __q2, __q3, __q4, __q5, __q6, __q7 };
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set_epi8 (char __q15, char __q14, char __q13, char __q12,
+ 	      char __q11, char __q10, char __q09, char __q08,
+ 	      char __q07, char __q06, char __q05, char __q04,
+@@ -610,31 +610,31 @@ _mm_set_epi8 (char __q15, char __q14, ch
+ 
+ /* Set all of the elements of the vector to A.  */
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set1_epi64x (long long __A)
+ {
+   return _mm_set_epi64x (__A, __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set1_epi64 (__m64 __A)
+ {
+   return _mm_set_epi64 (__A, __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set1_epi32 (int __A)
+ {
+   return _mm_set_epi32 (__A, __A, __A, __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set1_epi16 (short __A)
+ {
+   return _mm_set_epi16 (__A, __A, __A, __A, __A, __A, __A, __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_set1_epi8 (char __A)
+ {
+   return _mm_set_epi8 (__A, __A, __A, __A, __A, __A, __A, __A,
+@@ -644,26 +644,26 @@ _mm_set1_epi8 (char __A)
+ /* Create a vector of Qi, where i is the element number.
+    The parameter order is reversed from the _mm_set_epi* functions.  */
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_setr_epi64 (__m64 __q0, __m64 __q1)
+ {
+   return _mm_set_epi64 (__q1, __q0);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_setr_epi32 (int __q0, int __q1, int __q2, int __q3)
+ {
+   return _mm_set_epi32 (__q3, __q2, __q1, __q0);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_setr_epi16 (short __q0, short __q1, short __q2, short __q3,
+ 	        short __q4, short __q5, short __q6, short __q7)
+ {
+   return _mm_set_epi16 (__q7, __q6, __q5, __q4, __q3, __q2, __q1, __q0);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_setr_epi8 (char __q00, char __q01, char __q02, char __q03,
+ 	       char __q04, char __q05, char __q06, char __q07,
+ 	       char __q08, char __q09, char __q10, char __q11,
+@@ -675,134 +675,134 @@ _mm_setr_epi8 (char __q00, char __q01, c
+ 
+ /* Create a vector with element 0 as *P and the rest zero.  */
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_load_si128 (__m128i const *__P)
+ {
+   return *__P;
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_loadu_si128 (__m128i const *__P)
+ {
+   return (__m128i) __builtin_ia32_loaddqu ((char const *)__P);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_loadl_epi64 (__m128i const *__P)
+ {
+   return _mm_set_epi64 ((__m64)0LL, *(__m64 *)__P);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_store_si128 (__m128i *__P, __m128i __B)
+ {
+   *__P = __B;
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storeu_si128 (__m128i *__P, __m128i __B)
+ {
+   __builtin_ia32_storedqu ((char *)__P, (__v16qi)__B);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_storel_epi64 (__m128i *__P, __m128i __B)
+ {
+   *(long long *)__P = __builtin_ia32_vec_ext_v2di ((__v2di)__B, 0);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_movepi64_pi64 (__m128i __B)
+ {
+   return (__m64) __builtin_ia32_vec_ext_v2di ((__v2di)__B, 0);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_movpi64_epi64 (__m64 __A)
+ {
+   return _mm_set_epi64 ((__m64)0LL, __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_move_epi64 (__m128i __A)
+ {
+   return _mm_set_epi64 ((__m64)0LL, _mm_movepi64_pi64 (__A));
+ }
+ 
+ /* Create a vector of zeros.  */
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_setzero_si128 (void)
+ {
+   return __extension__ (__m128i)(__v4si){ 0, 0, 0, 0 };
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtepi32_pd (__m128i __A)
+ {
+   return (__m128d)__builtin_ia32_cvtdq2pd ((__v4si) __A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtepi32_ps (__m128i __A)
+ {
+   return (__m128)__builtin_ia32_cvtdq2ps ((__v4si) __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpd_epi32 (__m128d __A)
+ {
+   return (__m128i)__builtin_ia32_cvtpd2dq ((__v2df) __A);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpd_pi32 (__m128d __A)
+ {
+   return (__m64)__builtin_ia32_cvtpd2pi ((__v2df) __A);
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpd_ps (__m128d __A)
+ {
+   return (__m128)__builtin_ia32_cvtpd2ps ((__v2df) __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvttpd_epi32 (__m128d __A)
+ {
+   return (__m128i)__builtin_ia32_cvttpd2dq ((__v2df) __A);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_cvttpd_pi32 (__m128d __A)
+ {
+   return (__m64)__builtin_ia32_cvttpd2pi ((__v2df) __A);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtpi32_pd (__m64 __A)
+ {
+   return (__m128d)__builtin_ia32_cvtpi2pd ((__v2si) __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvtps_epi32 (__m128 __A)
+ {
+   return (__m128i)__builtin_ia32_cvtps2dq ((__v4sf) __A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvttps_epi32 (__m128 __A)
+ {
+   return (__m128i)__builtin_ia32_cvttps2dq ((__v4sf) __A);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtps_pd (__m128 __A)
+ {
+   return (__m128d)__builtin_ia32_cvtps2pd ((__v4sf) __A);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsd_si32 (__m128d __A)
+ {
+   return __builtin_ia32_cvtsd2si ((__v2df) __A);
+@@ -810,21 +810,21 @@ _mm_cvtsd_si32 (__m128d __A)
+ 
+ #ifdef __x86_64__
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsd_si64 (__m128d __A)
+ {
+   return __builtin_ia32_cvtsd2si64 ((__v2df) __A);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsd_si64x (__m128d __A)
+ {
+   return __builtin_ia32_cvtsd2si64 ((__v2df) __A);
+ }
+ #endif
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_cvttsd_si32 (__m128d __A)
+ {
+   return __builtin_ia32_cvttsd2si ((__v2df) __A);
+@@ -832,27 +832,27 @@ _mm_cvttsd_si32 (__m128d __A)
+ 
+ #ifdef __x86_64__
+ /* Intel intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvttsd_si64 (__m128d __A)
+ {
+   return __builtin_ia32_cvttsd2si64 ((__v2df) __A);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline long long __attribute__((__always_inline__))
++static __inline long long __attribute__((__always_inline__, __artificial__))
+ _mm_cvttsd_si64x (__m128d __A)
+ {
+   return __builtin_ia32_cvttsd2si64 ((__v2df) __A);
+ }
+ #endif
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsd_ss (__m128 __A, __m128d __B)
+ {
+   return (__m128)__builtin_ia32_cvtsd2ss ((__v4sf) __A, (__v2df) __B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi32_sd (__m128d __A, int __B)
+ {
+   return (__m128d)__builtin_ia32_cvtsi2sd ((__v2df) __A, __B);
+@@ -860,21 +860,21 @@ _mm_cvtsi32_sd (__m128d __A, int __B)
+ 
+ #ifdef __x86_64__
+ /* Intel intrinsic.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_sd (__m128d __A, long long __B)
+ {
+   return (__m128d)__builtin_ia32_cvtsi642sd ((__v2df) __A, __B);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64x_sd (__m128d __A, long long __B)
+ {
+   return (__m128d)__builtin_ia32_cvtsi642sd ((__v2df) __A, __B);
+ }
+ #endif
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_cvtss_sd (__m128d __A, __m128 __B)
+ {
+   return (__m128d)__builtin_ia32_cvtss2sd ((__v2df) __A, (__v4sf)__B);
+@@ -882,242 +882,242 @@ _mm_cvtss_sd (__m128d __A, __m128 __B)
+ 
+ #define _mm_shuffle_pd(__A, __B, __C) ((__m128d)__builtin_ia32_shufpd ((__v2df)__A, (__v2df)__B, (__C)))
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_unpckhpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_pd (__m128d __A, __m128d __B)
+ {
+   return (__m128d)__builtin_ia32_unpcklpd ((__v2df)__A, (__v2df)__B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_loadh_pd (__m128d __A, double const *__B)
+ {
+   return (__m128d)__builtin_ia32_loadhpd ((__v2df)__A, __B);
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_loadl_pd (__m128d __A, double const *__B)
+ {
+   return (__m128d)__builtin_ia32_loadlpd ((__v2df)__A, __B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_movemask_pd (__m128d __A)
+ {
+   return __builtin_ia32_movmskpd ((__v2df)__A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_packs_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_packsswb128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_packs_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_packssdw128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_packus_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_packuswb128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpckhbw128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpckhwd128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpckhdq128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpackhi_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpckhqdq128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpcklbw128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpcklwd128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpckldq128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_unpacklo_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_punpcklqdq128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_add_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_add_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_add_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddd128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_add_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddq128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_adds_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddsb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_adds_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddsw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_adds_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddusb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_adds_epu16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_paddusw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sub_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sub_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sub_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubd128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sub_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubq128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_subs_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubsb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_subs_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubsw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_subs_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubusb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_subs_epu16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psubusw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_madd_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmaddwd128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_mulhi_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmulhw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_mullo_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmullw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m64 __attribute__((__always_inline__))
++static __inline __m64 __attribute__((__always_inline__, __artificial__))
+ _mm_mul_su32 (__m64 __A, __m64 __B)
+ {
+   return (__m64)__builtin_ia32_pmuludq ((__v2si)__A, (__v2si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_mul_epu32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmuludq128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+ #if 0
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_slli_epi16 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psllwi128 ((__v8hi)__A, __B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_slli_epi32 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_pslldi128 ((__v4si)__A, __B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_slli_epi64 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psllqi128 ((__v2di)__A, __B);
+@@ -1132,13 +1132,13 @@ _mm_slli_epi64 (__m128i __A, int __B)
+ #endif
+ 
+ #if 0
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srai_epi16 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psrawi128 ((__v8hi)__A, __B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srai_epi32 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psradi128 ((__v4si)__A, __B);
+@@ -1151,13 +1151,13 @@ _mm_srai_epi32 (__m128i __A, int __B)
+ #endif
+ 
+ #if 0
+-static __m128i __attribute__((__always_inline__))
++static __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srli_si128 (__m128i __A, int __B)
+ {
+   return ((__m128i)__builtin_ia32_psrldqi128 (__A, __B * 8));
+ }
+ 
+-static __m128i __attribute__((__always_inline__))
++static __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srli_si128 (__m128i __A, int __B)
+ {
+   return ((__m128i)__builtin_ia32_pslldqi128 (__A, __B * 8));
+@@ -1170,19 +1170,19 @@ _mm_srli_si128 (__m128i __A, int __B)
+ #endif
+ 
+ #if 0
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srli_epi16 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psrlwi128 ((__v8hi)__A, __B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srli_epi32 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psrldi128 ((__v4si)__A, __B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srli_epi64 (__m128i __A, int __B)
+ {
+   return (__m128i)__builtin_ia32_psrlqi128 ((__v2di)__A, __B);
+@@ -1196,140 +1196,140 @@ _mm_srli_epi64 (__m128i __A, int __B)
+   ((__m128i)__builtin_ia32_psrlqi128 ((__v4si)(__A), __B))
+ #endif
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sll_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psllw128((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sll_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pslld128((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sll_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psllq128((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sra_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psraw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sra_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psrad128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srl_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psrlw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srl_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psrld128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_srl_epi64 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psrlq128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_and_si128 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pand128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_andnot_si128 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pandn128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_or_si128 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_por128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_xor_si128 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pxor128 ((__v2di)__A, (__v2di)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpeqb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpeqw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpeq_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpeqd128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtb128 ((__v16qi)__B, (__v16qi)__A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtw128 ((__v8hi)__B, (__v8hi)__A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmplt_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtd128 ((__v4si)__B, (__v4si)__A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_epi8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cmpgt_epi32 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pcmpgtd128 ((__v4si)__A, (__v4si)__B);
+ }
+ 
+ #if 0
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_extract_epi16 (__m128i const __A, int const __N)
+ {
+   return __builtin_ia32_vec_ext_v8hi ((__v8hi)__A, __N);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_insert_epi16 (__m128i const __A, int const __D, int const __N)
+ {
+   return (__m128i) __builtin_ia32_vec_set_v8hi ((__v8hi)__A, __D, __N);
+@@ -1341,37 +1341,37 @@ _mm_insert_epi16 (__m128i const __A, int
+   ((__m128i) __builtin_ia32_vec_set_v8hi ((__v8hi)(A), (D), (N)))
+ #endif
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_max_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmaxsw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_max_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmaxub128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_min_epi16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pminsw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_min_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pminub128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline int __attribute__((__always_inline__))
++static __inline int __attribute__((__always_inline__, __artificial__))
+ _mm_movemask_epi8 (__m128i __A)
+ {
+   return __builtin_ia32_pmovmskb128 ((__v16qi)__A);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_mulhi_epu16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pmulhuw128 ((__v8hi)__A, (__v8hi)__B);
+@@ -1381,67 +1381,67 @@ _mm_mulhi_epu16 (__m128i __A, __m128i __
+ #define _mm_shufflelo_epi16(__A, __B) ((__m128i)__builtin_ia32_pshuflw ((__v8hi)__A, __B))
+ #define _mm_shuffle_epi32(__A, __B) ((__m128i)__builtin_ia32_pshufd ((__v4si)__A, __B))
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_maskmoveu_si128 (__m128i __A, __m128i __B, char *__C)
+ {
+   __builtin_ia32_maskmovdqu ((__v16qi)__A, (__v16qi)__B, __C);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_avg_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pavgb128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_avg_epu16 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_pavgw128 ((__v8hi)__A, (__v8hi)__B);
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_sad_epu8 (__m128i __A, __m128i __B)
+ {
+   return (__m128i)__builtin_ia32_psadbw128 ((__v16qi)__A, (__v16qi)__B);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_si32 (int *__A, int __B)
+ {
+   __builtin_ia32_movnti (__A, __B);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_si128 (__m128i *__A, __m128i __B)
+ {
+   __builtin_ia32_movntdq ((__v2di *)__A, (__v2di)__B);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_stream_pd (double *__A, __m128d __B)
+ {
+   __builtin_ia32_movntpd (__A, (__v2df)__B);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_clflush (void const *__A)
+ {
+   __builtin_ia32_clflush (__A);
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_lfence (void)
+ {
+   __builtin_ia32_lfence ();
+ }
+ 
+-static __inline void __attribute__((__always_inline__))
++static __inline void __attribute__((__always_inline__, __artificial__))
+ _mm_mfence (void)
+ {
+   __builtin_ia32_mfence ();
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi32_si128 (int __A)
+ {
+   return _mm_set_epi32 (0, 0, 0, __A);
+@@ -1449,14 +1449,14 @@ _mm_cvtsi32_si128 (int __A)
+ 
+ #ifdef __x86_64__
+ /* Intel intrinsic.  */
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64_si128 (long long __A)
+ {
+   return _mm_set_epi64x (0, __A);
+ }
+ 
+ /* Microsoft intrinsic.  */
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_cvtsi64x_si128 (long long __A)
+ {
+   return _mm_set_epi64x (0, __A);
+@@ -1465,37 +1465,37 @@ _mm_cvtsi64x_si128 (long long __A)
+ 
+ /* Casts between various SP, DP, INT vector types.  Note that these do no
+    conversion of values, they just change the type.  */
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_castpd_ps(__m128d __A)
+ {
+   return (__m128) __A;
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_castpd_si128(__m128d __A)
+ {
+   return (__m128i) __A;
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_castps_pd(__m128 __A)
+ {
+   return (__m128d) __A;
+ }
+ 
+-static __inline __m128i __attribute__((__always_inline__))
++static __inline __m128i __attribute__((__always_inline__, __artificial__))
+ _mm_castps_si128(__m128 __A)
+ {
+   return (__m128i) __A;
+ }
+ 
+-static __inline __m128 __attribute__((__always_inline__))
++static __inline __m128 __attribute__((__always_inline__, __artificial__))
+ _mm_castsi128_ps(__m128i __A)
+ {
+   return (__m128) __A;
+ }
+ 
+-static __inline __m128d __attribute__((__always_inline__))
++static __inline __m128d __attribute__((__always_inline__, __artificial__))
+ _mm_castsi128_pd(__m128i __A)
+ {
+   return (__m128d) __A;

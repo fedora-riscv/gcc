@@ -1,0 +1,46 @@
+2007-09-25  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/32694
+	2006-11-08  Roger Sayle  <roger@eyesopen.com>
+	* tree-ssa-propagate.c (set_rhs): Verify tcc_comparison the same way
+	as tcc_binary.
+
+	* gcc.c-torture/compile/20070925-1.c: New test.
+
+--- gcc/tree-ssa-propagate.c.jj	2007-09-23 19:43:36.000000000 +0200
++++ gcc/tree-ssa-propagate.c	2007-09-25 09:30:50.000000000 +0200
+@@ -570,7 +570,8 @@ set_rhs (tree *stmt_p, tree expr)
+   ssa_op_iter iter;
+ 
+   /* Verify the constant folded result is valid gimple.  */
+-  if (TREE_CODE_CLASS (code) == tcc_binary)
++  if (TREE_CODE_CLASS (code) == tcc_binary
++      || TREE_CODE_CLASS (code) == tcc_comparison)
+     {
+       if (!is_gimple_val (TREE_OPERAND (expr, 0))
+ 	  || !is_gimple_val (TREE_OPERAND (expr, 1)))
+--- gcc/testsuite/gcc.c-torture/compile/20070925-1.c.jj	2007-09-25 09:28:37.000000000 +0200
++++ gcc/testsuite/gcc.c-torture/compile/20070925-1.c	2007-09-25 09:29:41.000000000 +0200
+@@ -0,0 +1,22 @@
++/* PR tree-optimization/32694 */
++
++typedef signed long long int WordS64;
++typedef unsigned long long int Word64;
++
++int
++foo (Word64 * p)
++{
++  while (1)
++    {
++      WordS64 c = 0x1llu;
++      WordS64 x = *p;
++      if (c >= 0)
++	{
++	  if (x > (WordS64) 0x7FFFFFFFFFFFFFFFll - c)
++	    return 6;
++	}
++      else if (x < (WordS64) 0x8000000000000000ll - c)
++	return 7;
++      p++;
++    }
++}

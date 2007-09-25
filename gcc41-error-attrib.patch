@@ -1,0 +1,295 @@
+2007-09-23  Jakub Jelinek  <jakub@redhat.com>
+
+	* expr.c (expand_expr_real_1) <case CALL_EXPR>: Use get_callee_fndecl
+	instead of checking CALL_EXPR_FN directly to test for builtins.
+	If error or warning attributes are present, print
+	error resp. warning.
+	* c-common.c (handle_error_attribute): New function.
+	(c_common_attribute_table): Add error and warning
+	attributes.
+	* doc/extend.texi: Document error and warning attributes.
+
+	* gcc.dg/va-arg-pack-len-1.c: Use error and warning
+	attributes.
+	* gcc.dg/va-arg-pack-len-2.c: New test.
+	* g++.dg/ext/va-arg-pack-len-1.C: Use error and warning
+	attributes.
+	* g++.dg/ext/va-arg-pack-len-2.C: New test.
+
+--- gcc/doc/extend.texi.jj	2007-09-25 15:04:15.000000000 +0200
++++ gcc/doc/extend.texi	2007-09-25 15:32:22.000000000 +0200
+@@ -1589,8 +1589,8 @@ attributes are currently defined for fun
+ @code{section}, @code{constructor}, @code{destructor}, @code{used},
+ @code{unused}, @code{deprecated}, @code{weak}, @code{malloc},
+ @code{alias}, @code{warn_unused_result}, @code{nonnull},
+-@code{gnu_inline}, @code{externally_visible} and @code{artificial}.
+-Several other
++@code{gnu_inline}, @code{externally_visible}, @code{artificial},
++@code{error} and @code{warning}.  Several other
+ attributes are defined for functions on particular target systems.  Other
+ attributes, including @code{section} are supported for variables declarations
+ (@pxref{Variable Attributes}) and for types (@pxref{Type Attributes}).
+@@ -1688,6 +1688,30 @@ Whether the function itself is considere
+ the current inlining parameters.  The @code{flatten} attribute only works
+ reliably in unit-at-a-time mode.
+ 
++@item error ("@var{message}")
++@cindex @code{error} function attribute
++If this attribute is used on a function declaration and a call to such a function
++is not eliminated through dead code elimination or other optimizations, an error
++which will include @var{message} will be diagnosed.  This is useful
++for compile time checking, especially together with @code{__builtin_constant_p}
++and inline functions where checking the inline function arguments is not
++possible through @code{extern char [(condition) ? 1 : -1];} tricks.
++While it is possible to leave the function undefined and thus invoke
++a link failure, when using this attribute the problem will be diagnosed
++earlier and with exact location of the call even in presence of inline
++functions or when not emitting debugging information.
++
++@item warning ("@var{message}")
++@cindex @code{warning} function attribute
++If this attribute is used on a function declaration and a call to such a function
++is not eliminated through dead code elimination or other optimizations, a warning
++which will include @var{message} will be diagnosed.  This is useful
++for compile time checking, especially together with @code{__builtin_constant_p}
++and inline functions.  While it is possible to define the function with
++a message in @code{.gnu.warning*} section, when using this attribute the problem
++will be diagnosed earlier and with exact location of the call even in presence
++of inline functions or when not emitting debugging information.
++
+ @item cdecl
+ @cindex functions that do pop the argument stack on the 386
+ @opindex mrtd
+--- gcc/expr.c.jj	2007-09-25 14:58:40.000000000 +0200
++++ gcc/expr.c	2007-09-25 15:19:15.000000000 +0200
+@@ -7513,19 +7513,31 @@ expand_expr_real_1 (tree exp, rtx target
+ 	 inlining.  */
+       if (CALL_EXPR_VA_ARG_PACK (exp))
+ 	error ("invalid use of %<__builtin_va_arg_pack ()%>");
+-      /* Check for a built-in function.  */
+-      if (TREE_CODE (TREE_OPERAND (exp, 0)) == ADDR_EXPR
+-	  && (TREE_CODE (TREE_OPERAND (TREE_OPERAND (exp, 0), 0))
+-	      == FUNCTION_DECL)
+-	  && DECL_BUILT_IN (TREE_OPERAND (TREE_OPERAND (exp, 0), 0)))
+-	{
+-	  if (DECL_BUILT_IN_CLASS (TREE_OPERAND (TREE_OPERAND (exp, 0), 0))
+-	      == BUILT_IN_FRONTEND)
+-	    return lang_hooks.expand_expr (exp, original_target,
+-					   tmode, modifier,
+-					   alt_rtl);
+-	  else
+-	    return expand_builtin (exp, target, subtarget, tmode, ignore);
++      {
++	tree fndecl = get_callee_fndecl (exp), attr;
++
++	if (fndecl
++	    && (attr = lookup_attribute ("error",
++					 DECL_ATTRIBUTES (fndecl))) != NULL)
++	  error ("call to %qs declared with attribute error: %s",
++		 lang_hooks.decl_printable_name (fndecl, 1),
++		 TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (attr))));
++	if (fndecl
++	    && (attr = lookup_attribute ("warning",
++					 DECL_ATTRIBUTES (fndecl))) != NULL)
++	  warning (0, "call to %qs declared with attribute warning: %s",
++		   lang_hooks.decl_printable_name (fndecl, 1),
++		   TREE_STRING_POINTER (TREE_VALUE (TREE_VALUE (attr))));
++
++	/* Check for a built-in function.  */
++	if (fndecl && DECL_BUILT_IN (fndecl))
++	  {
++	    if (DECL_BUILT_IN_CLASS (fndecl) == BUILT_IN_FRONTEND)
++	      return lang_hooks.expand_expr (exp, original_target,
++					     tmode, modifier, alt_rtl);
++	    else
++	      return expand_builtin (exp, target, subtarget, tmode, ignore);
++	  }
+ 	}
+ 
+       return expand_call (exp, target, ignore);
+--- gcc/c-common.c.jj	2007-09-25 15:01:49.000000000 +0200
++++ gcc/c-common.c	2007-09-25 15:24:34.000000000 +0200
+@@ -508,6 +508,7 @@ static tree handle_always_inline_attribu
+ static tree handle_gnu_inline_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_artificial_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_flatten_attribute (tree *, tree, tree, int, bool *);
++static tree handle_error_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_used_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_unused_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_externally_visible_attribute (tree *, tree, tree, int,
+@@ -641,6 +642,10 @@ const struct attribute_spec c_common_att
+ 			      handle_warn_unused_result_attribute },
+   { "sentinel",               0, 1, false, true, true,
+ 			      handle_sentinel_attribute },
++  { "warning",		      1, 1, true,  false, false,
++			      handle_error_attribute },
++  { "error",		      1, 1, true,  false, false,
++			      handle_error_attribute },
+   { NULL,                     0, 0, false, false, false, NULL }
+ };
+ 
+@@ -4226,6 +4231,26 @@ handle_flatten_attribute (tree *node, tr
+   return NULL_TREE;
+ }
+ 
++/* Handle a "warning" or "error" attribute; arguments as in
++   struct attribute_spec.handler.  */
++
++static tree
++handle_error_attribute (tree *node, tree name, tree args,
++			int ARG_UNUSED (flags), bool *no_add_attrs)
++{
++  if (TREE_CODE (*node) == FUNCTION_DECL
++      || TREE_CODE (TREE_VALUE (args)) == STRING_CST)
++    /* Do nothing else, just set the attribute.  We'll get at
++       it later with lookup_attribute.  */
++    ;
++  else
++    {
++      warning (OPT_Wattributes, "%qE attribute ignored", name);
++      *no_add_attrs = true;
++    }
++
++  return NULL_TREE;
++}
+ 
+ /* Handle a "used" attribute; arguments as in
+    struct attribute_spec.handler.  */
+--- gcc/testsuite/gcc.dg/va-arg-pack-len-1.c.jj	2007-09-25 12:23:05.000000000 +0200
++++ gcc/testsuite/gcc.dg/va-arg-pack-len-1.c	2007-09-25 15:16:03.000000000 +0200
+@@ -3,8 +3,10 @@
+ 
+ #include <stdarg.h>
+ 
+-extern int warn_open_missing_mode (void);
+-extern int warn_open_too_many_arguments (void);
++extern int error_open_missing_mode (void)
++  __attribute__((__error__ ("open with O_CREAT needs 3 arguments, only 2 were given")));
++extern int warn_open_too_many_arguments (void)
++  __attribute__((__warning__ ("open called with more than 3 arguments")));
+ extern void abort (void);
+ 
+ char expected_char;
+@@ -83,7 +85,7 @@ myopen (const char *path, int oflag, ...
+     {
+       if ((oflag & 0x40) != 0 && __builtin_va_arg_pack_len () < 1)
+ 	{
+-	  warn_open_missing_mode ();
++	  error_open_missing_mode ();
+ 	  return myopen2 (path, oflag);
+ 	}
+       return myopenva (path, oflag, __builtin_va_arg_pack ());
+--- gcc/testsuite/gcc.dg/va-arg-pack-len-2.c.jj	2007-09-25 15:16:03.000000000 +0200
++++ gcc/testsuite/gcc.dg/va-arg-pack-len-2.c	2007-09-25 15:16:03.000000000 +0200
+@@ -0,0 +1,42 @@
++/* { dg-do compile } */
++/* { dg-options "-O2" } */
++
++#include <stdarg.h>
++
++extern int error_open_missing_mode (void)
++  __attribute__((__error__ ("open with O_CREAT needs 3 arguments, only 2 were given")));
++extern int warn_open_too_many_arguments (void)
++  __attribute__((__warning__ ("open called with more than 3 arguments")));
++
++extern int myopen2 (const char *path, int oflag);
++extern int myopenva (const char *path, int oflag, ...);
++
++extern inline __attribute__((always_inline, gnu_inline)) int
++myopen (const char *path, int oflag, ...)
++{
++  if (__builtin_va_arg_pack_len () > 1)
++    warn_open_too_many_arguments ();	/* { dg-warning "called with more than 3" } */
++
++  if (__builtin_constant_p (oflag))
++    {
++      if ((oflag & 0x40) != 0 && __builtin_va_arg_pack_len () < 1)
++	{
++	  error_open_missing_mode ();	/* { dg-error "needs 3 arguments, only 2 were given" } */
++	  return myopen2 (path, oflag);
++	}
++      return myopenva (path, oflag, __builtin_va_arg_pack ());
++    }
++
++  if (__builtin_va_arg_pack_len () < 1)
++    return myopen2 (path, oflag);
++
++  return myopenva (path, oflag, __builtin_va_arg_pack ());
++}
++
++int
++main (void)
++{
++  myopen ("h", 0x43);
++  myopen ("i", 0x43, 0644, 0655);
++  return 0;
++}
+--- gcc/testsuite/g++.dg/ext/va-arg-pack-len-1.C.jj	2007-09-25 12:23:05.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/va-arg-pack-len-1.C	2007-09-25 15:16:03.000000000 +0200
+@@ -3,8 +3,10 @@
+ 
+ #include <stdarg.h>
+ 
+-extern "C" int warn_open_missing_mode (void);
+-extern "C" int warn_open_too_many_arguments (void);
++extern "C" int error_open_missing_mode (void)
++  __attribute__((__error__ ("open with O_CREAT needs 3 arguments, only 2 were given")));
++extern "C" int warn_open_too_many_arguments (void)
++  __attribute__((__warning__ ("open called with more than 3 arguments")));
+ extern "C" void abort (void);
+ 
+ char expected_char;
+@@ -83,7 +85,7 @@ myopen (const char *path, int oflag, ...
+     {
+       if ((oflag & 0x40) != 0 && __builtin_va_arg_pack_len () < 1)
+ 	{
+-	  warn_open_missing_mode ();
++	  error_open_missing_mode ();
+ 	  return myopen2 (path, oflag);
+ 	}
+       return myopenva (path, oflag, __builtin_va_arg_pack ());
+--- gcc/testsuite/g++.dg/ext/va-arg-pack-len-2.C.jj	2007-09-25 15:16:03.000000000 +0200
++++ gcc/testsuite/g++.dg/ext/va-arg-pack-len-2.C	2007-09-25 15:16:03.000000000 +0200
+@@ -0,0 +1,42 @@
++// { dg-do compile }
++// { dg-options "-O2" }
++
++#include <stdarg.h>
++
++extern int error_open_missing_mode (void)
++  __attribute__((__error__ ("open with O_CREAT needs 3 arguments, only 2 were given")));
++extern int warn_open_too_many_arguments (void)
++  __attribute__((__warning__ ("open called with more than 3 arguments")));
++
++extern int myopen2 (const char *path, int oflag);
++extern int myopenva (const char *path, int oflag, ...);
++
++extern inline __attribute__((always_inline, gnu_inline)) int
++myopen (const char *path, int oflag, ...)
++{
++  if (__builtin_va_arg_pack_len () > 1)
++    warn_open_too_many_arguments ();	// { dg-warning "called with more than 3" }
++
++  if (__builtin_constant_p (oflag))
++    {
++      if ((oflag & 0x40) != 0 && __builtin_va_arg_pack_len () < 1)
++	{
++	  error_open_missing_mode ();	// { dg-error "needs 3 arguments, only 2 were given" }
++	  return myopen2 (path, oflag);
++	}
++      return myopenva (path, oflag, __builtin_va_arg_pack ());
++    }
++
++  if (__builtin_va_arg_pack_len () < 1)
++    return myopen2 (path, oflag);
++
++  return myopenva (path, oflag, __builtin_va_arg_pack ());
++}
++
++int
++main (void)
++{
++  myopen ("h", 0x43);
++  myopen ("i", 0x43, 0644, 0655);
++  return 0;
++}

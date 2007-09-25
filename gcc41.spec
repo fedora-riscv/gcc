@@ -1,6 +1,6 @@
-%define DATE 20070821
+%define DATE 20070925
 %define gcc_version 4.1.2
-%define gcc_release 24
+%define gcc_release 27
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -136,22 +136,13 @@ Patch21: gcc41-rh235008.patch
 Patch22: gcc41-build-id.patch
 Patch23: gcc41-pr28690.patch
 Patch24: gcc41-rh247256.patch
-Patch25: gcc41-pr22244.patch
-Patch26: gcc41-pr32678.patch
-Patch27: gcc41-pr32912.patch
-Patch28: gcc41-sparc-niagara.patch
-Patch29: gcc41-ppc-tramp.patch
-Patch30: gcc41-rh253102.patch
-Patch31: gcc41-c++-gnu_inline.patch
-Patch32: gcc41-ppc-sync-qihi.patch
-Patch33: gcc41-ppc64-ia64-GNU-stack.patch
-Patch34: gcc41-builtin-chk-anticipated.patch
-Patch35: gcc41-builtin-throw.patch
-Patch36: gcc41-builtin-va-arg-pack.patch
-Patch37: gcc41-builtin-va-arg-pack-len.patch
-Patch38: gcc41-pr27954.patch
-Patch39: gcc41-pr33423.patch
-Patch40: gcc41-scanf-fmt-check.patch
+Patch25: gcc41-ppc64-ia64-GNU-stack.patch
+Patch26: gcc41-pr33506.patch
+Patch27: gcc41-artificial-attrib.patch
+Patch28: gcc41-error-attrib.patch
+Patch29: gcc41-jdwp.patch
+Patch30: gcc41-pr20880.patch
+Patch31: gcc41-pr32694.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -459,22 +450,13 @@ which are required to run programs compiled with the GNAT.
 #%patch22 -p0 -b .build-id~
 %patch23 -p0 -b .pr28690~
 %patch24 -p0 -b .rh247256~
-%patch25 -p0 -b .pr22244~
-%patch26 -p0 -b .pr32678~
-%patch27 -p0 -b .pr32912~
-%patch28 -p0 -b .sparc-niagara~
-%patch29 -p0 -b .ppc-tramp~
-%patch30 -p0 -b .rh253102~
-%patch31 -p0 -b .c++-gnu_inline~
-%patch32 -p0 -b .ppc-sync-qihi~
-%patch33 -p0 -b .ppc64-ia64-GNU-stack~
-%patch34 -p0 -b .builtin-chk-anticipated~
-%patch35 -p0 -b .builtin-throw~
-%patch36 -p0 -b .builtin-va-arg-pack~
-%patch37 -p0 -b .builtin-va-arg-pack-len~
-%patch38 -p0 -b .pr27954~
-%patch39 -p0 -b .pr33423~
-%patch40 -p0 -b .scanf-fmt-check~
+%patch25 -p0 -b .ppc64-ia64-GNU-stack~
+%patch26 -p0 -b .pr33506~
+%patch27 -p0 -b .artificial-attrib~
+%patch28 -p0 -b .error-attrib~
+%patch29 -p0 -b .jdwp~
+%patch30 -p0 -b .pr20880~
+%patch31 -p0 -b .pr32694~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -1629,6 +1611,20 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue Sep 25 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-27.fc7
+- update from gcc-4_1-branch (-r127672:128736)
+  - PRs bootstrap/33418, c++/31941, c++/32113, java/31842, target/33256,
+	tree-optimization/33142
+- add support for artificial, error and warning attributes
+- restore Java CNI ABI compatibility broken by JDWP changes (Keith Seitz)
+- fix ICE with set_rhs allowing non-gimple (Roger Sayle, #247407,
+  PR tree-optimization/32694)
+- fix ICE on Fortran interface-body declaring current subroutine name
+  (Paul Thomas, #300851, PR fortran/20880)
+- don't ignore throw specification of function types in type hashing
+  (PR c++/33506)
+- handle makeinfo version >= 4.10 in gcc configury
+
 * Mon Sep 17 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-24.fc7
 - fix ICE on __builtin_mem*_chk if it couldn't be folded until
   expand time and at that point it can avoid a call (PR middle-end/33423)
