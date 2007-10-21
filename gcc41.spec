@@ -1,6 +1,6 @@
 %define DATE 20070925
 %define gcc_version 4.1.2
-%define gcc_release 32
+%define gcc_release 33
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -158,6 +158,8 @@ Patch41: gcc41-pr33744.patch
 Patch42: gcc41-pr33763.patch
 Patch43: gcc41-rh317051.patch
 Patch44: gcc41-rh330771.patch
+Patch45: gcc41-rh341221.patch
+Patch46: gcc41-ppc64-cr2-unwind.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -485,6 +487,8 @@ which are required to run programs compiled with the GNAT.
 %patch42 -p0 -b .pr33763~
 %patch43 -p0 -b .rh317051~
 %patch44 -p0 -b .rh330771~
+%patch45 -p0 -b .rh341221~
+%patch46 -p0 -b .ppc64-cr2-unwind~
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -1639,6 +1643,12 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sun Oct 21 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-33
+- rebuild to fix multilib conflict between i386 and x86_64 libgcj,
+  set java man page timestamp from the timestamp of *.texinfo rather
+  than current date to avoid this problem in the future (#341221)
+- fix ppc64 unwinding of cr2 register if vdso=0
+
 * Tue Oct 16 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-32
 - only allow __label__ at the start of a block (PR c++/32121)
 - disable -fipa-type-escape by default (PR tree-optimization/33136)

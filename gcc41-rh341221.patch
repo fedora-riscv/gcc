@@ -1,0 +1,28 @@
+2007-10-21  Jakub Jelinek  <jakub@redhat.com>
+
+	* doc/Makefile.am (POD2MAN): Set date from cp-tools.texinfo
+	timestamp rather than from current date.
+	* doc/Makefile.in: Regenerated.
+
+--- libjava/classpath/doc/Makefile.am.jj	2007-03-29 12:23:05.000000000 +0200
++++ libjava/classpath/doc/Makefile.am	2007-10-21 13:23:17.000000000 +0200
+@@ -31,7 +31,7 @@ TOOLS_MANFILES = \
+ BASEVER = $(top_srcdir)/../../gcc/BASE-VER
+ DEVPHASE = $(top_srcdir)/../../gcc/DEV-PHASE
+ 
+-POD2MAN = pod2man --center="GNU" --release="gcc-$(shell cat $(BASEVER))"
++POD2MAN = pod2man --center="GNU" --release="gcc-$(shell cat $(BASEVER))" --date="$(shell ls --time-style=+%F -l $(srcdir)/cp-tools.texinfo | awk '{print $$6}')"
+ TEXI2POD = perl $(top_srcdir)/../../contrib/texi2pod.pl
+ STAMP = echo timestamp >
+ 
+--- libjava/classpath/doc/Makefile.in.jj	2007-03-29 12:23:05.000000000 +0200
++++ libjava/classpath/doc/Makefile.in	2007-10-21 13:24:00.000000000 +0200
+@@ -317,7 +317,7 @@ TOOLS_MANFILES = \
+ 
+ BASEVER = $(top_srcdir)/../../gcc/BASE-VER
+ DEVPHASE = $(top_srcdir)/../../gcc/DEV-PHASE
+-POD2MAN = pod2man --center="GNU" --release="gcc-$(shell cat $(BASEVER))"
++POD2MAN = pod2man --center="GNU" --release="gcc-$(shell cat $(BASEVER))" --date="$(shell ls --time-style=+%F -l $(srcdir)/cp-tools.texinfo | awk '{print $$6}')"
+ TEXI2POD = perl $(top_srcdir)/../../contrib/texi2pod.pl
+ STAMP = echo timestamp >
+ all: all-recursive
