@@ -1,0 +1,957 @@
+2007-05-18  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* src/arm/ffi.c (ffi_prep_closure_loc): Renamed and ajusted
+	from (ffi_prep_closure): ... this.
+	(FFI_INIT_TRAMPOLINE): Adjust.
+
+2005-12-31  Phil Blundell  <pb@reciva.com>
+
+	* src/arm/ffi.c (ffi_prep_incoming_args_SYSV, 
+        ffi_closure_SYSV_inner, ffi_prep_closure): New, add closure support.
+	* src/arm/sysv.S(ffi_closure_SYSV): Likewise.
+	* src/arm/ffitarget.h (FFI_TRAMPOLINE_SIZE): Likewise.
+	(FFI_CLOSURES): Enable closure support.
+
+2007-07-03  Andrew Haley  <aph@hedges.billgatliff.com>
+
+        * testsuite/libffi.call/cls_multi_ushort.c,
+        testsuite/libffi.call/cls_align_uint16.c,
+        testsuite/libffi.call/nested_struct1.c,
+        testsuite/libffi.call/nested_struct3.c,
+        testsuite/libffi.call/cls_7_1_byte.c,
+        testsuite/libffi.call/cls_double.c,
+        testsuite/libffi.call/cls_sint.c,
+        testsuite/libffi.call/cls_20byte1.c,
+        testsuite/libffi.call/cls_multi_sshortchar.c,
+        testsuite/libffi.call/cls_align_sint64.c,
+        testsuite/libffi.call/cls_3byte2.c,
+        testsuite/libffi.call/cls_multi_schar.c,
+        testsuite/libffi.call/cls_multi_uchar.c,
+        testsuite/libffi.call/cls_19byte.c,
+        testsuite/libffi.call/cls_9byte1.c,
+        testsuite/libffi.call/cls_align_float.c,
+        testsuite/libffi.call/closure_fn1.c,
+        testsuite/libffi.call/problem1.c,
+        testsuite/libffi.call/closure_fn3.c,
+        testsuite/libffi.call/cls_sshort.c,
+        testsuite/libffi.call/closure_fn5.c,
+        testsuite/libffi.call/cls_align_double.c,
+        testsuite/libffi.call/cls_2byte.c,
+        testsuite/libffi.call/nested_struct.c,
+        testsuite/libffi.call/cls_4byte.c,
+        testsuite/libffi.call/cls_6byte.c,
+        testsuite/libffi.call/cls_8byte.c,
+        testsuite/libffi.call/cls_multi_sshort.c,
+        testsuite/libffi.call/cls_align_uint32.c,
+        testsuite/libffi.call/cls_align_sint16.c,
+        testsuite/libffi.call/cls_float.c,
+        testsuite/libffi.call/cls_20byte.c,
+        testsuite/libffi.call/cls_5_1_byte.c,
+        testsuite/libffi.call/nested_struct2.c,
+        testsuite/libffi.call/cls_24byte.c,
+        testsuite/libffi.call/cls_64byte.c,
+        testsuite/libffi.call/cls_uint.c,
+        testsuite/libffi.call/cls_multi_ushortchar.c,
+        testsuite/libffi.call/cls_schar.c,
+        testsuite/libffi.call/cls_uchar.c,
+        testsuite/libffi.call/cls_align_uint64.c,
+        testsuite/libffi.call/cls_ulonglong.c,
+        testsuite/libffi.call/cls_align_longdouble.c,
+        testsuite/libffi.call/cls_1_1byte.c,
+        testsuite/libffi.call/cls_12byte.c,
+        testsuite/libffi.call/cls_3_1byte.c,
+        testsuite/libffi.call/cls_3byte1.c,
+        testsuite/libffi.call/cls_4_1byte.c,
+        testsuite/libffi.call/cls_6_1_byte.c,
+        testsuite/libffi.call/cls_16byte.c,
+        testsuite/libffi.call/cls_18byte.c,
+        testsuite/libffi.call/closure_fn0.c,
+        testsuite/libffi.call/cls_9byte2.c,
+        testsuite/libffi.call/closure_fn2.c,
+        testsuite/libffi.call/closure_fn4.c,
+        testsuite/libffi.call/cls_ushort.c,
+        testsuite/libffi.call/closure_fn6.c,
+        testsuite/libffi.call/cls_5byte.c,
+        testsuite/libffi.call/cls_align_pointer.c,
+        testsuite/libffi.call/cls_7byte.c,
+        testsuite/libffi.call/cls_align_sint32.c,
+        testsuite/libffi.special/unwindtest.cc: Enable for ARM.
+
+--- libffi/src/arm/ffitarget.h.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/src/arm/ffitarget.h	2007-09-06 14:07:30.000000000 +0200
+@@ -40,7 +40,8 @@ typedef enum ffi_abi {
+ 
+ /* ---- Definitions for closures ----------------------------------------- */
+ 
+-#define FFI_CLOSURES 0
++#define FFI_CLOSURES 1
++#define FFI_TRAMPOLINE_SIZE 20
+ #define FFI_NATIVE_RAW_API 0
+ 
+ #endif
+--- libffi/src/arm/ffi.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/src/arm/ffi.c	2007-09-06 14:07:30.000000000 +0200
+@@ -168,3 +168,122 @@ void ffi_call(ffi_cif *cif, void (*fn)()
+       break;
+     }
+ }
++
++/** private members **/
++
++static void ffi_prep_incoming_args_SYSV (char *stack, void **ret,
++					 void** args, ffi_cif* cif);
++
++void ffi_closure_SYSV (ffi_closure *);
++
++/* This function is jumped to by the trampoline */
++
++unsigned int
++ffi_closure_SYSV_inner (closure, respp, args)
++     ffi_closure *closure;
++     void **respp;
++     void *args;
++{
++  // our various things...
++  ffi_cif       *cif;
++  void         **arg_area;
++
++  cif         = closure->cif;
++  arg_area    = (void**) alloca (cif->nargs * sizeof (void*));  
++
++  /* this call will initialize ARG_AREA, such that each
++   * element in that array points to the corresponding 
++   * value on the stack; and if the function returns
++   * a structure, it will re-set RESP to point to the
++   * structure return address.  */
++
++  ffi_prep_incoming_args_SYSV(args, respp, arg_area, cif);
++
++  (closure->fun) (cif, *respp, arg_area, closure->user_data);
++
++  return cif->flags;
++}
++
++/*@-exportheader@*/
++static void 
++ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
++			    void **avalue, ffi_cif *cif)
++/*@=exportheader@*/
++{
++  register unsigned int i;
++  register void **p_argv;
++  register char *argp;
++  register ffi_type **p_arg;
++
++  argp = stack;
++
++  if ( cif->flags == FFI_TYPE_STRUCT ) {
++    *rvalue = *(void **) argp;
++    argp += 4;
++  }
++
++  p_argv = avalue;
++
++  for (i = cif->nargs, p_arg = cif->arg_types; (i != 0); i--, p_arg++)
++    {
++      size_t z;
++
++      /* Align if necessary */
++      if ((sizeof(int) - 1) & (unsigned) argp) {
++	argp = (char *) ALIGN(argp, sizeof(int));
++      }
++
++      z = (*p_arg)->size;
++
++      /* because we're little endian, this is what it turns into.   */
++
++      *p_argv = (void*) argp;
++
++      p_argv++;
++      argp += z;
++    }
++  
++  return;
++}
++
++/* How to make a trampoline.  */
++
++#define FFI_INIT_TRAMPOLINE(TRAMP,FUN,CTX) \
++({ unsigned char *__tramp = (unsigned char*)(TRAMP); \
++   unsigned int  __fun = (unsigned int)(FUN); \
++   unsigned int  __ctx = (unsigned int)(CTX); \
++   *(unsigned int*) &__tramp[0] = 0xe92d000f; /* stmfd sp!, {r0-r3} */	\
++   *(unsigned int*) &__tramp[4] = 0xe59f0000; /* ldr r0, [pc] */ \
++   *(unsigned int*) &__tramp[8] = 0xe59ff000; /* ldr pc, [pc] */ \
++   *(unsigned int*) &__tramp[12] = __ctx; \
++   *(unsigned int*) &__tramp[16] = __fun; \
++   register unsigned long _beg __asm ("a1") = (unsigned long) (&__tramp[0]);	\
++   register unsigned long _end __asm ("a2") = (unsigned long) (&__tramp[19]);	\
++   register unsigned long _flg __asm ("a3") = 0;			\
++   __asm __volatile ("swi 0x9f0002		@ sys_cacheflush"	\
++	   		    : "=r" (_beg)				\
++	   		    : "0" (_beg), "r" (_end), "r" (_flg));	\
++ })
++
++
++/* the cif must already be prep'ed */
++
++ffi_status
++ffi_prep_closure_loc (ffi_closure* closure,
++		      ffi_cif* cif,
++		      void (*fun)(ffi_cif*,void*,void**,void*),
++		      void *user_data,
++		      void *codeloc)
++{
++  FFI_ASSERT (cif->abi == FFI_SYSV);
++
++  FFI_INIT_TRAMPOLINE (&closure->tramp[0], \
++		       &ffi_closure_SYSV,  \
++		       codeloc);
++    
++  closure->cif  = cif;
++  closure->user_data = user_data;
++  closure->fun  = fun;
++
++  return FFI_OK;
++}
+--- libffi/src/arm/sysv.S.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/src/arm/sysv.S	2007-09-06 14:08:26.000000000 +0200
+@@ -207,6 +207,54 @@ LSYM(Lepilogue):
+ .ffi_call_SYSV_end:
+         .size    CNAME(ffi_call_SYSV),.ffi_call_SYSV_end-CNAME(ffi_call_SYSV)
+ 
++/*
++	unsigned int FFI_HIDDEN
++	ffi_closure_SYSV_inner (closure, respp, args)
++	     ffi_closure *closure;
++	     void **respp;
++  	     void *args;
++*/
++
++ARM_FUNC_START ffi_closure_SYSV
++	add	ip, sp, #16
++	stmfd	sp!, {ip, lr}
++	add	r2, sp, #8
++	sub	sp, sp, #16
++	str	sp, [sp, #8]
++	add	r1, sp, #8
++	bl	ffi_closure_SYSV_inner
++	cmp	r0, #FFI_TYPE_INT
++	beq	.Lretint
++	cmp	r0, #FFI_TYPE_FLOAT
++	beq	.Lretfloat
++	cmp	r0, #FFI_TYPE_DOUBLE
++	beq	.Lretdouble
++	cmp	r0, #FFI_TYPE_LONGDOUBLE
++	beq	.Lretlongdouble
++	cmp	r0, #FFI_TYPE_SINT64
++	beq	.Lretlonglong
++.Lclosure_epilogue:
++	add	sp, sp, #16
++	ldmfd	sp, {sp, pc}
++.Lretint:
++	ldr	r0, [sp]
++	b	.Lclosure_epilogue
++.Lretlonglong:
++	ldr	r0, [sp]
++	ldr	r1, [sp, #4]
++	b	.Lclosure_epilogue
++.Lretfloat:
++	ldfs	f0, [sp]
++	b	.Lclosure_epilogue
++.Lretdouble:
++	ldfd	f0, [sp]
++	b	.Lclosure_epilogue
++.Lretlongdouble:
++	ldfd	f0, [sp]
++	b	.Lclosure_epilogue
++.ffi_closure_SYSV_end:
++        .size    CNAME(ffi_closure_SYSV),.ffi_closure_SYSV_end-CNAME(ffi_closure_SYSV)
++
+ #if defined __ELF__ && defined __linux__
+ 	.section	.note.GNU-stack,"",@progbits
+ #endif
+--- libffi/testsuite/libffi.call/cls_multi_ushort.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_ushort.c	2007-09-06 14:07:30.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<andreast@gcc.gnu.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ unsigned short test_func_fn(unsigned short a1, unsigned short a2)
+--- libffi/testsuite/libffi.call/cls_align_uint16.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_uint16.c	2007-09-06 14:07:30.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/nested_struct1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/nested_struct1.c	2007-09-06 14:07:30.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_16byte1 {
+--- libffi/testsuite/libffi.call/nested_struct3.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/nested_struct3.c	2007-09-06 14:07:30.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030911	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct A {
+--- libffi/testsuite/libffi.call/cls_7_1_byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_7_1_byte.c	2007-09-06 14:07:30.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20050708	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_7byte {
+--- libffi/testsuite/libffi.call/cls_double.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_double.c	2007-09-06 14:07:30.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_double_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_sint.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_sint.c	2007-09-06 14:07:33.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20031108	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_sint_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_20byte1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_20byte1.c	2007-09-06 14:07:34.000000000 +0200
+@@ -5,7 +5,9 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_20byte {
+--- libffi/testsuite/libffi.call/cls_multi_sshortchar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_sshortchar.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<andreast@gcc.gnu.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ signed short test_func_fn(signed char a1, signed short a2,
+--- libffi/testsuite/libffi.call/cls_align_sint64.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_sint64.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_3byte2.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_3byte2.c	2007-09-06 14:07:34.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_3byte_1 {
+--- libffi/testsuite/libffi.call/cls_multi_schar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_schar.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<hos@tamanegi.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ signed char test_func_fn(signed char a1, signed char a2)
+--- libffi/testsuite/libffi.call/cls_multi_uchar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_uchar.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<andreast@gcc.gnu.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ unsigned char test_func_fn(unsigned char a1, unsigned char a2,
+--- libffi/testsuite/libffi.call/cls_19byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_19byte.c	2007-09-06 14:07:34.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030915	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_19byte {
+--- libffi/testsuite/libffi.call/cls_9byte1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_9byte1.c	2007-09-06 14:07:34.000000000 +0200
+@@ -7,7 +7,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030914	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_9byte {
+--- libffi/testsuite/libffi.call/cls_align_float.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_float.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/closure_fn1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn1.c	2007-09-06 14:07:34.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ 
+--- libffi/testsuite/libffi.call/problem1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/problem1.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct my_ffi_struct {
+--- libffi/testsuite/libffi.call/closure_fn3.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn3.c	2007-09-06 14:07:34.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void closure_test_fn3(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_sshort.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_sshort.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20031108	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_sshort_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/closure_fn5.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn5.c	2007-09-06 14:07:34.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20031026	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void
+--- libffi/testsuite/libffi.call/cls_align_double.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_double.c	2007-09-06 14:07:34.000000000 +0200
+@@ -4,7 +4,9 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_2byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_2byte.c	2007-09-06 14:07:34.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_2byte {
+--- libffi/testsuite/libffi.call/nested_struct.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/nested_struct.c	2007-09-06 14:07:34.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_16byte1 {
+--- libffi/testsuite/libffi.call/cls_4byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_4byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ 
+ #include "ffitest.h"
+ 
+--- libffi/testsuite/libffi.call/cls_6byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_6byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,8 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_6byte {
+--- libffi/testsuite/libffi.call/cls_8byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_8byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_8byte {
+--- libffi/testsuite/libffi.call/cls_multi_sshort.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_sshort.c	2007-09-06 14:07:35.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<andreast@gcc.gnu.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ signed short test_func_fn(signed short a1, signed short a2)
+--- libffi/testsuite/libffi.call/cls_align_uint32.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_uint32.c	2007-09-06 14:07:35.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_align_sint16.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_sint16.c	2007-09-06 14:07:35.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_float.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_float.c	2007-09-06 14:07:35.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_float_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_20byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_20byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_20byte {
+--- libffi/testsuite/libffi.call/cls_5_1_byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_5_1_byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20050708	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_5byte {
+--- libffi/testsuite/libffi.call/nested_struct2.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/nested_struct2.c	2007-09-06 14:07:35.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030911	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct A {
+--- libffi/testsuite/libffi.call/cls_24byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_24byte.c	2007-09-06 14:07:35.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_24byte {
+--- libffi/testsuite/libffi.call/cls_64byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_64byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_64byte {
+--- libffi/testsuite/libffi.call/cls_uint.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_uint.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_uint_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_multi_ushortchar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_multi_ushortchar.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		PR13221.
+    Originator:	<andreast@gcc.gnu.org> 20031129  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ unsigned short test_func_fn(unsigned char a1, unsigned short a2,
+--- libffi/testsuite/libffi.call/cls_schar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_schar.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,9 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20031108	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_schar_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_uchar.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_uchar.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_uchar_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_align_uint64.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_uint64.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,8 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_ulonglong.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_ulonglong.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_ulonglong_fn(ffi_cif* cif __UNUSED__, void* resp,
+--- libffi/testsuite/libffi.call/cls_align_longdouble.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_longdouble.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ 
+ #include "ffitest.h"
+ 
+--- libffi/testsuite/libffi.call/cls_1_1byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_1_1byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,9 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030902	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_1_1byte {
+--- libffi/testsuite/libffi.call/cls_12byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_12byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_12byte {
+--- libffi/testsuite/libffi.call/cls_3_1byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_3_1byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030902	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_3_1byte {
+--- libffi/testsuite/libffi.call/cls_3byte1.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_3byte1.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_3byte {
+--- libffi/testsuite/libffi.call/cls_4_1byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_4_1byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030902	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_4_1byte {
+--- libffi/testsuite/libffi.call/cls_6_1_byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_6_1_byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20050708	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_6byte {
+--- libffi/testsuite/libffi.call/cls_16byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_16byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_16byte {
+--- libffi/testsuite/libffi.call/cls_18byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_18byte.c	2007-09-06 14:07:37.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030915	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_18byte {
+--- libffi/testsuite/libffi.call/closure_fn0.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn0.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,10 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++
++
++
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void
+--- libffi/testsuite/libffi.call/cls_9byte2.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_9byte2.c	2007-09-06 14:07:37.000000000 +0200
+@@ -7,7 +7,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030914	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_9byte {
+--- libffi/testsuite/libffi.call/closure_fn2.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn2.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void closure_test_fn2(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/closure_fn4.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/closure_fn4.c	2007-09-06 14:07:37.000000000 +0200
+@@ -6,7 +6,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20031026	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ 
+ #include "ffitest.h"
+ 
+--- libffi/testsuite/libffi.call/cls_ushort.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_ushort.c	2007-09-06 14:07:37.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ static void cls_ret_ushort_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
+--- libffi/testsuite/libffi.call/cls_5byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_5byte.c	2007-09-06 14:07:38.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_5byte {
+--- libffi/testsuite/libffi.call/cls_align_pointer.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_pointer.c	2007-09-06 14:07:38.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.call/cls_7byte.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_7byte.c	2007-09-06 14:07:38.000000000 +0200
+@@ -5,7 +5,7 @@
+    PR:		none.
+    Originator:	<andreast@gcc.gnu.org> 20030828	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_7byte {
+--- libffi/testsuite/libffi.call/cls_align_sint32.c.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.call/cls_align_sint32.c	2007-09-06 14:07:38.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	<hos@tamanegi.org> 20031203	 */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitest.h"
+ 
+ typedef struct cls_struct_align {
+--- libffi/testsuite/libffi.special/unwindtest.cc.jj	2007-09-06 14:05:09.000000000 +0200
++++ libffi/testsuite/libffi.special/unwindtest.cc	2007-09-06 14:07:39.000000000 +0200
+@@ -4,7 +4,7 @@
+    PR:		none.
+    Originator:	Jeff Sturm <jsturm@one-point.com>  */
+ 
+-/* { dg-do run { xfail mips64*-*-* arm*-*-* strongarm*-*-* xscale*-*-* } } */
++/* { dg-do run { xfail mips64*-*-* } } */
+ #include "ffitestcxx.h"
+ 
+ void

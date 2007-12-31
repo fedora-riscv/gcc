@@ -1,0 +1,50 @@
+2007-11-13  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/29225
+	* call.c (build_new_op): Call resolve_args before calling
+	build_over_call.
+
+	* g++.dg/template/crash72.C: New test.
+
+--- gcc/cp/call.c	(revision 130125)
++++ gcc/cp/call.c	(revision 130126)
+@@ -3918,7 +3918,10 @@ build_new_op (enum tree_code code, int f
+ 	  if (overloaded_p)
+ 	    *overloaded_p = true;
+ 
+-	  result = build_over_call (cand, LOOKUP_NORMAL);
++	  if (resolve_args (arglist) == error_mark_node)
++	    result = error_mark_node;
++	  else
++	    result = build_over_call (cand, LOOKUP_NORMAL);
+ 	}
+       else
+ 	{
+--- gcc/testsuite/g++.dg/template/crash72.C	(revision 0)
++++ gcc/testsuite/g++.dg/template/crash72.C	(revision 130126)
+@@ -0,0 +1,25 @@
++// PR c++/29225
++// { dg-do compile }
++
++template <typename L, typename R> bool operator< (L x, R y);
++struct T { int t (); };
++class S {};
++
++struct U
++{
++   typedef int (T::* M) ();
++   M m;
++
++   bool operator() (S &x)
++   {
++     T a;
++     return (a.*m) < x;	// { dg-error "invalid use of non-static member" }
++   }
++};
++
++void foo (S &x)
++{
++  U m;
++  m.m = &T::t;
++  m (x);
++}

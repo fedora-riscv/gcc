@@ -1,0 +1,39 @@
+2007-11-20  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/34089
+	* parser.c (cp_parser_class_head): Reject function template ids.
+
+	* g++.dg/template/crash74.C: New test.
+
+--- gcc/cp/parser.c	(revision 130315)
++++ gcc/cp/parser.c	(revision 130316)
+@@ -14536,8 +14536,18 @@ cp_parser_class_head (cp_parser* parser,
+   /* Look up the type.  */
+   if (template_id_p)
+     {
+-      type = TREE_TYPE (id);
+-      type = maybe_process_partial_specialization (type);
++      if (TREE_CODE (id) == TEMPLATE_ID_EXPR
++	  && (DECL_FUNCTION_TEMPLATE_P (TREE_OPERAND (id, 0))
++	      || TREE_CODE (TREE_OPERAND (id, 0)) == OVERLOAD))
++	{
++	  error ("function template %qD redeclared as a class template", id);
++	  type = error_mark_node;
++	}
++      else
++	{
++	  type = TREE_TYPE (id);
++	  type = maybe_process_partial_specialization (type);
++	}
+       if (nested_name_specifier)
+ 	pushed_scope = push_scope (nested_name_specifier);
+     }
+--- gcc/testsuite/g++.dg/template/crash74.C	(revision 0)
++++ gcc/testsuite/g++.dg/template/crash74.C	(revision 130316)
+@@ -0,0 +1,6 @@
++// PR c++/34089
++// { dg-do compile }
++// { dg-options "" }
++
++template<typename F> void foo () { }
++template<typename F> struct foo<F> { };	// { dg-error "redeclared as" }

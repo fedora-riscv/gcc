@@ -1,0 +1,35 @@
+2007-11-17  Richard Guenther  <rguenther@suse.de>
+
+	PR middle-end/34130
+	* fold-const.c (extract_muldiv_1): Do not move negative
+	constants inside ABS_EXPR.
+
+	* gcc.c-torture/execute/pr34130.c: New testcase.
+
+--- gcc/fold-const.c	(revision 130257)
++++ gcc/fold-const.c	(revision 130258)
+@@ -6095,6 +6095,9 @@ extract_muldiv_1 (tree t, tree c, enum t
+             }
+           break;
+         }
++      /* If the constant is negative, we cannot simplify this.  */
++      if (tree_int_cst_sgn (c) == -1)
++        break;
+       /* FALLTHROUGH */
+     case NEGATE_EXPR:
+       if ((t1 = extract_muldiv (op0, c, code, wide_type, strict_overflow_p))
+--- gcc/testsuite/gcc.c-torture/execute/pr34130.c	(revision 0)
++++ gcc/testsuite/gcc.c-torture/execute/pr34130.c	(revision 130258)
+@@ -0,0 +1,12 @@
++extern void abort (void);
++int foo (int i)
++{
++  return -2 * __builtin_abs(i - 2);
++}
++int main()
++{
++  if (foo(1) != -2
++      || foo(3) != -2)
++    abort ();
++  return 0;
++}

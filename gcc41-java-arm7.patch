@@ -1,0 +1,32 @@
+2007-09-07  Andrew Haley  <aph@redhat.com>
+
+	* configure.in (noconfigdirs): Remove target-libffi and
+	target-libjava.
+	* configure: Regenerate.
+
+--- configure.in	(revision 128249)
++++ configure.in	(revision 128250)
+@@ -501,8 +501,8 @@ case "${target}" in
+     noconfigdirs="$noconfigdirs target-libffi target-qthreads"
+     ;;
+   arm*-*-linux-gnueabi)
+-    noconfigdirs="$noconfigdirs target-libffi target-qthreads"
+-    noconfigdirs="$noconfigdirs target-libjava target-libobjc"
++    noconfigdirs="$noconfigdirs target-qthreads"
++    noconfigdirs="$noconfigdirs target-libobjc"
+     ;;
+   arm*-*-symbianelf*)
+     noconfigdirs="$noconfigdirs ${libgcj} target-libiberty"
+--- configure	(revision 128249)
++++ configure	(revision 128250)
+@@ -1293,8 +1293,8 @@ case "${target}" in
+     noconfigdirs="$noconfigdirs target-libffi target-qthreads"
+     ;;
+   arm*-*-linux-gnueabi)
+-    noconfigdirs="$noconfigdirs target-libffi target-qthreads"
+-    noconfigdirs="$noconfigdirs target-libjava target-libobjc"
++    noconfigdirs="$noconfigdirs target-qthreads"
++    noconfigdirs="$noconfigdirs target-libobjc"
+     ;;
+   arm*-*-symbianelf*)
+     noconfigdirs="$noconfigdirs ${libgcj} target-libiberty"

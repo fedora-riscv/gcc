@@ -1,0 +1,55 @@
+2007-01-15  Paul Thomas  <pault@gcc.gnu.org>
+
+	PR fortran/29712
+	* resolve.c (resolve_function): Only a reference to the final
+	dimension of an assumed size array is an error in an inquiry
+	function.
+
+	* gfortran.dg/bound_2.f90: Reinstate commented out line.
+	* gfortran.dg/initialization_1.f90: Change warning.
+
+--- gcc/fortran/resolve.c	(revision 120789)
++++ gcc/fortran/resolve.c	(revision 120790)
+@@ -1498,10 +1498,16 @@ resolve_function (gfc_expr * expr)
+ 	    
+       for (arg = expr->value.function.actual; arg; arg = arg->next)
+ 	{
+-	  if (inquiry && arg->next != NULL && arg->next->expr
+-		&& arg->next->expr->expr_type != EXPR_CONSTANT)
+-	    break;
+-	  
++	  if (inquiry && arg->next != NULL && arg->next->expr)
++	    {
++	      if (arg->next->expr->expr_type != EXPR_CONSTANT)
++		break;
++
++	      if ((int)mpz_get_si (arg->next->expr->value.integer)
++			< arg->expr->rank)
++		break;
++	    }
++
+ 	  if (arg->expr != NULL
+ 		&& arg->expr->rank > 0
+ 		&& resolve_assumed_size_actual (arg->expr))
+--- gcc/testsuite/gfortran.dg/initialization_1.f90	(revision 120789)
++++ gcc/testsuite/gfortran.dg/initialization_1.f90	(revision 120790)
+@@ -27,7 +27,7 @@ contains
+     integer :: l1 = len (ch1)     ! { dg-warning "assumed character length variable" }
+ 
+ ! These are warnings because they are gfortran extensions.
+-    integer :: m3 = size (x, 1)   ! { dg-warning "upper bound in the last dimension" }
++    integer :: m3 = size (x, 1)   ! { dg-warning "Evaluation of nonstandard initialization" }
+     integer :: m4(2) = shape (z)  ! { dg-warning "Evaluation of nonstandard initialization" }
+ 
+ ! This does not depend on non-constant properties.
+--- gcc/testsuite/gfortran.dg/bound_2.f90	(revision 120789)
++++ gcc/testsuite/gfortran.dg/bound_2.f90	(revision 120790)
+@@ -194,7 +194,7 @@ contains
+   subroutine foo (x,n)
+     integer :: x(7,n,2,*), n
+ 
+-    !if (ubound(x,1) /= 7 .or. ubound(x,2) /= 4 .or. ubound(x,3) /= 2) call abort
++    if (ubound(x,1) /= 7 .or. ubound(x,2) /= 4 .or. ubound(x,3) /= 2) call abort
+   end subroutine foo
+ 
+   subroutine jackal (b, c)

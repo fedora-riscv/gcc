@@ -1,0 +1,71 @@
+2007-12-18  Andrew Haley  <aph@redhat.com>
+
+	PR java/27643
+	* jcf-parse.c (java_parse_file): Remove call to
+	java_mark_class_local.
+	(parse_class_file): Reinstate call to java_mark_class_local here.
+	* decl.c (java_mark_cni_decl_local): If the ASSEMBLER_NAME is
+	already set, call java_mangle_decl() and make_decl_rtl() to
+	rewrite its name as a hidden alias.
+
+--- gcc/java/decl.c	(revision 131035)
++++ gcc/java/decl.c	(revision 131036)
+@@ -1890,18 +1890,27 @@ java_mark_decl_local (tree decl)
+ static void
+ java_mark_cni_decl_local (tree decl)
+ {
+-  /* Setting DECL_LOCAL_CNI_METHOD_P changes the behavior of the mangler.
+-     We expect that we should not yet have referenced this decl in a 
+-     context that requires it.  Check this invariant even if we don't have
+-     support for hidden aliases.  */
+-  gcc_assert (!DECL_ASSEMBLER_NAME_SET_P (decl));
+-
+ #if !defined(HAVE_GAS_HIDDEN) || !defined(ASM_OUTPUT_DEF)
+   return;
+ #endif
+ 
+   DECL_VISIBILITY (decl) = VISIBILITY_HIDDEN;
+   DECL_LOCAL_CNI_METHOD_P (decl) = 1;
++
++  /* Setting DECL_LOCAL_CNI_METHOD_P changes the behavior of the
++     mangler.  We might have already referenced this native method and
++     therefore created its name, but even if we have it won't hurt.
++     We'll just go via its externally visible name, rather than its
++     hidden alias.  However, we must force things so that the correct
++     mangling is done.  */
++
++  if (DECL_ASSEMBLER_NAME_SET_P (decl))
++    java_mangle_decl (decl);
++  if (DECL_RTL_SET_P (decl))
++    {
++      SET_DECL_RTL (decl, 0);
++      make_decl_rtl (decl);
++    }
+ }
+ 
+ /* Use the preceding two functions and mark all members of the class.  */
+--- gcc/java/jcf-parse.c	(revision 131035)
++++ gcc/java/jcf-parse.c	(revision 131036)
+@@ -1596,6 +1596,8 @@ parse_class_file (void)
+   file_start_location = input_location;
+   (*debug_hooks->start_source_file) (input_line, input_filename);
+ 
++  java_mark_class_local (current_class);
++
+   gen_indirect_dispatch_tables (current_class);
+ 
+   for (method = TYPE_METHODS (current_class);
+@@ -1967,13 +1969,6 @@ java_parse_file (int set_yydebug ATTRIBU
+ 	}
+     }
+ 
+-  /* Do this before lowering any code.  */
+-  for (node = current_file_list; node; node = TREE_CHAIN (node))
+-    {
+-      if (CLASS_FILE_P (node))
+-	java_mark_class_local (TREE_TYPE (node));
+-    }
+-
+   for (node = current_file_list; node; node = TREE_CHAIN (node))
+     {
+       input_location = DECL_SOURCE_LOCATION (node);

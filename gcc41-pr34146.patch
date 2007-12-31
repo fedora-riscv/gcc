@@ -1,0 +1,133 @@
+2007-11-20  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c/34146
+	* c-gimplify.c (optimize_compound_literals_in_ctor): New function.
+	(c_gimplify_expr): Use it.
+
+	* gcc.dg/tree-ssa/pr34146.c: New test.
+ 
+--- gcc/c-gimplify.c	(revision 130310)
++++ gcc/c-gimplify.c	(revision 130311)
+@@ -208,6 +208,47 @@ gimplify_compound_literal_expr (tree *ex
+   return GS_OK;
+ }
+ 
++/* Optimize embedded COMPOUND_LITERAL_EXPRs within a CONSTRUCTOR,
++   return a new CONSTRUCTOR if something changed.  */
++
++static tree
++optimize_compound_literals_in_ctor (tree orig_ctor)
++{
++  tree ctor = orig_ctor;
++  VEC(constructor_elt,gc) *elts = CONSTRUCTOR_ELTS (ctor);
++  unsigned int idx, num = VEC_length (constructor_elt, elts);
++
++  for (idx = 0; idx < num; idx++)
++    {
++      tree value = VEC_index (constructor_elt, elts, idx)->value;
++      tree newval = value;
++      if (TREE_CODE (value) == CONSTRUCTOR)
++	newval = optimize_compound_literals_in_ctor (value);
++      else if (TREE_CODE (value) == COMPOUND_LITERAL_EXPR)
++	{
++	  tree decl_s = COMPOUND_LITERAL_EXPR_DECL_STMT (value);
++	  tree decl = DECL_EXPR_DECL (decl_s);
++	  tree init = DECL_INITIAL (decl);
++
++	  if (!TREE_ADDRESSABLE (value)
++	      && !TREE_ADDRESSABLE (decl)
++	      && init)
++	    newval = init;
++	}
++      if (newval == value)
++	continue;
++
++      if (ctor == orig_ctor)
++	{
++	  ctor = copy_node (orig_ctor);
++	  CONSTRUCTOR_ELTS (ctor) = VEC_copy (constructor_elt, gc, elts);
++	  elts = CONSTRUCTOR_ELTS (ctor);
++	}
++      VEC_index (constructor_elt, elts, idx)->value = newval;
++    }
++  return ctor;
++}
++
+ /* Do C-specific gimplification.  Args are as for gimplify_expr.  */
+ 
+ int
+@@ -254,6 +295,18 @@ c_gimplify_expr (tree *expr_p, tree *pre
+ 	      return GS_OK;
+ 	    }
+ 	}
++      else if (TREE_CODE (TREE_OPERAND (*expr_p, 1)) == CONSTRUCTOR)
++	{
++	  tree ctor
++	    = optimize_compound_literals_in_ctor (TREE_OPERAND (*expr_p, 1));
++
++	  if (ctor != TREE_OPERAND (*expr_p, 1))
++	    {
++	      *expr_p = copy_node (*expr_p);
++	      TREE_OPERAND (*expr_p, 1) = ctor;
++	      return GS_OK;
++	    }
++	}
+       return GS_UNHANDLED;
+ 
+     default:
+--- gcc/testsuite/gcc.dg/tree-ssa/pr34146.c	(revision 0)
++++ gcc/testsuite/gcc.dg/tree-ssa/pr34146.c	(revision 130311)
+@@ -0,0 +1,53 @@
++/* PR c/34146 */
++/* { dg-do compile } */
++/* { dg-options "-O2 -fdump-tree-gimple" } */
++
++struct A
++{
++  int f1, f2, f3;
++};
++
++struct B
++{
++  struct A g1, g2;
++};
++
++struct C
++{
++  struct B h1, h2;
++};
++
++typedef union
++{
++  struct C c;
++  char s[4];
++  long int a;
++} T;
++
++void
++foo (void)
++{
++  T t = { { { { 0, 0, 0 }, { 0, 0, 0 } }, { { 0, 0, 0 }, { 0, 0, 0 } } } };
++  test (&t);
++}
++
++void
++bar (void)
++{
++  T t = { { { { 0, 0, 0 }, (struct A) { 0, 0, 0 } },
++	    (struct B) { (struct A) { 0, 0, 0 }, { 0, 0, 0 } } } };
++  test (&t);
++}
++
++void
++baz (void)
++{
++  T t = { { { { 0, 0, 0 }, (struct A) { 1, 1, 1 } },
++	    (struct B) { (struct A) { 0, 0, 0 }, { 1, 1, 1 } } } };
++  test (&t);
++}
++
++/* { dg-final { scan-tree-dump-not "t = D" "gimple"} } */
++/* { dg-final { scan-tree-dump-not "t\.c\.h\[12\] = D" "gimple"} } */
++/* { dg-final { scan-tree-dump-not "\.g\[12\] = D" "gimple"} } */
++/* { dg-final { cleanup-tree-dump "gimple" } } */

@@ -1,0 +1,29 @@
+2007-12-10  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/34394
+	* error.c (dump_expr): Handle ABS_EXPR.
+
+	* g++.dg/other/error22.C: New test.
+
+--- gcc/cp/error.c	(revision 130743)
++++ gcc/cp/error.c	(revision 130744)
+@@ -1757,6 +1757,7 @@ dump_expr (tree t, int flags)
+       break;
+ 
+     case SCOPE_REF:
++    case ABS_EXPR:
+       pp_expression (cxx_pp, t);
+       break;
+ 
+--- gcc/testsuite/g++.dg/other/error22.C	(revision 0)
++++ gcc/testsuite/g++.dg/other/error22.C	(revision 130744)
+@@ -0,0 +1,9 @@
++// PR c++/34394
++// { dg-do compile }
++
++extern double fabs (double);
++
++void foo (double x)
++{
++  fabs (x) ();	// { dg-error "__builtin_abs" }
++}

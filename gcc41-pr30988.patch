@@ -1,0 +1,103 @@
+2007-11-18  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/30988
+	* semantics.c (finish_call_expr): Set
+	current_function_returns_abnormally if fn is noreturn FUNCTION_DECL
+	or OVERLOAD with all noreturn functions.
+
+	* g++.dg/warn/noreturn-4.C: New test.
+	* g++.dg/warn/noreturn-5.C: New test.
+	* g++.dg/warn/noreturn-6.C: New test.
+	* g++.dg/warn/noreturn-7.C: New test.
+
+--- gcc/cp/semantics.c	(revision 130279)
++++ gcc/cp/semantics.c	(revision 130280)
+@@ -1846,6 +1846,20 @@ finish_call_expr (tree fn, tree args, bo
+ 	{
+ 	  result = build_nt_call_list (fn, args);
+ 	  KOENIG_LOOKUP_P (result) = koenig_p;
++	  if (cfun)
++	    {
++	      do
++		{
++		  tree fndecl = OVL_CURRENT (fn);
++		  if (TREE_CODE (fndecl) != FUNCTION_DECL
++		      || !TREE_THIS_VOLATILE (fndecl))
++		    break;
++		  fn = OVL_NEXT (fn);
++		}
++	      while (fn);
++	      if (!fn)
++		current_function_returns_abnormally = 1;
++	    }
+ 	  return result;
+ 	}
+       if (!BASELINK_P (fn)
+--- gcc/testsuite/g++.dg/warn/noreturn-4.C	(revision 0)
++++ gcc/testsuite/g++.dg/warn/noreturn-4.C	(revision 130280)
+@@ -0,0 +1,13 @@
++// PR c++/30988
++// { dg-do compile }
++// { dg-options "-O2 -Wall" }
++
++void f (const char *) __attribute__ ((noreturn));
++
++template <typename T> struct A
++{
++  int g ()
++  {
++    f (__FUNCTION__);
++  }
++};
+--- gcc/testsuite/g++.dg/warn/noreturn-5.C	(revision 0)
++++ gcc/testsuite/g++.dg/warn/noreturn-5.C	(revision 130280)
+@@ -0,0 +1,15 @@
++// PR c++/30988
++// { dg-do compile }
++// { dg-options "-O2 -Wall" }
++
++void f (const char *) __attribute__ ((noreturn));
++void f (int) __attribute__ ((noreturn));
++void f (double) __attribute__ ((noreturn));
++
++template <typename T> struct A
++{
++  int g ()
++  {
++    f ((T) 0);
++  }
++};
+--- gcc/testsuite/g++.dg/warn/noreturn-6.C	(revision 0)
++++ gcc/testsuite/g++.dg/warn/noreturn-6.C	(revision 130280)
+@@ -0,0 +1,13 @@
++// PR c++/30988
++// { dg-do compile }
++// { dg-options "-O2 -Wall" }
++
++void f (const char *);
++
++template <typename T> struct A
++{
++  int g ()
++  {
++    f (__FUNCTION__);
++  }	// { dg-warning "no return statement in function returning non-void" }
++};
+--- gcc/testsuite/g++.dg/warn/noreturn-7.C	(revision 0)
++++ gcc/testsuite/g++.dg/warn/noreturn-7.C	(revision 130280)
+@@ -0,0 +1,15 @@
++// PR c++/30988
++// { dg-do compile }
++// { dg-options "-O2 -Wall" }
++
++void f (const char *) __attribute__ ((noreturn));
++void f (int);
++void f (double) __attribute__ ((noreturn));
++
++template <typename T> struct A
++{
++  int g ()
++  {
++    f ((T) 0);
++  }	// { dg-warning "no return statement in function returning non-void" }
++};

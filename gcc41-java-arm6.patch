@@ -1,0 +1,932 @@
+2007-09-04  Andrew Haley  <aph@redhat.com>
+
+	PR java/27908
+	* testsuite/libjava.lang/PR27908.java
+	({run1,run2,run3}.isRunning): New Method.
+	(main): Fix race condition.
+
+2007-08-29  Andrew Haley  <aph@redhat.com>
+
+	* gnu/classpath/natVMStackWalker.cc (VMStackWalker::getCallingClass):
+	Make sure we're not sibcalled.
+	(GET_CALLING_CLASS): Define for ARM EABI.
+
+2007-08-22  Andrew Haley  <aph@redhat.com>
+
+	* configure.host (BACKTRACESPEC): Add arm*-linux*.
+
+2007-08-22  Andrew Haley  <aph@redhat.com>
+
+	* configure.ac (LIBSTDCXXSPEC): New.
+	* configure.host: Add arm*-linux* to pthread test.
+	* configure.ac (LIBGCJTESTSPEC): Add path to libstdc++ for ARM
+	EABI.
+	* testsuite/libjava.jni/jni.exp (gcj_jni_compile_c_to_so): Use
+	-fexceptions for ARM EABI.
+	* testsuite/lib/libjava.exp (libjava_arguments): Add libgcj-test.spec.
+	(libjava_invoke): Log the invocation.
+
+2007-08-15  Andrew Haley  <aph@redhat.com>
+
+	* configure.ac (extra_ldflags): Define.
+	* Makefile.am: Use extra_ldflags for all executables.
+
+2007-08-14  Andrew Haley  <aph@redhat.com>
+
+	* sysdep/arm/backtrace.h: Remove stubs for _Unwind_GetIPInfo,
+	_Unwind_GetRegionStart, and _Unwind_Backtrace.
+
+2007-07-27  Andrew Haley  <aph@redhat.com>
+
+	* gnu/classpath/natVMStackWalker.cc (GET_CALLING_CLASS): Stub for
+	ARM EABI.
+	* exception.cc (get_exception_header_from_ue): New.
+	(get_ttype_entry): ARM EABI version.
+	(PERSONALITY_FUNCTION): Add ARM EABI code.
+	* sysdep/arm/backtrace.h: New file.
+	* stacktrace.cc (_URC_NORMAL_STOP): New.
+	* configure.ac (extra_ldflags_libjava): Add libsupc++.la for ARM
+	EABI.
+	* configure.host (BACKTRACESPEC): Add arm/backtrace.h.
+
+--- libjava/testsuite/Makefile.in.jj	2007-09-06 14:06:13.000000000 +0200
++++ libjava/testsuite/Makefile.in	2007-09-06 17:20:42.000000000 +0200
+@@ -160,6 +160,7 @@ LIBLTDL = @LIBLTDL@
+ LIBMAGIC = @LIBMAGIC@
+ LIBOBJS = @LIBOBJS@
+ LIBS = @LIBS@
++LIBSTDCXXSPEC = @LIBSTDCXXSPEC@
+ LIBTOOL = @LIBTOOL@
+ LN_S = @LN_S@
+ LTLIBICONV = @LTLIBICONV@
+@@ -264,6 +265,7 @@ build_vendor = @build_vendor@
+ datadir = @datadir@
+ dbexecdir = @dbexecdir@
+ exec_prefix = @exec_prefix@
++extra_ldflags = @extra_ldflags@
+ extra_ldflags_libjava = @extra_ldflags_libjava@
+ gxx_include_dir = @gxx_include_dir@
+ here = @here@
+--- libjava/testsuite/libjava.jni/jni.exp.jj	2007-09-06 14:06:13.000000000 +0200
++++ libjava/testsuite/libjava.jni/jni.exp	2007-09-06 17:20:42.000000000 +0200
+@@ -29,6 +29,10 @@ proc gcj_jni_compile_c_to_so {file {opti
+   set name [file rootname $filename]
+   set soname lib${name}.${so_extension}
+ 
++  if { [istarget "*arm-*eabi*"] } {
++      lappend options "additional_flags=-fexceptions"
++  }
++
+   lappend options "additional_flags=${so_flag} -fPIC"
+   # Find the generated header.
+   lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir"
+--- libjava/testsuite/lib/libjava.exp.jj	2007-09-06 14:06:13.000000000 +0200
++++ libjava/testsuite/lib/libjava.exp	2007-09-06 17:20:42.000000000 +0200
+@@ -379,6 +379,7 @@ proc libjava_arguments {{mode compile}} 
+     if {$mode == "link"} {
+ 	global wrapper_file wrap_compile_flags
+ 	lappend args "additional_flags=$wrap_compile_flags"
++	lappend args "additional_flags=-specs=libgcj-test.spec"
+ 	lappend args "libs=$wrapper_file"
+ 	lappend args "libs=$libjava"
+ 	lappend args debug
+--- libjava/configure.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/configure	2007-09-06 17:27:04.000000000 +0200
+@@ -310,7 +310,7 @@ ac_includes_default="\
+ # include <unistd.h>
+ #endif"
+ 
+-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os build_subdir host_subdir target_subdir libgcj_basedir host host_cpu host_vendor host_os target target_cpu target_vendor target_os target_noncanonical LN_S mkinstalldirs JAVA_MAINTAINER_MODE_TRUE JAVA_MAINTAINER_MODE_FALSE CC ac_ct_CC EXEEXT OBJEXT CXX ac_ct_CXX CFLAGS CXXFLAGS LDFLAGS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE AS ac_ct_AS LD ac_ct_LD AR ac_ct_AR RANLIB ac_ct_RANLIB JAR ZIP UNZIP MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBGCJ_CFLAGS LIBGCJ_CXXFLAGS LIBGCJ_JAVAFLAGS LIBGCJ_LD_SYMBOLIC LIBGCJDEBUG TOOLKIT XLIB_AWT_TRUE XLIB_AWT_FALSE X_AWT_TRUE X_AWT_FALSE GCJ_FOR_ECJX GCJH host_exeext INCLTDL LIBLTDL DIRLTDL LIBTOOL CXXCPP CPPFLAGS GCJ GCJFLAGS GCJDEPMODE am__fastdepGCJ_TRUE am__fastdepGCJ_FALSE subdirs TESTSUBDIR_TRUE TESTSUBDIR_FALSE ECJ_BUILD_JAR ECJ_JAR BUILD_ECJ1_TRUE BUILD_ECJ1_FALSE INSTALL_ECJ_JAR_TRUE INSTALL_ECJ_JAR_FALSE JAVA_HOME_SET_TRUE JAVA_HOME_SET_FALSE JAVA_HOME INTERPRETER LIBFFI LIBFFIINCS PLATFORM CPP EGREP USING_WIN32_PLATFORM_TRUE USING_WIN32_PLATFORM_FALSE USING_POSIX_PLATFORM_TRUE USING_POSIX_PLATFORM_FALSE USING_DARWIN_CRT_TRUE USING_DARWIN_CRT_FALSE SYSTEMSPEC LIBGCJTESTSPEC ZLIBSPEC ZLIBTESTSPEC X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS extra_ldflags_libjava GCLIBS GCINCS GCDEPS GCSPEC JC1GCSPEC GCTESTSPEC USING_BOEHMGC_TRUE USING_BOEHMGC_FALSE USING_NOGC_TRUE USING_NOGC_FALSE THREADLIBS THREADINCS THREADDEPS THREADSPEC THREADSTARTFILESPEC THREADLDFLAGS THREADCXXFLAGS USING_POSIX_THREADS_TRUE USING_POSIX_THREADS_FALSE USING_WIN32_THREADS_TRUE USING_WIN32_THREADS_FALSE USING_NO_THREADS_TRUE USING_NO_THREADS_FALSE USE_LIBGCJ_BC_TRUE USE_LIBGCJ_BC_FALSE LIBGCJ_SPEC HASH_SYNC_SPEC USING_GCC_TRUE USING_GCC_FALSE LIBICONV LTLIBICONV LIBMAGIC PKG_CONFIG GTK_CFLAGS GTK_LIBS GLIB_CFLAGS GLIB_LIBS LIBART_CFLAGS LIBART_LIBS CLASSPATH_SEPARATOR ac_ct_GCJ ZLIBS SYS_ZLIBS ZINCS DIVIDESPEC CHECKREFSPEC EXCEPTIONSPEC BACKTRACESPEC IEEESPEC NATIVE_TRUE NATIVE_FALSE ENABLE_SHARED_TRUE ENABLE_SHARED_FALSE NEEDS_DATA_START_TRUE NEEDS_DATA_START_FALSE GCC_UNWIND_INCLUDE toolexecdir toolexecmainlibdir toolexeclibdir dbexecdir GCJVERSION gxx_include_dir libstdcxx_incdir ALLOCA PERL SYSDEP_SOURCES ANONVERSCRIPT_TRUE ANONVERSCRIPT_FALSE LD_START_STATIC_SPEC LD_FINISH_STATIC_SPEC here LIBOBJS LTLIBOBJS'
++ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os build_subdir host_subdir target_subdir libgcj_basedir host host_cpu host_vendor host_os target target_cpu target_vendor target_os target_noncanonical LN_S mkinstalldirs JAVA_MAINTAINER_MODE_TRUE JAVA_MAINTAINER_MODE_FALSE CC ac_ct_CC EXEEXT OBJEXT CXX ac_ct_CXX CFLAGS CXXFLAGS LDFLAGS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE AS ac_ct_AS LD ac_ct_LD AR ac_ct_AR RANLIB ac_ct_RANLIB JAR ZIP UNZIP MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBGCJ_CFLAGS LIBGCJ_CXXFLAGS LIBGCJ_JAVAFLAGS LIBGCJ_LD_SYMBOLIC LIBGCJDEBUG TOOLKIT XLIB_AWT_TRUE XLIB_AWT_FALSE X_AWT_TRUE X_AWT_FALSE GCJ_FOR_ECJX GCJH host_exeext INCLTDL LIBLTDL DIRLTDL LIBTOOL CXXCPP CPPFLAGS GCJ GCJFLAGS GCJDEPMODE am__fastdepGCJ_TRUE am__fastdepGCJ_FALSE subdirs TESTSUBDIR_TRUE TESTSUBDIR_FALSE ECJ_BUILD_JAR ECJ_JAR BUILD_ECJ1_TRUE BUILD_ECJ1_FALSE INSTALL_ECJ_JAR_TRUE INSTALL_ECJ_JAR_FALSE JAVA_HOME_SET_TRUE JAVA_HOME_SET_FALSE JAVA_HOME INTERPRETER LIBFFI LIBFFIINCS PLATFORM CPP EGREP USING_WIN32_PLATFORM_TRUE USING_WIN32_PLATFORM_FALSE USING_POSIX_PLATFORM_TRUE USING_POSIX_PLATFORM_FALSE USING_DARWIN_CRT_TRUE USING_DARWIN_CRT_FALSE SYSTEMSPEC ZLIBSPEC ZLIBTESTSPEC X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS extra_ldflags_libjava extra_ldflags LIBSTDCXXSPEC LIBGCJTESTSPEC GCLIBS GCINCS GCDEPS GCSPEC JC1GCSPEC GCTESTSPEC USING_BOEHMGC_TRUE USING_BOEHMGC_FALSE USING_NOGC_TRUE USING_NOGC_FALSE THREADLIBS THREADINCS THREADDEPS THREADSPEC THREADSTARTFILESPEC THREADLDFLAGS THREADCXXFLAGS USING_POSIX_THREADS_TRUE USING_POSIX_THREADS_FALSE USING_WIN32_THREADS_TRUE USING_WIN32_THREADS_FALSE USING_NO_THREADS_TRUE USING_NO_THREADS_FALSE USE_LIBGCJ_BC_TRUE USE_LIBGCJ_BC_FALSE LIBGCJ_SPEC HASH_SYNC_SPEC USING_GCC_TRUE USING_GCC_FALSE LIBICONV LTLIBICONV LIBMAGIC PKG_CONFIG GTK_CFLAGS GTK_LIBS GLIB_CFLAGS GLIB_LIBS LIBART_CFLAGS LIBART_LIBS CLASSPATH_SEPARATOR ac_ct_GCJ ZLIBS SYS_ZLIBS ZINCS DIVIDESPEC CHECKREFSPEC EXCEPTIONSPEC BACKTRACESPEC IEEESPEC NATIVE_TRUE NATIVE_FALSE ENABLE_SHARED_TRUE ENABLE_SHARED_FALSE NEEDS_DATA_START_TRUE NEEDS_DATA_START_FALSE GCC_UNWIND_INCLUDE toolexecdir toolexecmainlibdir toolexeclibdir dbexecdir GCJVERSION gxx_include_dir libstdcxx_incdir ALLOCA PERL SYSDEP_SOURCES ANONVERSCRIPT_TRUE ANONVERSCRIPT_FALSE LD_START_STATIC_SPEC LD_FINISH_STATIC_SPEC here LIBOBJS LTLIBOBJS'
+ ac_subst_files=''
+ 
+ # Initialize some variables set by options.
+@@ -7640,9 +7640,6 @@ case "${host}" in
+ esac
+ 
+ 
+-LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -rpath `${PWDCMD-pwd}`/.libs"
+-
+-
+ 
+ # Check whether --with-system-zlib or --without-system-zlib was given.
+ if test "${with_system_zlib+set}" = set; then
+@@ -9126,6 +9123,9 @@ fi
+ # FIXME: this should be _libs on some hosts.
+ libsubdir=.libs
+ 
++LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -rpath `${PWDCMD-pwd}`/.libs"
++
++LIBSTDCXXSPEC=
+ # extra LD Flags which are required for targets
+ case "${host}" in
+ *-*-darwin[0-7].*)
+@@ -9134,9 +9134,21 @@ case "${host}" in
+     # on Darwin -single_module speeds up loading of the dynamic libraries.
+     extra_ldflags_libjava=-Wl,-single_module
+     ;;
++arm*linux*eabi)
++    # Some of the ARM unwinder code is actually in libstdc++.  We
++    # could in principle replicate it in libgcj, but it's better to
++    # have a dependency on libstdc++.
++    extra_ldflags='-L$(here)/../libstdc++-v3/src -lstdc++'
++    LIBSTDCXXSPEC=-lstdc++
++    LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -L`${PWDCMD-pwd}`/../libstdc++-v3/src/.libs -rpath `${PWDCMD-pwd}`/.libs:`${PWDCMD-pwd}`/../libstdc++-v3/src/.libs -lstdc++"
++    ;;
+ esac
+ 
+ 
++
++
++
++
+ # Allow the GC to be disabled.  Can be useful when debugging.
+ echo "$as_me:$LINENO: checking for garbage collector to use" >&5
+ echo $ECHO_N "checking for garbage collector to use... $ECHO_C" >&6
+@@ -18024,7 +18036,6 @@ s,@USING_POSIX_PLATFORM_FALSE@,$USING_PO
+ s,@USING_DARWIN_CRT_TRUE@,$USING_DARWIN_CRT_TRUE,;t t
+ s,@USING_DARWIN_CRT_FALSE@,$USING_DARWIN_CRT_FALSE,;t t
+ s,@SYSTEMSPEC@,$SYSTEMSPEC,;t t
+-s,@LIBGCJTESTSPEC@,$LIBGCJTESTSPEC,;t t
+ s,@ZLIBSPEC@,$ZLIBSPEC,;t t
+ s,@ZLIBTESTSPEC@,$ZLIBTESTSPEC,;t t
+ s,@X_CFLAGS@,$X_CFLAGS,;t t
+@@ -18032,6 +18043,9 @@ s,@X_PRE_LIBS@,$X_PRE_LIBS,;t t
+ s,@X_LIBS@,$X_LIBS,;t t
+ s,@X_EXTRA_LIBS@,$X_EXTRA_LIBS,;t t
+ s,@extra_ldflags_libjava@,$extra_ldflags_libjava,;t t
++s,@extra_ldflags@,$extra_ldflags,;t t
++s,@LIBSTDCXXSPEC@,$LIBSTDCXXSPEC,;t t
++s,@LIBGCJTESTSPEC@,$LIBGCJTESTSPEC,;t t
+ s,@GCLIBS@,$GCLIBS,;t t
+ s,@GCINCS@,$GCINCS,;t t
+ s,@GCDEPS@,$GCDEPS,;t t
+--- libjava/Makefile.in.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/Makefile.in	2007-09-06 17:28:51.000000000 +0200
+@@ -627,6 +627,7 @@ LIBLTDL = @LIBLTDL@
+ LIBMAGIC = @LIBMAGIC@
+ LIBOBJS = @LIBOBJS@
+ LIBS = @LIBS@
++LIBSTDCXXSPEC = @LIBSTDCXXSPEC@
+ LIBTOOL = @LIBTOOL@
+ LN_S = @LN_S@
+ LTLIBICONV = @LTLIBICONV@
+@@ -731,6 +732,7 @@ build_vendor = @build_vendor@
+ datadir = @datadir@
+ dbexecdir = @dbexecdir@
+ exec_prefix = @exec_prefix@
++extra_ldflags = @extra_ldflags@
+ extra_ldflags_libjava = @extra_ldflags_libjava@ $(am__append_5)
+ gxx_include_dir = @gxx_include_dir@
+ here = @here@
+@@ -812,7 +814,7 @@ GCJLINK = $(LIBTOOL) --tag=GCJ --mode=li
+ 
+ GCJ_FOR_ECJX_LINK = $(GCJ_FOR_ECJX) -o $@
+ LIBLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXX) -L$(here) $(JC1FLAGS) \
+-          $(LDFLAGS) $(extra_ldflags_libjava) -o $@
++          $(LDFLAGS) $(extra_ldflags_libjava) $(extra_ldflags) -o $@
+ 
+ WARNINGS = -Wextra -Wall
+ AM_CXXFLAGS = \
+@@ -872,7 +874,7 @@ xlib_nat_files = $(xlib_nat_source_files
+ 
+ # Include THREADLIBS here to ensure that the correct version of
+ # certain linuxthread functions get linked:
+-libgcj_la_LDFLAGS = -rpath $(toolexeclibdir) $(THREADLDFLAGS) $(THREADLIBS) \
++libgcj_la_LDFLAGS = -rpath $(toolexeclibdir) $(THREADLDFLAGS) $(extra_ldflags) $(THREADLIBS) \
+ 	$(LIBLTDL) $(SYS_ZLIBS) \
+ 	-version-info `grep -v '^\#' $(srcdir)/libtool-version`
+ 
+@@ -7784,7 +7786,7 @@ NM = nm
+ 
+ jv_convert_SOURCES = 
+ jv_convert_LDFLAGS = --main=gnu.gcj.convert.Convert \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ jv_convert_LINK = $(GCJLINK)
+ jv_convert_LDADD = -L$(here)/.libs libgcj.la
+@@ -7800,7 +7802,7 @@ gcj_dbtool_LDADD = gnu/gcj/tools/gcj_dbt
+ gcj_dbtool_DEPENDENCIES = gnu/gcj/tools/gcj_dbtool.lo libgcj.la libgcj.spec
+ gij_SOURCES = 
+ gij_LDFLAGS = -rpath $(libdir)/gcj-$(gcc_version) -rpath $(toolexeclibdir) \
+-	-shared-libgcc $(THREADLDFLAGS)
++	-shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gij_LINK = $(GCJLINK)
+ gij_LDADD = -L$(here)/.libs libgij.la
+@@ -7820,91 +7822,91 @@ ECJX_BASE_FLAGS = -findirect-dispatch \
+ @NATIVE_TRUE@ecjx_DEPENDENCIES = libgcj.la libgcj.spec
+ gappletviewer_SOURCES = 
+ gappletviewer_LDFLAGS = --main=gnu.classpath.tools.appletviewer.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gappletviewer_LINK = $(GCJLINK)
+ gappletviewer_LDADD = -L$(here)/.libs libgcj-tools.la
+ gappletviewer_DEPENDENCIES = libgcj-tools.la
+ gjarsigner_SOURCES = 
+ gjarsigner_LDFLAGS = --main=gnu.classpath.tools.jarsigner.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gjarsigner_LINK = $(GCJLINK)
+ gjarsigner_LDADD = -L$(here)/.libs libgcj-tools.la
+ gjarsigner_DEPENDENCIES = libgcj-tools.la
+ gkeytool_SOURCES = 
+ gkeytool_LDFLAGS = --main=gnu.classpath.tools.keytool.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gkeytool_LINK = $(GCJLINK)
+ gkeytool_LDADD = -L$(here)/.libs libgcj-tools.la
+ gkeytool_DEPENDENCIES = libgcj-tools.la
+ gjar_SOURCES = 
+ gjar_LDFLAGS = --main=gnu.classpath.tools.jar.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gjar_LINK = $(GCJLINK)
+ gjar_LDADD = -L$(here)/.libs libgcj-tools.la
+ gjar_DEPENDENCIES = libgcj-tools.la
+ gjavah_SOURCES = 
+ gjavah_LDFLAGS = --main=gnu.classpath.tools.javah.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gjavah_LINK = $(GCJLINK)
+ gjavah_LDADD = -L$(here)/.libs libgcj-tools.la
+ gjavah_DEPENDENCIES = libgcj-tools.la
+ gcjh_SOURCES = 
+ gcjh_LDFLAGS = --main=gnu.classpath.tools.javah.GcjhMain \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gcjh_LINK = $(GCJLINK)
+ gcjh_LDADD = -L$(here)/.libs libgcj-tools.la
+ gcjh_DEPENDENCIES = libgcj-tools.la
+ gnative2ascii_SOURCES = 
+ gnative2ascii_LDFLAGS = --main=gnu.classpath.tools.native2ascii.Native2ASCII \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gnative2ascii_LINK = $(GCJLINK)
+ gnative2ascii_LDADD = -L$(here)/.libs libgcj-tools.la
+ gnative2ascii_DEPENDENCIES = libgcj-tools.la
+ gorbd_SOURCES = 
+ gorbd_LDFLAGS = --main=gnu.classpath.tools.orbd.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gorbd_LINK = $(GCJLINK)
+ gorbd_LDADD = -L$(here)/.libs libgcj-tools.la
+ gorbd_DEPENDENCIES = libgcj-tools.la
+ grmid_SOURCES = 
+ grmid_LDFLAGS = --main=gnu.classpath.tools.rmid.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ grmid_LINK = $(GCJLINK)
+ grmid_LDADD = -L$(here)/.libs libgcj-tools.la
+ grmid_DEPENDENCIES = libgcj-tools.la
+ gserialver_SOURCES = 
+ gserialver_LDFLAGS = --main=gnu.classpath.tools.serialver.SerialVer \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gserialver_LINK = $(GCJLINK)
+ gserialver_LDADD = -L$(here)/.libs libgcj-tools.la
+ gserialver_DEPENDENCIES = libgcj-tools.la
+ gtnameserv_SOURCES = 
+ gtnameserv_LDFLAGS = --main=gnu.classpath.tools.tnameserv.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ gtnameserv_LINK = $(GCJLINK)
+ gtnameserv_LDADD = -L$(here)/.libs libgcj-tools.la
+ gtnameserv_DEPENDENCIES = libgcj-tools.la
+ grmic_SOURCES = 
+ grmic_LDFLAGS = --main=gnu.classpath.tools.rmic.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ grmic_LINK = $(GCJLINK)
+ grmic_LDADD = -L$(here)/.libs libgcj-tools.la
+ grmic_DEPENDENCIES = libgcj-tools.la
+ grmiregistry_SOURCES = 
+ grmiregistry_LDFLAGS = --main=gnu.classpath.tools.rmiregistry.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ 
+ grmiregistry_LINK = $(GCJLINK)
+ grmiregistry_LDADD = -L$(here)/.libs libgcj-tools.la
+--- libjava/gcj/Makefile.in.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/gcj/Makefile.in	2007-09-06 17:20:42.000000000 +0200
+@@ -172,6 +172,7 @@ LIBLTDL = @LIBLTDL@
+ LIBMAGIC = @LIBMAGIC@
+ LIBOBJS = @LIBOBJS@
+ LIBS = @LIBS@
++LIBSTDCXXSPEC = @LIBSTDCXXSPEC@
+ LIBTOOL = @LIBTOOL@
+ LN_S = @LN_S@
+ LTLIBICONV = @LTLIBICONV@
+@@ -276,6 +277,7 @@ build_vendor = @build_vendor@
+ datadir = @datadir@
+ dbexecdir = @dbexecdir@
+ exec_prefix = @exec_prefix@
++extra_ldflags = @extra_ldflags@
+ extra_ldflags_libjava = @extra_ldflags_libjava@
+ gxx_include_dir = @gxx_include_dir@
+ here = @here@
+--- libjava/include/Makefile.in.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/include/Makefile.in	2007-09-06 17:20:42.000000000 +0200
+@@ -171,6 +171,7 @@ LIBLTDL = @LIBLTDL@
+ LIBMAGIC = @LIBMAGIC@
+ LIBOBJS = @LIBOBJS@
+ LIBS = @LIBS@
++LIBSTDCXXSPEC = @LIBSTDCXXSPEC@
+ LIBTOOL = @LIBTOOL@
+ LN_S = @LN_S@
+ LTLIBICONV = @LTLIBICONV@
+@@ -275,6 +276,7 @@ build_vendor = @build_vendor@
+ datadir = @datadir@
+ dbexecdir = @dbexecdir@
+ exec_prefix = @exec_prefix@
++extra_ldflags = @extra_ldflags@
+ extra_ldflags_libjava = @extra_ldflags_libjava@
+ gxx_include_dir = @gxx_include_dir@
+ here = @here@
+--- libjava/configure.ac.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/configure.ac	2007-09-06 17:20:42.000000000 +0200
+@@ -777,9 +777,6 @@ case "${host}" in
+ esac
+ AC_SUBST(SYSTEMSPEC)
+ 
+-LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -rpath `${PWDCMD-pwd}`/.libs"
+-AC_SUBST(LIBGCJTESTSPEC)
+-
+ AC_ARG_WITH(system-zlib,
+   AS_HELP_STRING([--with-system-zlib],
+                  [use installed libz]))
+@@ -793,6 +790,9 @@ AC_PATH_XTRA
+ # FIXME: this should be _libs on some hosts.
+ libsubdir=.libs
+ 
++LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -rpath `${PWDCMD-pwd}`/.libs"
++
++LIBSTDCXXSPEC=
+ # extra LD Flags which are required for targets
+ case "${host}" in
+ *-*-darwin[[0-7]].*)
+@@ -801,8 +801,20 @@ case "${host}" in
+     # on Darwin -single_module speeds up loading of the dynamic libraries.
+     extra_ldflags_libjava=-Wl,-single_module
+     ;;
++arm*linux*eabi)
++    # Some of the ARM unwinder code is actually in libstdc++.  We
++    # could in principle replicate it in libgcj, but it's better to
++    # have a dependency on libstdc++.
++    extra_ldflags='-L$(here)/../libstdc++-v3/src -lstdc++'
++    LIBSTDCXXSPEC=-lstdc++
++    LIBGCJTESTSPEC="-L`${PWDCMD-pwd}`/.libs -L`${PWDCMD-pwd}`/../libstdc++-v3/src/.libs -rpath `${PWDCMD-pwd}`/.libs:`${PWDCMD-pwd}`/../libstdc++-v3/src/.libs -lstdc++"
++    ;;
+ esac
+ AC_SUBST(extra_ldflags_libjava)
++AC_SUBST(extra_ldflags)
++AC_SUBST(LIBSTDCXXSPEC)
++
++AC_SUBST(LIBGCJTESTSPEC)
+ 
+ # Allow the GC to be disabled.  Can be useful when debugging.
+ AC_MSG_CHECKING([for garbage collector to use])
+--- libjava/libgcj.spec.in.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/libgcj.spec.in	2007-09-06 17:20:42.000000000 +0200
+@@ -7,6 +7,6 @@
+ *startfile: @THREADSTARTFILESPEC@ %(startfileorig)
+ 
+ %rename lib liborig
+-*lib: @LD_START_STATIC_SPEC@ @LIBGCJ_SPEC@ @LD_FINISH_STATIC_SPEC@ -lm @LIBICONV@ @GCSPEC@ @THREADSPEC@ @ZLIBSPEC@ @SYSTEMSPEC@ %(libgcc) %(liborig)
++*lib: @LD_START_STATIC_SPEC@ @LIBGCJ_SPEC@ @LD_FINISH_STATIC_SPEC@ -lm @LIBICONV@ @GCSPEC@ @THREADSPEC@ @ZLIBSPEC@ @SYSTEMSPEC@ %(libgcc) @LIBSTDCXXSPEC@ %(liborig)
+ 
+ *jc1: @HASH_SYNC_SPEC@ @DIVIDESPEC@ @CHECKREFSPEC@ @JC1GCSPEC@ @EXCEPTIONSPEC@ @BACKTRACESPEC@ @IEEESPEC@ -fkeep-inline-functions
+--- libjava/stacktrace.cc.jj	2007-09-06 14:06:16.000000000 +0200
++++ libjava/stacktrace.cc	2007-09-06 17:20:42.000000000 +0200
+@@ -39,6 +39,10 @@ using namespace java::lang::reflect;
+ using namespace java::util;
+ using namespace gnu::gcj::runtime;
+ 
++#ifdef __ARM_EABI_UNWINDER__
++#define _URC_NORMAL_STOP _URC_FAILURE
++#endif
++
+ // Maps ncode values to their containing native class.
+ // NOTE: Currently this Map contradicts class GC for native classes. This map
+ // (and the "new class stack") will need to use WeakReferences in order to 
+--- libjava/configure.host.jj	2007-09-06 17:11:05.000000000 +0200
++++ libjava/configure.host	2007-09-06 17:20:42.000000000 +0200
+@@ -85,6 +85,7 @@ case "${host}" in
+   arm*-linux*)
+ 	libgcj_interpreter=yes
+ 	sysdeps_dir=arm
++	fallback_backtrace_h=sysdep/arm/backtrace.h
+ 	;;
+   mips-tx39-*|mipstx39-unknown-*)
+ 	libgcj_flags="${libgcj_flags} -G 0"
+@@ -258,6 +259,12 @@ EOF
+ 	sysdeps_dir=x86-64
+ 	DIVIDESPEC=-f%{m32:no-}%{!m32:%{!m64:no-}}%{m64:}use-divide-subroutine
+ 	;;
++  arm*-linux* )
++	slow_pthread_self=no
++	can_unwind_signal=no
++	CHECKREFSPEC=-fcheck-references
++	DIVIDESPEC=-fuse-divide-subroutine
++	;;
+   mips*-*-linux* )
+   	sysdeps_dir=mips
+   	can_unwind_signal=yes
+--- libjava/Makefile.am.jj	2007-09-06 14:06:16.000000000 +0200
++++ libjava/Makefile.am	2007-09-06 17:28:27.000000000 +0200
+@@ -100,6 +100,7 @@ endif
+ GCJ_WITH_FLAGS = $(GCJ) --encoding=UTF-8 -Wno-deprecated
+ 
+ extra_ldflags_libjava = @extra_ldflags_libjava@
++extra_ldflags = @extra_ldflags@
+ 
+ if ANONVERSCRIPT
+ extra_ldflags_libjava += -Wl,--version-script=$(srcdir)/libgcj.ver
+@@ -110,7 +111,7 @@ GCJLINK = $(LIBTOOL) --tag=GCJ --mode=li
+ GCJ_FOR_ECJX = @GCJ_FOR_ECJX@
+ GCJ_FOR_ECJX_LINK = $(GCJ_FOR_ECJX) -o $@
+ LIBLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXX) -L$(here) $(JC1FLAGS) \
+-          $(LDFLAGS) $(extra_ldflags_libjava) -o $@
++          $(LDFLAGS) $(extra_ldflags_libjava) $(extra_ldflags) -o $@
+ 
+ GCC_UNWIND_INCLUDE = @GCC_UNWIND_INCLUDE@
+ 
+@@ -232,7 +233,7 @@ xlib_nat_files = $(xlib_nat_source_files
+ # Include THREADLIBS here to ensure that the correct version of
+ # certain linuxthread functions get linked:
+ ## The mysterious backslash in the grep pattern is consumed by make.
+-libgcj_la_LDFLAGS = -rpath $(toolexeclibdir) $(THREADLDFLAGS) $(THREADLIBS) \
++libgcj_la_LDFLAGS = -rpath $(toolexeclibdir) $(THREADLDFLAGS) $(extra_ldflags) $(THREADLIBS) \
+ 	$(LIBLTDL) $(SYS_ZLIBS) \
+ 	-version-info `grep -v '^\#' $(srcdir)/libtool-version`
+ libgcj_la_LIBADD = \
+@@ -614,7 +615,7 @@ jv_convert_SOURCES =
+ ## need this because we are explicitly using libtool to link using the
+ ## `.la' file.
+ jv_convert_LDFLAGS = --main=gnu.gcj.convert.Convert \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ jv_convert_LINK = $(GCJLINK)
+ ## We don't explicitly link in the libraries we need; libgcj.la brings
+ ## in all dependencies.  We need the -L so that gcj can find libgcj
+@@ -635,7 +636,7 @@ gnu/gcj/tools/gcj_dbtool/natMain.cc
+ ## need this because we are explicitly using libtool to link using the
+ ## `.la' file.
+ gcj_dbtool_LDFLAGS = --main=gnu.gcj.tools.gcj_dbtool.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gcj_dbtool_LINK = $(GCJLINK)
+ ## We don't explicitly link in the libraries we need; libgcj.la brings
+ ## in all dependencies.  We need the -L so that gcj can find libgcj
+@@ -654,7 +655,7 @@ gij_SOURCES = 
+ ## need this because we are explicitly using libtool to link using the
+ ## `.la' file.
+ gij_LDFLAGS = -rpath $(libdir)/gcj-$(gcc_version) -rpath $(toolexeclibdir) \
+-	-shared-libgcc $(THREADLDFLAGS)
++	-shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gij_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gij_LDADD = -L$(here)/.libs libgij.la
+@@ -698,7 +699,7 @@ endif !NATIVE
+ ## This is a dummy definition.
+ gappletviewer_SOURCES =
+ gappletviewer_LDFLAGS = --main=gnu.classpath.tools.appletviewer.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gappletviewer_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gappletviewer_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -707,7 +708,7 @@ gappletviewer_DEPENDENCIES = libgcj-tool
+ ## This is a dummy definition.
+ gjarsigner_SOURCES =
+ gjarsigner_LDFLAGS = --main=gnu.classpath.tools.jarsigner.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gjarsigner_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gjarsigner_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -716,7 +717,7 @@ gjarsigner_DEPENDENCIES = libgcj-tools.l
+ ## This is a dummy definition.
+ gkeytool_SOURCES =
+ gkeytool_LDFLAGS = --main=gnu.classpath.tools.keytool.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gkeytool_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gkeytool_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -725,7 +726,7 @@ gkeytool_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ gjar_SOURCES =
+ gjar_LDFLAGS = --main=gnu.classpath.tools.jar.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gjar_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gjar_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -734,7 +735,7 @@ gjar_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ gjavah_SOURCES =
+ gjavah_LDFLAGS = --main=gnu.classpath.tools.javah.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gjavah_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gjavah_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -743,7 +744,7 @@ gjavah_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ gcjh_SOURCES =
+ gcjh_LDFLAGS = --main=gnu.classpath.tools.javah.GcjhMain \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gcjh_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gcjh_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -752,7 +753,7 @@ gcjh_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ gnative2ascii_SOURCES =
+ gnative2ascii_LDFLAGS = --main=gnu.classpath.tools.native2ascii.Native2ASCII \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gnative2ascii_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gnative2ascii_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -761,7 +762,7 @@ gnative2ascii_DEPENDENCIES = libgcj-tool
+ ## This is a dummy definition.
+ gorbd_SOURCES =
+ gorbd_LDFLAGS = --main=gnu.classpath.tools.orbd.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gorbd_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gorbd_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -770,7 +771,7 @@ gorbd_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ grmid_SOURCES =
+ grmid_LDFLAGS = --main=gnu.classpath.tools.rmid.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ grmid_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ grmid_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -779,7 +780,7 @@ grmid_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ gserialver_SOURCES =
+ gserialver_LDFLAGS = --main=gnu.classpath.tools.serialver.SerialVer \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gserialver_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gserialver_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -788,7 +789,7 @@ gserialver_DEPENDENCIES = libgcj-tools.l
+ ## This is a dummy definition.
+ gtnameserv_SOURCES =
+ gtnameserv_LDFLAGS = --main=gnu.classpath.tools.tnameserv.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ gtnameserv_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ gtnameserv_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -797,7 +798,7 @@ gtnameserv_DEPENDENCIES = libgcj-tools.l
+ ## This is a dummy definition.
+ grmic_SOURCES =
+ grmic_LDFLAGS = --main=gnu.classpath.tools.rmic.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ grmic_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ grmic_LDADD = -L$(here)/.libs libgcj-tools.la
+@@ -806,7 +807,7 @@ grmic_DEPENDENCIES = libgcj-tools.la
+ ## This is a dummy definition.
+ grmiregistry_SOURCES =
+ grmiregistry_LDFLAGS = --main=gnu.classpath.tools.rmiregistry.Main \
+-	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS)
++	-rpath $(toolexeclibdir) -shared-libgcc $(THREADLDFLAGS) $(extra_ldflags)
+ grmiregistry_LINK = $(GCJLINK)
+ ## See jv_convert_LDADD.
+ grmiregistry_LDADD = -L$(here)/.libs libgcj-tools.la
+--- libjava/exception.cc.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/exception.cc	2007-09-06 17:20:42.000000000 +0200
+@@ -58,6 +58,21 @@ struct java_exception_header
+   _Unwind_Exception unwindHeader;
+ };
+ 
++#ifdef __ARM_EABI_UNWINDER__
++// This is the exception class we report -- "GNUCJAVA".
++
++const _Unwind_Exception_Class __gcj_exception_class
++  = {'G', 'N', 'U', 'C', 'J', 'A', 'V', 'A'};
++
++static inline java_exception_header *
++get_exception_header_from_ue (_Unwind_Exception *exc)
++{
++  return reinterpret_cast<java_exception_header *>(exc + 1) - 1;
++}
++
++extern "C" void __cxa_begin_cleanup (_Unwind_Exception*);
++
++#else // !__ARM_EABI_UNWINDER__
+ // This is the exception class we report -- "GNUCJAVA".
+ const _Unwind_Exception_Class __gcj_exception_class
+ = ((((((((_Unwind_Exception_Class) 'G' 
+@@ -75,6 +90,7 @@ get_exception_header_from_ue (_Unwind_Ex
+ {
+   return reinterpret_cast<java_exception_header *>(exc + 1) - 1;
+ }
++#endif // !__ARM_EABI_UNWINDER__
+ 
+ /* Perform a throw, Java style. Throw will unwind through this call,
+    so there better not be any handlers or exception thrown here. */
+@@ -89,7 +105,8 @@ _Jv_Throw (jthrowable value)
+     value = new java::lang::NullPointerException ();
+   xh->value = value;
+ 
+-  xh->unwindHeader.exception_class = __gcj_exception_class;
++  memcpy (&xh->unwindHeader.exception_class, &__gcj_exception_class,
++	  sizeof xh->unwindHeader.exception_class);
+   xh->unwindHeader.exception_cleanup = NULL;
+ 
+   /* We're happy with setjmp/longjmp exceptions or region-based
+@@ -159,6 +176,21 @@ parse_lsda_header (_Unwind_Context *cont
+   return p;
+ }
+ 
++#ifdef __ARM_EABI_UNWINDER__
++
++static void **
++get_ttype_entry(_Unwind_Context *, lsda_header_info* info, _Unwind_Word i)
++{
++  _Unwind_Ptr ptr;
++
++  ptr = (_Unwind_Ptr) (info->TType - (i * 4));
++  ptr = _Unwind_decode_target2(ptr);
++  
++  return reinterpret_cast<void **>(ptr);
++}
++
++#else
++
+ static void **
+ get_ttype_entry (_Unwind_Context *context, lsda_header_info *info, long i)
+ {
+@@ -170,6 +202,7 @@ get_ttype_entry (_Unwind_Context *contex
+   return reinterpret_cast<void **>(ptr);
+ }
+ 
++#endif
+ 
+ // Using a different personality function name causes link failures
+ // when trying to mix code using different exception handling models.
+@@ -180,12 +213,33 @@ get_ttype_entry (_Unwind_Context *contex
+ #define PERSONALITY_FUNCTION	__gcj_personality_v0
+ #endif
+ 
++#ifdef __ARM_EABI_UNWINDER__
++
++#define CONTINUE_UNWINDING \
++  do								\
++    {								\
++      if (__gnu_unwind_frame(ue_header, context) != _URC_OK)	\
++	return _URC_FAILURE;					\
++      return _URC_CONTINUE_UNWIND;				\
++    }								\
++  while (0)
++
++extern "C" _Unwind_Reason_Code
++PERSONALITY_FUNCTION (_Unwind_State state,
++		      struct _Unwind_Exception* ue_header,
++		      struct _Unwind_Context* context)
++#else
++
++#define CONTINUE_UNWINDING return _URC_CONTINUE_UNWIND
++
+ extern "C" _Unwind_Reason_Code
+ PERSONALITY_FUNCTION (int version,
+ 		      _Unwind_Action actions,
+ 		      _Unwind_Exception_Class exception_class,
+ 		      struct _Unwind_Exception *ue_header,
+ 		      struct _Unwind_Context *context)
++
++#endif
+ {
+   java_exception_header *xh = get_exception_header_from_ue (ue_header);
+ 
+@@ -197,16 +251,56 @@ PERSONALITY_FUNCTION (int version,
+   int handler_switch_value;
+   bool saw_cleanup;
+   bool saw_handler;
++  bool foreign_exception;
+   int ip_before_insn = 0;
+ 
++#ifdef __ARM_EABI_UNWINDER__
++  _Unwind_Action actions;
++
++  switch (state & _US_ACTION_MASK)
++    {
++    case _US_VIRTUAL_UNWIND_FRAME:
++      actions = _UA_SEARCH_PHASE;
++      break;
++
++    case _US_UNWIND_FRAME_STARTING:
++      actions = _UA_CLEANUP_PHASE;
++      if (!(state & _US_FORCE_UNWIND)
++	  && ue_header->barrier_cache.sp == _Unwind_GetGR(context, 13))
++	actions |= _UA_HANDLER_FRAME;
++      break;
++
++    case _US_UNWIND_FRAME_RESUME:
++      CONTINUE_UNWINDING;
++      break;
++
++    default:
++      std::abort();
++    }
++  actions |= state & _US_FORCE_UNWIND;
++
++  // We don't know which runtime we're working with, so can't check this.
++  // However the ABI routines hide this from us, and we don't actually need
++  // to know.
++  foreign_exception = false;
++
++  // The dwarf unwinder assumes the context structure holds things like the
++  // function and LSDA pointers.  The ARM implementation caches these in
++  // the exception header (UCB).  To avoid rewriting everything we make the
++  // virtual IP register point at the UCB.
++  ip = (_Unwind_Ptr) ue_header;
++  _Unwind_SetGR(context, 12, ip);
+ 
++#else
+   // Interface version check.
+   if (version != 1)
+     return _URC_FATAL_PHASE1_ERROR;
++  foreign_exception = exception_class != __gcj_exception_class;
++#endif
+ 
+   // Shortcut for phase 2 found handler for domestic exception.
+   if (actions == (_UA_CLEANUP_PHASE | _UA_HANDLER_FRAME)
+-      && exception_class == __gcj_exception_class)
++      && !foreign_exception)
+     {
+       handler_switch_value = xh->handlerSwitchValue;
+       landing_pad = xh->landingPad;
+@@ -227,17 +321,17 @@ PERSONALITY_FUNCTION (int version,
+ 
+   // If no LSDA, then there are no handlers or cleanups.
+   if (! language_specific_data)
+-    return _URC_CONTINUE_UNWIND;
++    CONTINUE_UNWINDING;
+ 
+   // Parse the LSDA header.
+   p = parse_lsda_header (context, language_specific_data, &info);
+ #ifdef HAVE_GETIPINFO
+   ip = _Unwind_GetIPInfo (context, &ip_before_insn);
+-  if (! ip_before_insn)
+-    --ip;
+ #else
+   ip = _Unwind_GetIP (context) - 1;
+ #endif
++  if (! ip_before_insn)
++    --ip;
+   landing_pad = 0;
+   action_record = 0;
+   handler_switch_value = 0;
+@@ -296,7 +390,7 @@ PERSONALITY_FUNCTION (int version,
+   // If ip is not present in the table, C++ would call terminate.
+   // ??? It is perhaps better to tweek the LSDA so that no-action
+   // is mapped to no-entry for Java.
+-  return _URC_CONTINUE_UNWIND;
++  CONTINUE_UNWINDING;
+ 
+  found_something:
+   saw_cleanup = false;
+@@ -334,7 +428,7 @@ PERSONALITY_FUNCTION (int version,
+ 	  // During forced unwinding, we only run cleanups.  With a
+ 	  // foreign exception class, we have no class info to match.
+ 	  else if ((actions & _UA_FORCE_UNWIND)
+-	      || exception_class != __gcj_exception_class)
++		   || foreign_exception)
+ 	    ;
+ 
+ 	  else if (ar_filter > 0)
+@@ -374,15 +468,15 @@ PERSONALITY_FUNCTION (int version,
+     }
+ 
+   if (! saw_handler && ! saw_cleanup)
+-    return _URC_CONTINUE_UNWIND;
++	CONTINUE_UNWINDING;
+ 
+   if (actions & _UA_SEARCH_PHASE)
+     {
+       if (! saw_handler)
+-	return _URC_CONTINUE_UNWIND;
++	CONTINUE_UNWINDING;
+ 
+       // For domestic exceptions, we cache data from phase 1 for phase 2.
+-      if (exception_class == __gcj_exception_class)
++      if (! foreign_exception)
+         {
+           xh->handlerSwitchValue = handler_switch_value;
+           xh->landingPad = landing_pad;
+@@ -396,5 +490,9 @@ PERSONALITY_FUNCTION (int version,
+   _Unwind_SetGR (context, __builtin_eh_return_data_regno (1),
+ 		 handler_switch_value);
+   _Unwind_SetIP (context, landing_pad);
++#ifdef __ARM_EABI_UNWINDER__
++  if (saw_cleanup)
++    __cxa_begin_cleanup(ue_header);
++#endif
+   return _URC_INSTALL_CONTEXT;
+ }
+--- libjava/gnu/classpath/natVMStackWalker.cc.jj	2007-09-06 14:06:15.000000000 +0200
++++ libjava/gnu/classpath/natVMStackWalker.cc	2007-09-06 17:20:42.000000000 +0200
+@@ -19,6 +19,7 @@ details.  */
+ #include <java/lang/ClassLoader.h>
+ #include <java/lang/Class.h>
+ 
++#ifndef __ARM_EABI_UNWINDER__
+ // Return the class of the method that contains PC.
+ // This is a macro not a function, since defining it as one would
+ // introduce an extra frame on the stack.  */
+@@ -44,6 +45,11 @@ details.  */
+ 									\
+   klass;								\
+  })
++#else // __ARM_EABI_UNWINDER__
++// ARM EABI doesn't support _Unwind_FindEnclosingFunction.
++#define GET_CALLING_CLASS(PC)				\
++  (_Jv_StackTrace::GetStackWalkerCallingClass ())
++#endif
+ 
+ JArray<jclass> *
+ gnu::classpath::VMStackWalker::getClassContext(void)
+@@ -59,14 +65,18 @@ jclass
+ gnu::classpath::VMStackWalker::getCallingClass(void)
+ {
+   _Jv_InitClass (&::gnu::classpath::VMStackWalker::class$);
+-  return _Jv_StackTrace::GetStackWalkerCallingClass ();
++  jclass result = _Jv_StackTrace::GetStackWalkerCallingClass ();
++  __asm__ __volatile__ ("" : : "g" (result));
++  return result;
+ }
+ 
+ jclass
+ gnu::classpath::VMStackWalker::getCallingClass(::gnu::gcj::RawData *pc)
+ {
+   _Jv_InitClass (&::gnu::classpath::VMStackWalker::class$);
+-  return GET_CALLING_CLASS(pc);
++  jclass result = GET_CALLING_CLASS(pc);
++  __asm__ __volatile__ ("" : : "g" (result));
++  return result;
+ }
+ 
+ ::java::lang::ClassLoader *
+--- libjava/sysdep/arm/backtrace.h.jj	2007-09-06 17:20:42.000000000 +0200
++++ libjava/sysdep/arm/backtrace.h	2007-09-06 17:20:42.000000000 +0200
+@@ -0,0 +1,35 @@
++// backtrace.h - Fallback backtrace implementation. ARM implementation.
++
++/* Copyright (C) 2005, 2006  Free Software Foundation
++
++   This file is part of libgcj.
++
++This software is copyrighted work licensed under the terms of the
++Libgcj License.  Please consult the file "LIBGCJ_LICENSE" for
++details.  */
++
++#ifndef __SYSDEP_BACKTRACE_H__
++#define __SYSDEP_BACKTRACE_H__
++
++#include <java-stack.h>
++
++extern "C"
++{
++/* Unwind through the call stack calling TRACE_FN with STATE for every stack
++   frame.  Returns the reason why the unwinding was stopped.  */
++#ifdef __ARM_EABI_UNWINDER__
++
++#define _Unwind_FindEnclosingFunction(PC) \
++  (PC)
++
++_Unwind_Reason_Code
++fallback_backtrace (_Unwind_Reason_Code (*)(struct _Unwind_Context*, void*), _Jv_UnwindState *)
++#else
++_Unwind_Reason_Code
++fallback_backtrace (_Unwind_Trace_Fn, _Jv_UnwindState *)
++#endif
++{
++  return _URC_NO_REASON;
++}
++}
++#endif

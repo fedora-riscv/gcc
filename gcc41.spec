@@ -1,6 +1,6 @@
-%define DATE 20070925
+%define DATE 20071124
 %define gcc_version 4.1.2
-%define gcc_release 33
+%define gcc_release 37
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -10,6 +10,12 @@
 %define build_ada 0
 %endif
 %define build_java 1
+# If you don't have already a usable gcc-java and libgcj for your arch,
+# do on some arch which has it rpmbuild -bc --with java_tar gcc41.spec
+# which creates libjava-classes-%{version}-%{release}.tar.bz2
+# With this then on the new arch do rpmbuild -ba -v --with java_bootstrap gcc41.spec
+%define bootstrap_java %{?_with_java_bootstrap:%{build_java}}%{!?_with_java_bootstrap:0}
+%define build_java_tar %{?_with_java_tar:%{build_java}}%{!?_with_java_tar:0}
 %ifarch s390x
 %define multilib_32_arch s390
 %endif
@@ -47,7 +53,12 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: binutils >= 2.17.50.0.17-3
 BuildRequires: zlib-devel, gettext, dejagnu, bison, flex, texinfo, sharutils
 %if %{build_java}
-BuildRequires: gcc-java, libgcj, /usr/share/java/eclipse-ecj.jar, zip, unzip
+BuildRequires: /usr/share/java/eclipse-ecj.jar, zip, unzip
+%if %{bootstrap_java}
+Source10: libjava-classes-%{version}-%{release}.tar.bz2
+%else
+BuildRequires: gcc-java, libgcj
+%endif
 %endif
 # Make sure pthread.h doesn't contain __thread tokens
 # Make sure glibc supports stack protector
@@ -154,12 +165,57 @@ Patch37: gcc41-pr33136.patch
 Patch38: gcc41-pr33238.patch
 Patch39: gcc41-pr33619.patch
 Patch40: gcc41-pr33639.patch
-Patch41: gcc41-pr33744.patch
 Patch42: gcc41-pr33763.patch
 Patch43: gcc41-rh317051.patch
 Patch44: gcc41-rh330771.patch
 Patch45: gcc41-rh341221.patch
-Patch46: gcc41-ppc64-cr2-unwind.patch
+Patch47: gcc41-java-arm1.patch
+Patch48: gcc41-java-arm2.patch
+Patch49: gcc41-java-arm3.patch
+Patch50: gcc41-java-arm4.patch
+Patch51: gcc41-java-arm5.patch
+Patch52: gcc41-java-arm6.patch
+Patch53: gcc41-java-arm7.patch
+Patch54: gcc41-java-arm8.patch
+Patch55: gcc41-pr23848.patch
+Patch56: gcc41-pr29225.patch
+Patch57: gcc41-pr29712.patch
+Patch58: gcc41-pr30293.patch
+Patch59: gcc41-pr30988.patch
+Patch60: gcc41-pr32241.patch
+Patch61: gcc41-pr32384.patch
+Patch62: gcc41-pr33501.patch
+Patch63: gcc41-pr33516.patch
+Patch64: gcc41-pr33537.patch
+Patch65: gcc41-pr33616.patch
+Patch66: gcc41-pr33723.patch
+Patch67: gcc41-pr33836.patch
+Patch68: gcc41-pr33842.patch
+Patch69: gcc41-pr33844.patch
+Patch70: gcc41-pr33962.patch
+Patch71: gcc41-pr34070.patch
+Patch72: gcc41-pr34089.patch
+Patch73: gcc41-pr34178.patch
+Patch74: gcc41-pr34130.patch
+Patch75: gcc41-pr34146.patch
+Patch76: gcc41-rh364001.patch
+Patch77: gcc41-pr34213.patch
+Patch78: gcc41-pr34364.patch
+Patch79: gcc41-pr34275.patch
+Patch80: gcc41-rh407281.patch
+Patch81: gcc41-pr34394.patch
+Patch82: gcc41-debug-fortran-array.patch
+Patch83: gcc41-omp-outer-ctx.patch
+Patch84: gcc41-pr27643.patch
+Patch85: gcc41-pr29978.patch
+Patch86: gcc41-pr31483.patch
+Patch87: gcc41-pr33890.patch
+Patch88: gcc41-pr34506.patch
+Patch89: gcc41-pr34513.patch
+Patch90: gcc41-pr7081.patch
+Patch91: gcc41-rh426846.patch
+Patch92: gcc41-sse5.patch
+Patch93: gcc41-sse5-pperm.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -483,12 +539,61 @@ which are required to run programs compiled with the GNAT.
 %patch38 -p0 -b .pr33238~
 %patch39 -p0 -b .pr33619~
 %patch40 -p0 -b .pr33639~
-%patch41 -p0 -b .pr33744~
 %patch42 -p0 -b .pr33763~
 %patch43 -p0 -b .rh317051~
 %patch44 -p0 -b .rh330771~
 %patch45 -p0 -b .rh341221~
-%patch46 -p0 -b .ppc64-cr2-unwind~
+%patch47 -p0 -b .java-arm1~
+%patch48 -p0 -b .java-arm2~
+%patch49 -p0 -b .java-arm3~
+%patch50 -p0 -b .java-arm4~
+%patch51 -p0 -b .java-arm5~
+%patch52 -p0 -b .java-arm6~
+%patch53 -p0 -b .java-arm7~
+%patch54 -p0 -b .java-arm8~
+%patch55 -p0 -b .pr23848~
+%patch56 -p0 -b .pr29225~
+%patch57 -p0 -b .pr29712~
+%patch58 -p0 -b .pr30293~
+%patch59 -p0 -b .pr30988~
+%patch60 -p0 -b .pr32241~
+%patch61 -p0 -b .pr32384~
+%patch62 -p0 -b .pr33501~
+%patch63 -p0 -b .pr33516~
+%patch64 -p0 -b .pr33537~
+%patch65 -p0 -b .pr33616~
+%patch66 -p0 -b .pr33723~
+%patch67 -p0 -b .pr33836~
+%patch68 -p0 -b .pr33842~
+%patch69 -p0 -b .pr33844~
+%patch70 -p0 -b .pr33962~
+%patch71 -p0 -b .pr34070~
+%patch72 -p0 -b .pr34089~
+%patch73 -p0 -b .pr34178~
+%patch74 -p0 -b .pr34130~
+%patch75 -p0 -b .pr34146~
+%patch76 -p0 -b .rh364001~
+%patch77 -p0 -b .pr34213~
+%patch78 -p0 -b .pr34364~
+%patch79 -p0 -b .pr34275~
+%patch80 -p0 -b .rh407281~
+%patch81 -p0 -b .pr34394~
+%patch82 -p0 -b .debug-fortran-array~
+%patch83 -p0 -b .omp-outer-ctx~
+%patch84 -p0 -b .pr27643~
+%patch85 -p0 -b .pr29978~
+%patch86 -p0 -b .pr31483~
+%patch87 -p0 -b .pr33890~
+%patch88 -p0 -b .pr34506~
+%patch89 -p0 -b .pr34513~
+%patch90 -p0 -b .pr7081~
+%patch91 -p0 -b .rh426846~
+%patch92 -p0 -b .sse5~
+%patch93 -p0 -b .sse5-pperm~
+
+%if %{bootstrap_java}
+tar xjf %{SOURCE10}
+%endif
 
 sed -i -e 's/4\.1\.3/4.1.2/' gcc/BASE-VER gcc/version.c
 sed -i -e 's/" (Red Hat[^)]*)"/" (Red Hat %{version}-%{gcc_release})"/' gcc/version.c
@@ -535,6 +640,7 @@ if [ ! -f /usr/lib/locale/de_DE/LC_CTYPE ]; then
 fi
 
 %if %{build_java}
+%if !%{bootstrap_java}
 # If we don't have gjavah in $PATH, try to build it with the old gij
 mkdir java_hacks
 cd java_hacks
@@ -560,6 +666,7 @@ EOF
 chmod +x `pwd`/ecj1
 export PATH=`pwd`${PATH:+:$PATH}
 cd ..
+%endif
 %endif
 
 CC=gcc
@@ -610,6 +717,9 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="$OPT_FLAGS" XCFLAGS="$OPT_FLAGS" TCFLAGS=
 	--with-java-home=%{_prefix}/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre \
 	--enable-libgcj-multifile --enable-java-maintainer-mode \
 	--with-ecj-jar=/usr/share/java/eclipse-ecj.jar \
+%endif
+%ifarch %{arm}
+	--disable-sjlj-exceptions \
 %endif
 %ifarch ppc ppc64
 	--enable-secureplt \
@@ -711,6 +821,13 @@ cp -p libjava/LIBGCJ_LICENSE rpm.doc/libjava/
 rm -f rpm.doc/changelogs/gcc/ChangeLog.[1-9]
 find rpm.doc -name \*ChangeLog\* | xargs bzip2 -9
 
+%if %{build_java_tar}
+find libjava -name \*.h -type f | xargs grep -l '// DO NOT EDIT THIS FILE - it is machine generated' > libjava-classes.list
+find libjava -name \*.class -type f >> libjava-classes.list
+find libjava/testsuite -name \*.jar -type f >> libjava-classes.list
+tar cf - -T libjava-classes.list | bzip2 -9 > $RPM_SOURCE_DIR/libjava-classes-%{version}-%{release}.tar.bz2
+%endif
+
 %install
 rm -fr $RPM_BUILD_ROOT
 
@@ -726,7 +843,9 @@ if [ ! -f /usr/lib/locale/de_DE/LC_CTYPE ]; then
 fi
 
 %if %{build_java}
+%if !%{bootstrap_java}
 export PATH=`pwd`/java_hacks${PATH:+:$PATH}
+%endif
 %endif
 
 TARGET_PLATFORM=%{gcc_target_platform}
@@ -1643,6 +1762,61 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Dec 31 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-37
+- add SSE5 support (Michael Meissner, Dwarakanath Rajagopal, Tony Linthicum,
+  Uros Bizjak, #252998)
+- java_mark_cni_decl_local fix (Andrew Haley, #414411, PR java/27643)
+- i386 <= 0xNNffffffffLL comparison optimization (PR target/29978)
+- fix Fortran alternate returns with dummy procedure (Paul Thomas, #399531,
+  PR fortran/31483)
+- OpenMP fixes (PR c++/33890, c/34506, c++/34513)
+- generate DW_TAG_class_type in debuginfo instead of DW_TAG_structure_type if
+  class keyword was used in the source rather than struct (Alexandre Oliva,
+  PR debug/7081, #371831)
+- don't hold a global guard mutex across whole local static initialization
+  (Doug Kwan, #426846)
+
+* Wed Dec 12 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-36
+- revert PR c++/34094 fix altogether, it was only accepts-invalid and
+  caused a bunch of valid or unclear cases to be rejected (#411871, #402521)
+- fix OpenMP handling of global vars privatized in orphaned constructs
+  with #pragma omp parallel inside them
+- -frepo fixes (#411741, PRs c++/34178, c++/34340)
+- fix dynamic_cast<C &> in templates (PR c++/34364)
+- fix error diagnostics involving ABS_EXPR (PR c++/34394)
+
+* Sun Dec  2 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-35
+- two ctor preevaluation fixes (Olivier Hainque,
+  Eric Botcazou, #407281)
+- slightly weaken diagnostics for declared, but undefined static data
+  members in anon ns classes (#402521, PR c++/34238)
+- consider static data members and static member functions in anon ns
+  classes to be external for C++ linkage type handling (PR c++/34213)
+- handle OBJ_TYPE_REF in C++ diagnostics (PR c++/34275)
+
+* Sat Nov 24 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-34
+- update from gcc-4_1-branch (-r128736:130387)
+  - PRs middle-end/34030, rtl-optimization/28062, rtl-optimization/33822
+  - fix if-conversion to avoid introducing races into threaded code
+    (Ian Lance Taylor, #391731)
+- some C++ visibility fixes (Jason Merrill, PRs c++/32470, c++/33094,
+  c++/29365)
+- arm Java support (Andrew Haley, #246800)
+- add possibility to bootstrap gcj on architectures where libgcj
+  isn't already available or is too old - build on some already
+  supported arch the rpm with --with java_tar and the created
+  tarball bring to the new arch and build --with java_bootstrap
+- backport a bunch of bugfixes from GCC trunk
+  - PRs c++/29225, c++/30293, c++/30294, c++/30988, c++/32241,
+	c++/32384, c++/33501, c++/33516, c++/33616, c++/33836,
+	c++/33842, c++/33844, c++/33962, c++/34089, c++/34094,
+	c/34146, debug/33537, middle-end/23848, middle-end/34070,
+	testsuite/33978, tree-optimization/33723
+- fix abs optimization (Richard Guenther, #394271, PR middle-end/34130)
+- fortran lbound/ubound fix (Paul Thomas, #391151, PR fortran/29712)
+- generate proper fortran debuginfo for assumed-size, assumed-shape
+  and deferred arrays (#364001)
+
 * Sun Oct 21 2007 Jakub Jelinek <jakub@redhat.com> 4.1.2-33
 - rebuild to fix multilib conflict between i386 and x86_64 libgcj,
   set java man page timestamp from the timestamp of *.texinfo rather

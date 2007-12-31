@@ -1,0 +1,82 @@
+2007-12-27  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/33890
+	* semantics.c (finish_omp_for): Don't call
+	fold_build_cleanup_point_expr if processing_template_decl.
+
+	* g++.dg/gomp/pr33890.C: New test.
+
+--- gcc/cp/semantics.c.jj	2007-12-05 21:42:07.000000000 +0100
++++ gcc/cp/semantics.c	2007-12-27 23:45:39.000000000 +0100
+@@ -3893,15 +3893,17 @@ finish_omp_for (location_t locus, tree d
+       pre_body = NULL;
+     }
+ 
+-  init = fold_build_cleanup_point_expr (TREE_TYPE (init), init);
++  if (!processing_template_decl)
++    init = fold_build_cleanup_point_expr (TREE_TYPE (init), init);
+   init = build_modify_expr (decl, NOP_EXPR, init);
+   if (cond && TREE_SIDE_EFFECTS (cond) && COMPARISON_CLASS_P (cond))
+     {
+       int n = TREE_SIDE_EFFECTS (TREE_OPERAND (cond, 1)) != 0;
+       tree t = TREE_OPERAND (cond, n);
+ 
+-      TREE_OPERAND (cond, n)
+-	= fold_build_cleanup_point_expr (TREE_TYPE (t), t);
++      if (!processing_template_decl)
++	TREE_OPERAND (cond, n)
++	  = fold_build_cleanup_point_expr (TREE_TYPE (t), t);
+     }
+   omp_for = c_finish_omp_for (locus, decl, init, cond, incr, body, pre_body);
+   if (omp_for != NULL
+@@ -3912,9 +3914,10 @@ finish_omp_for (location_t locus, tree d
+       tree t = TREE_OPERAND (OMP_FOR_INCR (omp_for), 1);
+       int n = TREE_SIDE_EFFECTS (TREE_OPERAND (t, 1)) != 0;
+ 
+-      TREE_OPERAND (t, n)
+-	= fold_build_cleanup_point_expr (TREE_TYPE (TREE_OPERAND (t, n)),
+-					 TREE_OPERAND (t, n));
++      if (!processing_template_decl)
++	TREE_OPERAND (t, n)
++	  = fold_build_cleanup_point_expr (TREE_TYPE (TREE_OPERAND (t, n)),
++					   TREE_OPERAND (t, n));
+     }
+   return omp_for;
+ }
+--- gcc/testsuite/g++.dg/gomp/pr33890.C.jj	2007-12-27 23:45:39.000000000 +0100
++++ gcc/testsuite/g++.dg/gomp/pr33890.C	2007-12-27 23:45:39.000000000 +0100
+@@ -0,0 +1,34 @@
++// PR c++/33890
++// { dg-do compile }
++// { dg-options "-fopenmp" }
++
++struct A
++{
++  int x;
++  A () : x (0) {}
++  int & getX ();
++};
++
++template <int> void
++foo ()
++{
++  A a;
++
++#pragma omp for
++  for (int i = a.getX (); i < 10; ++i)
++    ;
++#pragma omp for
++  for (int i = 0; i < a.getX (); ++i)
++    ;
++  a.x = 1;
++#pragma omp for
++  for (int i = 0; i < 10; i += a.getX ())
++    ;
++}
++
++void
++bar ()
++{
++  foo <0> ();
++  foo <1> ();
++}

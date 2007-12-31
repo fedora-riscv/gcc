@@ -1,0 +1,189 @@
+2007-10-29  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/33723
+	* c-gimplify.c (c_gimplify_expr): Optimize INIT_EXPR or
+	MODIFY_EXPR with non-addressable COMPOUND_LITERAL_EXPR as source.
+
+2007-11-20  Jakub Jelinek  <jakub@redhat.com>
+
+	PR testsuite/33978
+	* gcc.dg/tree-ssa/pr33723.c: Adjust scan pattern to make it less
+	dependent on target settings like move_by_pieces etc.
+
+2007-10-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/33723
+	* gcc.dg/tree-ssa/pr33723.c (T): Decrease size of field s.
+
+2007-10-29  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/33723
+	* gcc.c-torture/execute/20071029-1.c: New test.
+	* gcc.dg/tree-ssa/pr33723.c: New test.
+
+--- gcc/c-gimplify.c	(revision 129742)
++++ gcc/c-gimplify.c	(revision 129743)
+@@ -233,6 +233,29 @@ c_gimplify_expr (tree *expr_p, tree *pre
+     case COMPOUND_LITERAL_EXPR:
+       return gimplify_compound_literal_expr (expr_p, pre_p);
+ 
++    case INIT_EXPR:
++    case MODIFY_EXPR:
++      if (TREE_CODE (TREE_OPERAND (*expr_p, 1)) == COMPOUND_LITERAL_EXPR)
++	{
++	  tree complit = TREE_OPERAND (*expr_p, 1);
++	  tree decl_s = COMPOUND_LITERAL_EXPR_DECL_STMT (complit);
++	  tree decl = DECL_EXPR_DECL (decl_s);
++	  tree init = DECL_INITIAL (decl);
++
++	  /* struct T x = (struct T) { 0, 1, 2 } can be optimized
++	     into struct T x = { 0, 1, 2 } if the address of the
++	     compound literal has never been taken.  */
++	  if (!TREE_ADDRESSABLE (complit)
++	      && !TREE_ADDRESSABLE (decl)
++	      && init)
++	    {
++	      *expr_p = copy_node (*expr_p);
++	      TREE_OPERAND (*expr_p, 1) = init;
++	      return GS_OK;
++	    }
++	}
++      return GS_UNHANDLED;
++
+     default:
+       return GS_UNHANDLED;
+     }
+--- gcc/testsuite/gcc.c-torture/execute/20071029-1.c	(revision 0)
++++ gcc/testsuite/gcc.c-torture/execute/20071029-1.c	(revision 129743)
+@@ -0,0 +1,56 @@
++extern void exit (int);
++extern void abort (void);
++
++typedef union
++{
++  struct
++  {
++    int f1, f2, f3, f4, f5, f6, f7, f8;
++    long int f9, f10;
++    int f11;
++  } f;
++  char s[56];
++  long int a;
++} T;
++
++__attribute__((noinline))
++void
++test (T *t)
++{
++  static int i = 11;
++  if (t->f.f1 != i++)
++    abort ();
++  if (t->f.f2 || t->f.f3 || t->f.f4 || t->f.f5 || t->f.f6
++      || t->f.f7 || t->f.f8 || t->f.f9 || t->f.f10 || t->f.f11)
++    abort ();
++  if (i == 20)
++    exit (0);
++}
++
++__attribute__((noinline))
++void
++foo (int i)
++{
++  T t;
++again:
++  t = (T) { { ++i, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
++  test (&t);
++  goto again;
++}
++
++int
++main (void)
++{
++  T *t1, *t2;
++  int cnt = 0;
++  t1 = (T *) 0;
++loop:
++  t2 = t1;
++  t1 = & (T) { .f.f9 = cnt++ };
++  if (cnt < 3)
++    goto loop;
++  if (t1 != t2 || t1->f.f9 != 2)
++    abort ();
++  foo (10);
++  return 0;
++}
+--- gcc/testsuite/gcc.dg/tree-ssa/pr33723.c	(revision 0)
++++ gcc/testsuite/gcc.dg/tree-ssa/pr33723.c	(revision 129743)
+@@ -0,0 +1,72 @@
++/* PR tree-optimization/33723 */
++/* { dg-do compile } */
++/* { dg-options "-O2 -fdump-tree-gimple" } */
++
++typedef union
++{
++  struct
++  {
++    int f1, f2, f3, f4, f5, f6, f7, f8;
++    long int f9, f10;
++    int f11;
++  } f;
++  char s[4];
++  long int a;
++} T;
++
++void
++foo1 (void)
++{
++  T t;
++  t = (T) { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
++  test (&t);
++}
++
++void
++bar1 (void)
++{
++  T t = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
++  test (&t);
++}
++
++void
++baz1 (void)
++{
++  T t;
++  t = (const T) { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
++  test (&t);
++}
++
++void
++foo2 (void)
++{
++  T t;
++  t = (T) { { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } };
++  test (&t);
++}
++
++void
++bar2 (void)
++{
++  T t = { { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } };
++  test (&t);
++}
++
++void
++baz2 (void)
++{
++  T t;
++  t = (const T) { { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } };
++  test (&t);
++}
++
++void
++baz3 (void)
++{
++  T t;
++  t = (const T) (T) { { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } };
++  test (&t);
++}
++
++/* { dg-final { scan-tree-dump-not "t = D" "gimple"} } */
++/* { dg-final { cleanup-tree-dump "gimple" } } */

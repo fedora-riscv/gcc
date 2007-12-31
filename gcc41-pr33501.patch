@@ -1,0 +1,77 @@
+2007-11-07  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/33501
+	* call.c (build_over_call): Don't check TREE_ADDRESSABLE
+	on incomplete type.
+
+	* g++.dg/warn/incomplete2.C: New test.
+	* g++.dg/template/incomplete4.C: New test.
+	* g++.dg/template/incomplete5.C: New test.
+
+--- gcc/cp/call.c	(revision 129967)
++++ gcc/cp/call.c	(revision 129968)
+@@ -4993,7 +4993,8 @@ build_over_call (struct z_candidate *can
+ 
+       /* Don't make a copy here if build_call is going to.  */
+       if (conv->kind == ck_rvalue
+-	  && !TREE_ADDRESSABLE (complete_type (type)))
++	  && COMPLETE_TYPE_P (complete_type (type))
++	  && !TREE_ADDRESSABLE (type))
+ 	conv = conv->u.next;
+ 
+       val = convert_like_with_context
+--- gcc/testsuite/g++.dg/warn/incomplete2.C	(revision 0)
++++ gcc/testsuite/g++.dg/warn/incomplete2.C	(revision 129968)
+@@ -0,0 +1,13 @@
++// PR c++/33501
++// { dg-do compile }
++
++class A;	// { dg-error "forward declaration" }
++
++int f (A);
++const A &make ();
++
++int
++main ()
++{
++  return f (make ());	// { dg-error "invalid use of undefined type|initializing argument" }
++}
+--- gcc/testsuite/g++.dg/template/incomplete5.C	(revision 0)
++++ gcc/testsuite/g++.dg/template/incomplete5.C	(revision 129968)
+@@ -0,0 +1,17 @@
++// PR c++/33501
++// { dg-do compile }
++
++class A;	// { dg-error "forward declaration" }
++
++template <typename T> struct X
++{
++  static int f (T);
++  static const T &make ();
++  static const bool value = sizeof (f (make ())) == sizeof (int);	// { dg-error "invalid use of undefined type|initializing argument" }
++};
++
++int
++main ()
++{
++  return X <A>::value;
++}
+--- gcc/testsuite/g++.dg/template/incomplete4.C	(revision 0)
++++ gcc/testsuite/g++.dg/template/incomplete4.C	(revision 129968)
+@@ -0,0 +1,16 @@
++// PR c++/33501
++// { dg-do compile }
++
++class A;	// { dg-error "forward declaration" }
++
++template <typename T> struct X
++{
++  static int f (T);
++  static const T &make ();
++};
++
++int
++main ()
++{
++  return X<A>::f (X<A>::make ());	// { dg-error "invalid use of undefined type|initializing argument" }
++}

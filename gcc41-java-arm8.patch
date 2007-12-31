@@ -1,0 +1,65 @@
+2007-07-13  Andrew Haley  <aph@redhat.com>
+
+	* testsuite/libjava.jvmti/jvmti-interp.exp: Likewise.
+	* testsuite/libjava.jni/jni.exp: Use -fdollars-in-identifiers.
+	* testsuite/libjava.jni/cni.exp: Use -fdollars-in-identifiers.
+	* testsuite/libjava.jvmti/jvmti.exp (gcj_jvmti_compile_cxx_to_o): Likewise.
+
+--- libjava/testsuite/libjava.cni/cni.exp	(revision 126621)
++++ libjava/testsuite/libjava.cni/cni.exp	(revision 126622)
+@@ -10,7 +10,7 @@
+   set oname ${name}.o
+ 
+   # Find the generated header.
+-  lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir"
++  lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir -fdollars-in-identifiers"
+   # Find libgcj headers.
+   lappend options "additional_flags=-I$srcdir/.."
+ 
+--- libjava/testsuite/libjava.jvmti/jvmti-interp.exp	(revision 126621)
++++ libjava/testsuite/libjava.jvmti/jvmti-interp.exp	(revision 126622)
+@@ -47,7 +47,7 @@
+ 
+   # Find jni.h and jni_md.h.
+   lappend options "additional_flags=-I$srcdir/../include  \
+-                   -I$srcdir/../classpath/include"
++                   -I$srcdir/../classpath/include -fdollars-in-identifiers"
+ 
+   # Append C++ options
+   lappend options "additional_flags=$options_cxx"
+--- libjava/testsuite/libjava.jvmti/jvmti.exp	(revision 126621)
++++ libjava/testsuite/libjava.jvmti/jvmti.exp	(revision 126622)
+@@ -11,11 +11,11 @@
+   set oname ${name}.o
+ 
+   # Find the generated header.
+-  lappend options "additional_flags=-g -I. -I.."
++  lappend options "additional_flags=-g -I. -I.. -fdollars-in-identifiers"
+   # Find libgcj headers.
+   lappend options "additional_flags=-I$srcdir/.."
+   # Find jvmti.h, jvmti_md.h, jvmti-int.h, jvm.h requirements
+-  lappend options "additional_flags=-I$srcdir/../include -I$srcdir/../classpath/include -I$objdir/../include -I$objdir/../../boehm-gc/include"
++  lappend options "additional_flags=-I$srcdir/../include -I$srcdir/../classpath/include -I$objdir/../include -I$objdir/../../boehm-gc/include "
+ 
+   set x [libjava_prune_warnings \
+ 	   [target_compile $file $oname object $options]]
+--- libjava/testsuite/libjava.jni/jni.exp	(revision 126621)
++++ libjava/testsuite/libjava.jni/jni.exp	(revision 126622)
+@@ -31,7 +31,7 @@
+ 
+   lappend options "additional_flags=${so_flag} -fPIC"
+   # Find the generated header.
+-  lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir"
++  lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir -fdollars-in-identifiers"
+ 
+   # Ensure that the generated header has correct prototypes.
+   set cfile [file rootname $file].c
+@@ -219,7 +219,7 @@
+   lappend options "additional_flags=-I. -I.. -I$srcdir/$subdir"
+ 
+   # Find jni.h and jni_md.h.
+-  lappend options "additional_flags=-I$srcdir/../include -I$srcdir/../classpath/include"
++  lappend options "additional_flags=-I$srcdir/../include -I$srcdir/../classpath/include -fdollars-in-identifiers"
+ 
+   # Append C++ options
+   lappend options "additional_flags=$options_cxx"

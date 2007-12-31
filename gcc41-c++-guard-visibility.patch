@@ -1,18 +1,7 @@
 2007-09-06  Jason Merrill  <jason@redhat.com>
 
-	* decl2.c (get_guard): Copy visibility from the guarded variable.
+	* g++.dg/ext/visibility/guard1.C: New test.
 
---- gcc/cp/decl2.c	(revision 128225)
-+++ gcc/cp/decl2.c	(revision 128226)
-@@ -2215,6 +2215,8 @@ get_guard (tree decl)
-       DECL_ONE_ONLY (guard) = DECL_ONE_ONLY (decl);
-       if (TREE_PUBLIC (decl))
- 	DECL_WEAK (guard) = DECL_WEAK (decl);
-+      DECL_VISIBILITY (guard) = DECL_VISIBILITY (decl);
-+      DECL_VISIBILITY_SPECIFIED (guard) = DECL_VISIBILITY_SPECIFIED (decl);
- 
-       DECL_ARTIFICIAL (guard) = 1;
-       DECL_IGNORED_P (guard) = 1;
 --- gcc/testsuite/g++.dg/ext/visibility/guard1.C	(revision 0)
 +++ gcc/testsuite/g++.dg/ext/visibility/guard1.C	(revision 128226)
 @@ -0,0 +1,29 @@

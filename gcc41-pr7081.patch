@@ -1,0 +1,251 @@
+2007-12-20  Jakub Jelinek  <jakub@redhat.com>                                                                                    
+                                                                                                                                 
+	PR debug/34535                                                                                                           
+	* cp-lang.c (cp_classify_record): Check TYPE_LANG_SPECIFIC                                                               
+	is non-NULL before testing CLASSTYPE_DECLARED_CLASS.
+
+2007-12-15  Alexandre Oliva  <aoliva@redhat.com>
+
+	PR debug/7081
+	* dwarf2out.c (dwarf_tag_name): Synchronize with dwarf2.h.
+	(is_type_die): Cover interface types.
+	(class_or_namespace_scope_p): Cover interface and class types.
+	(record_type_tag): New.
+	(gen_inlined_structure_type_die): Use it.
+	(gen_struct_or_union_type_die): Likewise.
+	(prune_unused_types_walk): Cover interface types.
+	* langhooks.h (classify_record): New enum.
+	(classify_record): New member in struct langhooks_for_types.
+	* langhooks-def.h (LANG_HOOKS_CLASSIFY_RECORD): New.
+	(LANGHOOKS_FOR_TYPES_INITIALIZER): Adjust.
+cp/
+	* cp-lang.c (cp_classify_record): New.
+	(LANG_HOOKS_CLASSIFY_RECORD): Override.
+java/
+	* lang.c (java_classify_record): New.
+	(LANG_HOOKS_CLASSIFY_RECORD): Override.
+
+--- gcc/java/lang.c	(revision 130959)
++++ gcc/java/lang.c	(revision 130960)
+@@ -67,6 +67,8 @@ static bool java_decl_ok_for_sibcall (tr
+ static tree java_get_callee_fndecl (tree);
+ static void java_clear_binding_stack (void);
+ 
++static enum classify_record java_classify_record (tree type);
++
+ #ifndef TARGET_OBJECT_SUFFIX
+ # define TARGET_OBJECT_SUFFIX ".o"
+ #endif
+@@ -183,6 +185,8 @@ struct language_function GTY(())
+ #define LANG_HOOKS_TYPE_FOR_MODE java_type_for_mode
+ #undef LANG_HOOKS_TYPE_FOR_SIZE
+ #define LANG_HOOKS_TYPE_FOR_SIZE java_type_for_size
++#undef LANG_HOOKS_CLASSIFY_RECORD
++#define LANG_HOOKS_CLASSIFY_RECORD java_classify_record
+ #undef LANG_HOOKS_SIGNED_TYPE
+ #define LANG_HOOKS_SIGNED_TYPE java_signed_type
+ #undef LANG_HOOKS_UNSIGNED_TYPE
+@@ -1027,4 +1031,16 @@ java_clear_binding_stack (void)
+     poplevel (0, 0, 0);
+ }
+ 
++static enum classify_record
++java_classify_record (tree type)
++{
++  if (! CLASS_P (type))
++    return RECORD_IS_STRUCT;
++
++  if (0 && CLASS_INTERFACE (TYPE_NAME (type)))
++    return RECORD_IS_INTERFACE;
++
++  return RECORD_IS_CLASS;
++}
++
+ #include "gt-java-lang.h"
+--- gcc/cp/cp-lang.c	(revision 130959)
++++ gcc/cp/cp-lang.c	(revision 130960)
+@@ -36,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
+ 
+ enum c_language_kind c_language = clk_cxx;
+ static void cp_init_ts (void);
++static enum classify_record cp_classify_record (tree type);
+ 
+ /* Lang hooks common to C++ and ObjC++ are declared in cp/cp-objcp-common.h;
+    consequently, there should be very few hooks below.  */
+@@ -44,6 +45,8 @@ static void cp_init_ts (void);
+ #define LANG_HOOKS_NAME "GNU C++"
+ #undef LANG_HOOKS_INIT
+ #define LANG_HOOKS_INIT cxx_init
++#undef LANG_HOOKS_CLASSIFY_RECORD
++#define LANG_HOOKS_CLASSIFY_RECORD cp_classify_record
+ #undef LANG_HOOKS_DECL_PRINTABLE_NAME
+ #define LANG_HOOKS_DECL_PRINTABLE_NAME	cxx_printable_name
+ #undef LANG_HOOKS_FOLD_OBJ_TYPE_REF
+@@ -138,6 +141,15 @@ cp_init_ts (void)
+ 
+ }
+ 
++static enum classify_record
++cp_classify_record (tree type)
++{
++  if (TYPE_LANG_SPECIFIC (type) && CLASSTYPE_DECLARED_CLASS (type))
++    return RECORD_IS_CLASS;
++
++  return RECORD_IS_STRUCT;
++}
++
+ void
+ finish_file (void)
+ {
+--- gcc/dwarf2out.c	(revision 130959)
++++ gcc/dwarf2out.c	(revision 130960)
+@@ -4445,8 +4445,6 @@ dwarf_tag_name (unsigned int tag)
+       return "DW_TAG_namelist";
+     case DW_TAG_namelist_item:
+       return "DW_TAG_namelist_item";
+-    case DW_TAG_namespace:
+-      return "DW_TAG_namespace";
+     case DW_TAG_packed_type:
+       return "DW_TAG_packed_type";
+     case DW_TAG_subprogram:
+@@ -4465,8 +4463,26 @@ dwarf_tag_name (unsigned int tag)
+       return "DW_TAG_variable";
+     case DW_TAG_volatile_type:
+       return "DW_TAG_volatile_type";
++    case DW_TAG_dwarf_procedure:
++      return "DW_TAG_dwarf_procedure";
++    case DW_TAG_restrict_type:
++      return "DW_TAG_restrict_type";
++    case DW_TAG_interface_type:
++      return "DW_TAG_interface_type";
++    case DW_TAG_namespace:
++      return "DW_TAG_namespace";
+     case DW_TAG_imported_module:
+       return "DW_TAG_imported_module";
++    case DW_TAG_unspecified_type:
++      return "DW_TAG_unspecified_type";
++    case DW_TAG_partial_unit:
++      return "DW_TAG_partial_unit";
++    case DW_TAG_imported_unit:
++      return "DW_TAG_imported_unit";
++    case DW_TAG_condition:
++      return "DW_TAG_condition";
++    case DW_TAG_shared_type:
++      return "DW_TAG_shared_type";
+     case DW_TAG_MIPS_loop:
+       return "DW_TAG_MIPS_loop";
+     case DW_TAG_format_label:
+@@ -6181,6 +6197,7 @@ is_type_die (dw_die_ref die)
+     {
+     case DW_TAG_array_type:
+     case DW_TAG_class_type:
++    case DW_TAG_interface_type:
+     case DW_TAG_enumeration_type:
+     case DW_TAG_pointer_type:
+     case DW_TAG_reference_type:
+@@ -10986,6 +11003,8 @@ class_or_namespace_scope_p (dw_die_ref c
+ {
+   return (context_die
+ 	  && (context_die->die_tag == DW_TAG_structure_type
++	      || context_die->die_tag == DW_TAG_class_type
++	      || context_die->die_tag == DW_TAG_interface_type
+ 	      || context_die->die_tag == DW_TAG_union_type
+ 	      || context_die->die_tag == DW_TAG_namespace));
+ }
+@@ -11381,12 +11400,36 @@ gen_inlined_enumeration_type_die (tree t
+   add_abstract_origin_attribute (type_die, type);
+ }
+ 
++/* Determine what tag to use for a record type.  */
++
++static enum dwarf_tag
++record_type_tag (tree type)
++{
++  if (! lang_hooks.types.classify_record)
++    return DW_TAG_structure_type;
++
++  switch (lang_hooks.types.classify_record (type))
++    {
++    case RECORD_IS_STRUCT:
++      return DW_TAG_structure_type;
++
++    case RECORD_IS_CLASS:
++      return DW_TAG_class_type;
++
++    case RECORD_IS_INTERFACE:
++      return DW_TAG_interface_type;
++
++    default:
++      gcc_unreachable ();
++    }
++}
++
+ /* Generate a DIE to represent an inlined instance of a structure type.  */
+ 
+ static void
+ gen_inlined_structure_type_die (tree type, dw_die_ref context_die)
+ {
+-  dw_die_ref type_die = new_die (DW_TAG_structure_type, context_die, type);
++  dw_die_ref type_die = new_die (record_type_tag (type), context_die, type);
+ 
+   /* We do not check for TREE_ASM_WRITTEN (type) being set, as the type may
+      be incomplete and such types are not marked.  */
+@@ -12530,7 +12573,7 @@ gen_struct_or_union_type_die (tree type,
+       dw_die_ref old_die = type_die;
+ 
+       type_die = new_die (TREE_CODE (type) == RECORD_TYPE
+-			  ? DW_TAG_structure_type : DW_TAG_union_type,
++			  ? record_type_tag (type) : DW_TAG_union_type,
+ 			  scope_die, type);
+       equate_type_number_to_die (type, type_die);
+       if (old_die)
+@@ -14183,6 +14226,7 @@ prune_unused_types_walk (dw_die_ref die)
+   case DW_TAG_structure_type:
+   case DW_TAG_union_type:
+   case DW_TAG_class_type:
++  case DW_TAG_interface_type:
+   case DW_TAG_friend:
+   case DW_TAG_variant_part:
+   case DW_TAG_enumeration_type:
+--- gcc/langhooks.h	(revision 130959)
++++ gcc/langhooks.h	(revision 130960)
+@@ -33,6 +33,9 @@ struct array_descr_info;
+ /* A print hook for print_tree ().  */
+ typedef void (*lang_print_tree_hook) (FILE *, tree, int indent);
+ 
++enum classify_record
++  { RECORD_IS_STRUCT, RECORD_IS_CLASS, RECORD_IS_INTERFACE };
++
+ /* The following hooks are documented in langhooks.c.  Must not be
+    NULL.  */
+ 
+@@ -91,6 +94,11 @@ struct lang_hooks_for_types
+      language-specific processing is required.  */
+   tree (*make_type) (enum tree_code);
+ 
++  /* Return what kind of RECORD_TYPE this is, mainly for purposes of
++     debug information.  If not defined, record types are assumed to
++     be structures.  */
++  enum classify_record (*classify_record) (tree);
++
+   /* Given MODE and UNSIGNEDP, return a suitable type-tree with that
+      mode.  */
+   tree (*type_for_mode) (enum machine_mode, int);
+--- gcc/langhooks-def.h	(revision 130959)
++++ gcc/langhooks-def.h	(revision 130960)
+@@ -172,6 +172,7 @@ extern tree lhd_make_node (enum tree_cod
+ /* Types hooks.  There are no reasonable defaults for most of them,
+    so we create a compile-time error instead.  */
+ #define LANG_HOOKS_MAKE_TYPE lhd_make_node
++#define LANG_HOOKS_CLASSIFY_RECORD	NULL
+ #define LANG_HOOKS_INCOMPLETE_TYPE_ERROR lhd_incomplete_type_error
+ #define LANG_HOOKS_GENERIC_TYPE_P	hook_bool_const_tree_false
+ #define LANG_HOOKS_TYPE_PROMOTES_TO lhd_type_promotes_to
+@@ -185,6 +186,7 @@ extern tree lhd_make_node (enum tree_cod
+ 
+ #define LANG_HOOKS_FOR_TYPES_INITIALIZER { \
+   LANG_HOOKS_MAKE_TYPE, \
++  LANG_HOOKS_CLASSIFY_RECORD, \
+   LANG_HOOKS_TYPE_FOR_MODE, \
+   LANG_HOOKS_TYPE_FOR_SIZE, \
+   LANG_HOOKS_GENERIC_TYPE_P, \
