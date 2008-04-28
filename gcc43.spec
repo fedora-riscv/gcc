@@ -1,6 +1,6 @@
-%define DATE 20080416
+%define DATE 20080428
 %define gcc_version 4.3.0
-%define gcc_release 7
+%define gcc_release 8
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -141,12 +141,11 @@ Patch11: gcc43-rh341221.patch
 Patch12: gcc43-cpp-pragma.patch
 Patch13: gcc43-java-debug-iface-type.patch
 Patch14: gcc43-libgomp-speedup.patch
-Patch15: gcc43-pr35662.patch
+Patch15: gcc43-pr35909.patch
 Patch16: gcc43-i386-libgomp.patch
-Patch17: gcc43-pr35739.patch
+Patch17: gcc43-pr35987.patch
 Patch18: gcc43-rh251682.patch
-Patch19: gcc43-pr35899.patch
-Patch20: gcc43-pr35907.patch
+Patch19: gcc43-pr35650.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -445,12 +444,11 @@ which are required to run programs compiled with the GNAT.
 %patch12 -p0 -b .cpp-pragma~
 %patch13 -p0 -b .java-debug-iface-type~
 %patch14 -p0 -b .libgomp-speedup~
-%patch15 -p0 -b .pr35662~
+%patch15 -p0 -b .pr35909~
 %patch16 -p0 -b .i386-libgomp~
-%patch17 -p0 -b .pr35739~
+%patch17 -p0 -b .pr35987~
 %patch18 -p0 -b .rh251682~
-%patch19 -p0 -b .pr35899~
-%patch20 -p0 -b .pr35907~
+%patch19 -p0 -b .pr35650~
 
 tar xzf %{SOURCE4}
 
@@ -1666,6 +1664,23 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Apr 28 2008 Jakub Jelinek <jakub@redhat.com> 4.3.0-8
+- update from gcc-4_3-branch
+  - decrease compile time stack usage during GC (#443739, PR debug/36060)
+  - fix -mregparm=X with K&R function decls (#443583, PR target/36015)
+  - fix tail called sqrt and math builtins (#435297,
+    PR rtl-optimization/36017)
+  - PRs c++/33486, c++/35316, c++/35325, c++/35678, c++/35747, c++/35758,
+	c++/35773, c/35436, c/35744, fortran/35932, fortran/35944,
+	fortran/35946, fortran/35947, fortran/35959, fortran/35994,
+	libgcj/35950, libstdc++/35597, libstdc++/35887, libstdc++/35954,
+	middle-end/36021, target/35944, testsuite/36056,
+	tree-optimization/35982, tree-optimization/36008,
+	tree-optimization/36034
+- fix C++ const references to bitfields (PR c++/35909)
+- fix C++ ++var = val error recovery (PR c++/35987)
+- fix C++ reference binding to function through using-decl (PR c++/35650)
+
 * Wed Apr 16 2008 Jakub Jelinek <jakub@redhat.com> 4.3.0-7
 - update from gcc-4_3-branch
   - PRs c++/35708, c++/35734, libstdc++/35816, middle-end/35519,

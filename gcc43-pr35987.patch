@@ -1,0 +1,37 @@
+2008-04-21  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/35987
+	* typeck.c (cp_build_modify_expr) <case PREINCREMENT_EXPR>: Don't build
+	COMPOUND_EXPR if the second argument would be error_mark_node.
+
+	* g++.dg/other/error28.C: New test.
+
+--- gcc/cp/typeck.c.jj	2008-04-18 17:00:44.000000000 +0200
++++ gcc/cp/typeck.c	2008-04-21 16:03:45.000000000 +0200
+@@ -5940,10 +5940,11 @@ cp_build_modify_expr (tree lhs, enum tre
+ 	lhs = build2 (TREE_CODE (lhs), TREE_TYPE (lhs),
+ 		      stabilize_reference (TREE_OPERAND (lhs, 0)),
+ 		      TREE_OPERAND (lhs, 1));
+-      return build2 (COMPOUND_EXPR, lhstype,
+-		     lhs,
+-		     cp_build_modify_expr (TREE_OPERAND (lhs, 0),
+-					   modifycode, rhs, complain));
++      newrhs = cp_build_modify_expr (TREE_OPERAND (lhs, 0),
++				     modifycode, rhs, complain);
++      if (newrhs == error_mark_node)
++	return error_mark_node;
++      return build2 (COMPOUND_EXPR, lhstype, lhs, newrhs);
+ 
+       /* Handle (a, b) used as an "lvalue".  */
+     case COMPOUND_EXPR:
+--- gcc/testsuite/g++.dg/other/error28.C.jj	2008-04-21 15:42:09.000000000 +0200
++++ gcc/testsuite/g++.dg/other/error28.C	2008-04-21 15:37:00.000000000 +0200
+@@ -0,0 +1,8 @@
++// PR c++/35987
++// { dg-do compile }
++
++void
++foo (char *p)
++{
++  if (++p = true);	// { dg-error "cannot convert" }
++}
