@@ -1,6 +1,6 @@
 %define DATE 20080428
 %define gcc_version 4.3.0
-%define gcc_release 8
+%define gcc_release 9
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -20,7 +20,7 @@
 %define multilib_32_arch s390
 %endif
 %ifarch sparc64
-%define multilib_32_arch sparc
+%define multilib_32_arch sparcv9
 %endif
 %ifarch ppc64
 %define multilib_32_arch ppc
@@ -71,7 +71,7 @@ BuildRequires: elfutils-devel >= 0.72
 # Make sure glibc supports TFmode long double
 BuildRequires: glibc >= 2.3.90-35
 %endif
-%ifarch %{multilib_64_archs} sparc ppc
+%ifarch %{multilib_64_archs} sparcv9 ppc
 # Ensure glibc{,-devel} is installed for both multilib arches
 BuildRequires: /lib/libc.so.6 /usr/lib/libc.so /lib64/libc.so.6 /usr/lib64/libc.so
 %endif
@@ -146,19 +146,20 @@ Patch16: gcc43-i386-libgomp.patch
 Patch17: gcc43-pr35987.patch
 Patch18: gcc43-rh251682.patch
 Patch19: gcc43-pr35650.patch
+Patch20: gcc-4.3.0-20080416-fix-sparc-config-detection.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
 %ifnarch %{arm}
 %define _gnu %{nil}
 %endif
-%ifarch sparc
+%ifarch sparcv9
 %define gcc_target_platform sparc64-%{_vendor}-%{_target_os}
 %endif
 %ifarch ppc
 %define gcc_target_platform ppc64-%{_vendor}-%{_target_os}
 %endif
-%ifnarch sparc ppc
+%ifnarch sparcv9 ppc
 %define gcc_target_platform %{_target_platform}
 %endif
 
@@ -449,6 +450,7 @@ which are required to run programs compiled with the GNAT.
 %patch17 -p0 -b .pr35987~
 %patch18 -p0 -b .rh251682~
 %patch19 -p0 -b .pr35650~
+%patch20 -p1 -b .sparc-detection
 
 tar xzf %{SOURCE4}
 
@@ -544,7 +546,7 @@ cd ..
 CC=gcc
 OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-m64//g;s/-m32//g;s/-m31//g'`
-%ifarch sparc sparc64
+%ifarch sparc
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mcpu=ultrasparc/-mtune=ultrasparc/g;s/-mcpu=v[78]//g'`
 %endif
 %ifarch %{ix86}
@@ -601,11 +603,17 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 %ifarch ppc ppc64
 	--enable-secureplt \
 %endif
-%ifarch sparc ppc ppc64 s390 s390x alpha
+%ifarch sparc sparcv9 sparc64 ppc ppc64 s390 s390x alpha
 	--with-long-double-128 \
 %endif
 %ifarch sparc
-	--build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=v7
+	--disable-linux-futex \
+%endif
+%ifarch sparc64
+	--with-cpu=ultrasparc \
+%endif
+%ifarch sparc sparcv9
+	--host=%{gcc_target_platform} --build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=v7
 %endif
 %ifarch ppc
 	--build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=default32
@@ -616,7 +624,7 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 %ifarch s390 s390x
 	--with-tune=z9-109 \
 %endif
-%ifnarch sparc ppc
+%ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform}
 %endif
 
@@ -788,7 +796,7 @@ done
 # shipping this for everybody is unnecessary.
 rm -rf $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/stdc++.h.gch
 
-%ifarch sparc sparc64
+%ifarch sparcv9 sparc64
 ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
   $RPM_BUILD_ROOT%{_prefix}/bin/sparc-%{_vendor}-%{_target_os}-gcc
 %endif
@@ -797,7 +805,7 @@ ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
   $RPM_BUILD_ROOT%{_prefix}/bin/ppc-%{_vendor}-%{_target_os}-gcc
 %endif
 
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 FULLLPATH=$FULLPATH/lib32
 %endif
 %ifarch sparc64 ppc64
@@ -827,7 +835,7 @@ mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgcc_s.so.1 $RPM_BUILD_ROOT/%{_lib}/li
 chmod 755 $RPM_BUILD_ROOT/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
 ln -sf libgcc_s-%{gcc_version}-%{DATE}.so.1 $RPM_BUILD_ROOT/%{_lib}/libgcc_s.so.1
 ln -sf /%{_lib}/libgcc_s.so.1 $FULLPATH/libgcc_s.so
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
 %endif
 %ifarch %{multilib_64_archs}
@@ -913,7 +921,7 @@ mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libobjc.*a .
 mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgomp.*a .
 mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libmudflap{,th}.*a $FULLLPATH/
 
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 ln -sf ../../../../../lib64/libobjc.so.2 64/libobjc.so
 ln -sf ../`echo ../../../../lib/libstdc++.so.6.* | sed s~/lib/~/lib64/~` 64/libstdc++.so
 ln -sf ../`echo ../../../../lib/libgfortran.so.3.* | sed s~/lib/~/lib64/~` 64/libgfortran.so
@@ -1055,7 +1063,7 @@ rm -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libssp*
 rm -f $RPM_BUILD_ROOT%{_prefix}/lib/lib*.so*
 rm -f $RPM_BUILD_ROOT%{_prefix}/lib/lib*.a
 %else
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 rm -f $RPM_BUILD_ROOT%{_prefix}/lib64/lib*.so*
 rm -f $RPM_BUILD_ROOT%{_prefix}/lib64/lib*.a
 %endif
@@ -1199,7 +1207,7 @@ fi
 %{_prefix}/bin/gcov
 %{_prefix}/bin/protoize
 %{_prefix}/bin/unprotoize
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %{_prefix}/bin/%{_target_platform}-gcc
 %endif
 %ifarch sparc64
@@ -1264,7 +1272,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgomp.spec
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgomp.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgomp.so
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/crt*.o
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgcc.a
@@ -1292,7 +1300,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflap.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libmudflapth.so
 %endif
-%ifarch sparc sparc64 ppc ppc64
+%ifarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.so
@@ -1333,7 +1341,7 @@ fi
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1plus
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libstdc++.a
@@ -1345,11 +1353,11 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libstdc++.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/32/libsupc++.a
 %endif
-%ifarch sparc ppc %{multilib_64_archs}
+%ifarch sparcv9 ppc %{multilib_64_archs}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libsupc++.a
 %endif
-%ifarch sparc sparc64 ppc ppc64
+%ifarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.a
 %endif
 %doc rpm.doc/changelogs/gcc/cp/ChangeLog*
@@ -1368,7 +1376,7 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libstdc++.a
 %endif
@@ -1376,10 +1384,10 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libstdc++.a
 %endif
-%ifnarch sparc sparc64 ppc ppc64
+%ifnarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.a
 %endif
-%ifnarch sparc ppc %{multilib_64_archs}
+%ifnarch sparcv9 ppc %{multilib_64_archs}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libsupc++.a
 %endif
@@ -1398,7 +1406,7 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1obj
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libobjc.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libobjc.so
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libobjc.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libobjc.so
@@ -1443,7 +1451,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgfortranbegin.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgfortran.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgfortran.so
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgfortranbegin.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgfortran.a
@@ -1484,11 +1492,11 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/jvgenmain
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcj.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcj-tools.so
-%ifarch sparc sparc64 ppc ppc64
+%ifarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcj_bc.so
 %endif
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgij.so
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgcj.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/libgcj-tools.so
@@ -1578,7 +1586,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/jni_md.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/jvmpi.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcj.spec
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libgcj_bc.so
 %endif
@@ -1586,7 +1594,7 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libgcj_bc.so
 %endif
-%ifnarch sparc sparc64 ppc ppc64
+%ifnarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcj_bc.so
 %endif
 %dir %{_prefix}/include/c++
@@ -1645,7 +1653,7 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mf-runtime.h
-%ifarch sparc ppc
+%ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libmudflap.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libmudflapth.a
@@ -1655,7 +1663,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libmudflap.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/libmudflapth.a
 %endif
-%ifnarch sparc sparc64 ppc ppc64
+%ifnarch sparcv9 sparc64 ppc ppc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflapth.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libmudflap.so
@@ -1664,6 +1672,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sun May 18 2008 Tom "spot" Callaway <tcallawa@redhat.com> 4.3.0-9
+- sparcv9 support and detection
+
 * Mon Apr 28 2008 Jakub Jelinek <jakub@redhat.com> 4.3.0-8
 - update from gcc-4_3-branch
   - decrease compile time stack usage during GC (#443739, PR debug/36060)
