@@ -1,6 +1,6 @@
 %define DATE 20080428
 %define gcc_version 4.3.0
-%define gcc_release 9
+%define gcc_release 10
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -1672,6 +1672,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sun May 18 2008 Tom "spot" Callaway <tcallawa@redhat.com> 4.3.0-10
+- make sparcv9 the multilib_32_arch for sparc64
+
 * Sun May 18 2008 Tom "spot" Callaway <tcallawa@redhat.com> 4.3.0-9
 - sparcv9 support and detection
 
