@@ -1,6 +1,6 @@
 %define DATE 20080428
 %define gcc_version 4.3.0
-%define gcc_release 10
+%define gcc_release 11
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -1207,10 +1207,10 @@ fi
 %{_prefix}/bin/gcov
 %{_prefix}/bin/protoize
 %{_prefix}/bin/unprotoize
-%ifarch sparcv9 ppc
+%ifarch ppc
 %{_prefix}/bin/%{_target_platform}-gcc
 %endif
-%ifarch sparc64
+%ifarch sparc64 sparcv9
 %{_prefix}/bin/sparc-%{_vendor}-%{_target_os}-gcc
 %endif
 %ifarch ppc64
@@ -1672,6 +1672,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue May 20 2008 Tom "spot" Callaway <tcallawa@redhat.com> 4.3.0-11
+- fix missing file with sparcv9
+
 * Sun May 18 2008 Tom "spot" Callaway <tcallawa@redhat.com> 4.3.0-10
 - make sparcv9 the multilib_32_arch for sparc64
 
