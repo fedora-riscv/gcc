@@ -150,7 +150,6 @@ Patch24: gcc44-atom.patch
 Patch26: gcc44-power7.patch
 Patch28: gcc44-pr38757.patch
 Patch30: gcc44-pr39543.patch
-Patch31: gcc44-pr39763.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -439,7 +438,6 @@ which are required to compile with the GNAT.
 %patch26 -p0 -b .power7~
 %patch28 -p0 -b .pr38757~
 #%patch30 -p0 -b .pr39543~
-%patch31 -p0 -b .pr39763~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*

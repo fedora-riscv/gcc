@@ -2409,7 +2409,7 @@
      | m_NOCONA | m_CORE2 | m_GENERIC;
  
  static enum stringop_alg stringop_alg = no_stringop;
-@@ -1952,7 +2038,8 @@ static const struct ptt processor_target
+@@ -1953,7 +2039,8 @@ static const struct ptt processor_target
    {&core2_cost, 16, 10, 16, 10, 16},
    {&generic32_cost, 16, 7, 16, 7, 16},
    {&generic64_cost, 16, 10, 16, 10, 16},
@@ -2419,7 +2419,7 @@
  };
  
  static const char *const cpu_names[TARGET_CPU_DEFAULT_max] =
-@@ -1970,6 +2057,7 @@ static const char *const cpu_names[TARGE
+@@ -1971,6 +2058,7 @@ static const char *const cpu_names[TARGE
    "prescott",
    "nocona",
    "core2",
@@ -2427,7 +2427,7 @@
    "geode",
    "k6",
    "k6-2",
-@@ -2528,6 +2616,9 @@ override_options (bool main_args_p)
+@@ -2529,6 +2617,9 @@ override_options (bool main_args_p)
        {"core2", PROCESSOR_CORE2, CPU_CORE2,
  	PTA_64BIT | PTA_MMX | PTA_SSE | PTA_SSE2 | PTA_SSE3
  	| PTA_SSSE3 | PTA_CX16},
@@ -2437,7 +2437,7 @@
        {"geode", PROCESSOR_GEODE, CPU_GEODE,
  	PTA_MMX | PTA_3DNOW | PTA_3DNOW_A |PTA_PREFETCH_SSE},
        {"k6", PROCESSOR_K6, CPU_K6, PTA_MMX},
-@@ -12866,6 +12957,263 @@ ix86_expand_unary_operator (enum rtx_cod
+@@ -12903,6 +12994,263 @@ ix86_expand_unary_operator (enum rtx_cod
      emit_move_insn (operands[0], dst);
  }
  
@@ -2701,7 +2701,7 @@
  /* Return TRUE or FALSE depending on whether the unary operator meets the
     appropriate constraints.  */
  
-@@ -18985,6 +19333,7 @@ ix86_issue_rate (void)
+@@ -19022,6 +19370,7 @@ ix86_issue_rate (void)
    switch (ix86_tune)
      {
      case PROCESSOR_PENTIUM:
@@ -2709,7 +2709,7 @@
      case PROCESSOR_K6:
        return 2;
  
-@@ -19051,41 +19400,21 @@ ix86_flags_dependent (rtx insn, rtx dep_
+@@ -19088,41 +19437,21 @@ ix86_flags_dependent (rtx insn, rtx dep_
    return 1;
  }
  
@@ -2764,7 +2764,7 @@
  }
  
  static int
-@@ -19113,8 +19442,19 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19150,8 +19479,19 @@ ix86_adjust_cost (rtx insn, rtx link, rt
      {
      case PROCESSOR_PENTIUM:
        /* Address Generation Interlock adds a cycle of latency.  */
@@ -2786,7 +2786,7 @@
  
        /* ??? Compares pair with jump/setcc.  */
        if (ix86_flags_dependent (insn, dep_insn, insn_type))
-@@ -19123,7 +19463,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19160,7 +19500,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
        /* Floating point stores require value to be ready one cycle earlier.  */
        if (insn_type == TYPE_FMOV
  	  && get_attr_memory (insn) == MEMORY_STORE
@@ -2795,7 +2795,7 @@
  	cost += 1;
        break;
  
-@@ -19146,7 +19486,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19183,7 +19523,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
  	 in parallel with previous instruction in case
  	 previous instruction is not needed to compute the address.  */
        if ((memory == MEMORY_LOAD || memory == MEMORY_BOTH)
@@ -2804,7 +2804,7 @@
  	{
  	  /* Claim moves to take one cycle, as core can issue one load
  	     at time and the next load can start cycle later.  */
-@@ -19175,7 +19515,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19212,7 +19552,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
  	 in parallel with previous instruction in case
  	 previous instruction is not needed to compute the address.  */
        if ((memory == MEMORY_LOAD || memory == MEMORY_BOTH)
@@ -2813,7 +2813,7 @@
  	{
  	  /* Claim moves to take one cycle, as core can issue one load
  	     at time and the next load can start cycle later.  */
-@@ -19192,6 +19532,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19229,6 +19569,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
      case PROCESSOR_ATHLON:
      case PROCESSOR_K8:
      case PROCESSOR_AMDFAM10:
@@ -2821,7 +2821,7 @@
      case PROCESSOR_GENERIC32:
      case PROCESSOR_GENERIC64:
        memory = get_attr_memory (insn);
-@@ -19200,7 +19541,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
+@@ -19237,7 +19578,7 @@ ix86_adjust_cost (rtx insn, rtx link, rt
  	 in parallel with previous instruction in case
  	 previous instruction is not needed to compute the address.  */
        if ((memory == MEMORY_LOAD || memory == MEMORY_BOTH)
