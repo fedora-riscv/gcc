@@ -1,9 +1,9 @@
-%define DATE 20090414
-%define SVNREV 146037
+%define DATE 20090420
+%define SVNREV 146449
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 0.34
+%define gcc_release 0.35
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -1750,6 +1750,11 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Apr 20 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-0.35
+- update from gcc-4_4-branch
+  - PRs middle-end/39804, target/39678, target/39767, tree-optimization/39675,
+	tree-optimization/39764
+
 * Tue Apr 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-0.34
 - update from gcc-4_4-branch
   - GCC 4.4.0-rc1
