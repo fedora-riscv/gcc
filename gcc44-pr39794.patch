@@ -1,0 +1,277 @@
+2009-04-21  Jakub Jelinek  <jakub@redhat.com>
+
+	PR middle-end/39794
+	* alias.c (canon_true_dependence): Add x_addr argument.
+	* rtl.h (canon_true_dependence): Adjust prototype.
+	* cse.c (check_dependence): Adjust canon_true_dependence callers.
+	* cselib.c (cselib_invalidate_mem): Likewise.
+	* gcse.c (compute_transp): Likewise.
+	* dse.c (scan_reads_nospill): Likewise.
+	(record_store, check_mem_read_rtx): Likewise.  For non-const or
+	frame addresses pass cselib_subst_to_values as mem_addr, for
+	const or frame addresses canon_base_mem of the group plus
+	optionally offset.
+
+	* gcc.dg/pr39794.c: New test.
+
+--- gcc/alias.c.jj	2009-03-28 18:11:42.000000000 +0100
++++ gcc/alias.c	2009-04-21 12:44:18.000000000 +0200
+@@ -2250,14 +2251,13 @@ true_dependence (const_rtx mem, enum mac
+    Variant of true_dependence which assumes MEM has already been
+    canonicalized (hence we no longer do that here).
+    The mem_addr argument has been added, since true_dependence computed
+-   this value prior to canonicalizing.  */
++   this value prior to canonicalizing.
++   If x_addr is non-NULL, it is used in preference of XEXP (x, 0).  */
+ 
+ int
+ canon_true_dependence (const_rtx mem, enum machine_mode mem_mode, rtx mem_addr,
+-		       const_rtx x, bool (*varies) (const_rtx, bool))
++		       const_rtx x, rtx x_addr, bool (*varies) (const_rtx, bool))
+ {
+-  rtx x_addr;
+-
+   if (MEM_VOLATILE_P (x) && MEM_VOLATILE_P (mem))
+     return 1;
+ 
+@@ -2283,7 +2283,8 @@ canon_true_dependence (const_rtx mem, en
+   if (nonoverlapping_memrefs_p (x, mem))
+     return 0;
+ 
+-  x_addr = get_addr (XEXP (x, 0));
++  if (! x_addr)
++    x_addr = get_addr (XEXP (x, 0));
+ 
+   if (! base_alias_check (x_addr, mem_addr, GET_MODE (x), mem_mode))
+     return 0;
+--- gcc/dse.c.jj	2009-03-28 18:11:42.000000000 +0100
++++ gcc/dse.c	2009-04-21 18:11:19.000000000 +0200
+@@ -1286,7 +1286,7 @@ static rtx get_stored_val (store_info_t,
+ static int
+ record_store (rtx body, bb_info_t bb_info)
+ {
+-  rtx mem, rhs, const_rhs;
++  rtx mem, rhs, const_rhs, mem_addr;
+   HOST_WIDE_INT offset = 0;
+   HOST_WIDE_INT width = 0;
+   alias_set_type spill_alias_set;
+@@ -1456,6 +1456,20 @@ record_store (rtx body, bb_info_t bb_inf
+   ptr = active_local_stores;
+   last = NULL;
+   redundant_reason = NULL;
++  mem = canon_rtx (mem);
++  if (spill_alias_set || group_id < 0)
++    {
++      cselib_lookup (XEXP (mem, 0), Pmode, 1);
++      mem_addr = cselib_subst_to_values (XEXP (mem, 0));
++    }
++  else
++    {
++      group_info_t group
++	= VEC_index (group_info_t, rtx_group_vec, group_id);
++      mem_addr = group->canon_base_mem;
++      if (offset)
++	mem_addr = gen_rtx_PLUS (GET_MODE (mem_addr), mem_addr, GEN_INT (offset));
++    }
+ 
+   while (ptr)
+     {
+@@ -1547,13 +1561,13 @@ record_store (rtx body, bb_info_t bb_inf
+ 	  if (canon_true_dependence (s_info->mem, 
+ 				     GET_MODE (s_info->mem),
+ 				     s_info->mem_addr,
+-				     mem, rtx_varies_p))
++				     mem, mem_addr, rtx_varies_p))
+ 	    {
+ 	      s_info->rhs = NULL;
+ 	      s_info->const_rhs = NULL;
+ 	    }
+ 	}
+-      
++
+       /* An insn can be deleted if every position of every one of
+ 	 its s_infos is zero.  */
+       if (any_positions_needed_p (s_info)
+@@ -1580,9 +1594,9 @@ record_store (rtx body, bb_info_t bb_inf
+   /* Finish filling in the store_info.  */
+   store_info->next = insn_info->store_rec;
+   insn_info->store_rec = store_info;
+-  store_info->mem = canon_rtx (mem);
++  store_info->mem = mem;
+   store_info->alias_set = spill_alias_set;
+-  store_info->mem_addr = get_addr (XEXP (mem, 0));
++  store_info->mem_addr = mem_addr;
+   store_info->cse_base = base;
+   if (width > HOST_BITS_PER_WIDE_INT)
+     {
+@@ -2006,7 +2020,7 @@ replace_read (store_info_t store_info, i
+ static int
+ check_mem_read_rtx (rtx *loc, void *data)
+ {
+-  rtx mem = *loc;
++  rtx mem = *loc, mem_addr;
+   bb_info_t bb_info;
+   insn_info_t insn_info;
+   HOST_WIDE_INT offset = 0;
+@@ -2058,6 +2072,19 @@ check_mem_read_rtx (rtx *loc, void *data
+   read_info->end = offset + width;
+   read_info->next = insn_info->read_rec;
+   insn_info->read_rec = read_info;
++  if (spill_alias_set || group_id < 0)
++    {
++      cselib_lookup (XEXP (mem, 0), Pmode, 1);
++      mem_addr = cselib_subst_to_values (XEXP (mem, 0));
++    }
++  else
++    {
++      group_info_t group
++	= VEC_index (group_info_t, rtx_group_vec, group_id);
++      mem_addr = group->canon_base_mem;
++      if (offset)
++	mem_addr = gen_rtx_PLUS (GET_MODE (mem_addr), mem_addr, GEN_INT (offset));
++    }
+ 
+   /* We ignore the clobbers in store_info.  The is mildly aggressive,
+      but there really should not be a clobber followed by a read.  */
+@@ -2128,7 +2155,7 @@ check_mem_read_rtx (rtx *loc, void *data
+ 	      = canon_true_dependence (store_info->mem, 
+ 				       GET_MODE (store_info->mem),
+ 				       store_info->mem_addr,
+-				       mem, rtx_varies_p);
++				       mem, mem_addr, rtx_varies_p);
+ 	  
+ 	  else if (group_id == store_info->group_id)
+ 	    {
+@@ -2139,7 +2166,7 @@ check_mem_read_rtx (rtx *loc, void *data
+ 		  = canon_true_dependence (store_info->mem, 
+ 					   GET_MODE (store_info->mem),
+ 					   store_info->mem_addr,
+-					   mem, rtx_varies_p);
++					   mem, mem_addr, rtx_varies_p);
+ 	      
+ 	      /* If this read is just reading back something that we just
+ 		 stored, rewrite the read.  */
+@@ -2224,7 +2251,7 @@ check_mem_read_rtx (rtx *loc, void *data
+ 	    remove = canon_true_dependence (store_info->mem, 
+ 					    GET_MODE (store_info->mem),
+ 					    store_info->mem_addr,
+-					    mem, rtx_varies_p);
++					    mem, mem_addr, rtx_varies_p);
+ 	  
+ 	  if (remove)
+ 	    {
+@@ -3067,7 +3094,8 @@ scan_reads_nospill (insn_info_t insn_inf
+ 		      && canon_true_dependence (group->base_mem, 
+ 						QImode,
+ 						group->canon_base_mem,
+-						read_info->mem, rtx_varies_p))
++						read_info->mem, NULL_RTX,
++						rtx_varies_p))
+ 		    {
+ 		      if (kill)
+ 			bitmap_ior_into (kill, group->group_kill);
+--- gcc/cse.c.jj	2009-03-28 18:11:42.000000000 +0100
++++ gcc/cse.c	2009-04-21 11:18:02.000000000 +0200
+@@ -1,6 +1,6 @@
+ /* Common subexpression elimination for GNU compiler.
+    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998
+-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
++   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+    Free Software Foundation, Inc.
+ 
+ This file is part of GCC.
+@@ -1658,7 +1658,7 @@ check_dependence (rtx *x, void *data)
+ {
+   struct check_dependence_data *d = (struct check_dependence_data *) data;
+   if (*x && MEM_P (*x))
+-    return canon_true_dependence (d->exp, d->mode, d->addr, *x,
++    return canon_true_dependence (d->exp, d->mode, d->addr, *x, NULL_RTX,
+ 		    		  cse_rtx_varies_p);
+   else
+     return 0;
+--- gcc/rtl.h.jj	2009-03-28 18:11:43.000000000 +0100
++++ gcc/rtl.h	2009-04-21 11:17:04.000000000 +0200
+@@ -2282,7 +2282,7 @@ extern rtx canon_rtx (rtx);
+ extern int true_dependence (const_rtx, enum machine_mode, const_rtx, bool (*)(const_rtx, bool));
+ extern rtx get_addr (rtx);
+ extern int canon_true_dependence (const_rtx, enum machine_mode, rtx, const_rtx,
+-				  bool (*)(const_rtx, bool));
++				  rtx, bool (*)(const_rtx, bool));
+ extern int read_dependence (const_rtx, const_rtx);
+ extern int anti_dependence (const_rtx, const_rtx);
+ extern int output_dependence (const_rtx, const_rtx);
+--- gcc/cselib.c.jj	2009-03-28 18:11:43.000000000 +0100
++++ gcc/cselib.c	2009-04-21 11:18:25.000000000 +0200
+@@ -1,6 +1,6 @@
+ /* Common subexpression elimination library for GNU compiler.
+    Copyright (C) 1987, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+-   1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008
++   1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+    Free Software Foundation, Inc.
+ 
+ This file is part of GCC.
+@@ -1483,7 +1483,7 @@ cselib_invalidate_mem (rtx mem_rtx)
+ 	    }
+ 	  if (num_mems < PARAM_VALUE (PARAM_MAX_CSELIB_MEMORY_LOCATIONS)
+ 	      && ! canon_true_dependence (mem_rtx, GET_MODE (mem_rtx), mem_addr,
+-		      			  x, cselib_rtx_varies_p))
++		      			  x, NULL_RTX, cselib_rtx_varies_p))
+ 	    {
+ 	      has_mem = true;
+ 	      num_mems++;
+--- gcc/gcse.c.jj	2009-03-28 18:11:42.000000000 +0100
++++ gcc/gcse.c	2009-04-21 11:19:20.000000000 +0200
+@@ -1,7 +1,7 @@
+ /* Global common subexpression elimination/Partial redundancy elimination
+    and global constant/copy propagation for GNU compiler.
+    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+-   2006, 2007, 2008 Free Software Foundation, Inc.
++   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+ 
+ This file is part of GCC.
+ 
+@@ -2516,7 +2516,7 @@ compute_transp (const_rtx x, int indx, s
+ 		    dest_addr = XEXP (list_entry, 0);
+ 
+ 		    if (canon_true_dependence (dest, GET_MODE (dest), dest_addr,
+-					       x, rtx_addr_varies_p))
++					       x, NULL_RTX, rtx_addr_varies_p))
+ 		      {
+ 			if (set_p)
+ 			  SET_BIT (bmap[bb_index], indx);
+--- gcc/testsuite/gcc.dg/pr39794.c.jj	2009-04-21 13:08:45.000000000 +0200
++++ gcc/testsuite/gcc.dg/pr39794.c	2009-04-21 13:07:29.000000000 +0200
+@@ -0,0 +1,33 @@
++/* PR middle-end/39794 */
++/* { dg-do run } */
++/* { dg-options "-O2 -funroll-loops" } */
++
++extern void abort ();
++
++void
++foo (int *a, int n)
++{
++  int i;
++  for (i = 0; i < n; i++)
++    {
++      a[i] *= 2;
++      a[i + 1] = a[i - 1] + a[i - 2];
++    }
++}
++
++int a[16];
++int ref[16] = { 0, 1, 4, 2, 10, 12, 24, 44,
++		72, 136, 232, 416, 736, 1296, 2304, 2032 };
++
++int
++main ()
++{
++  int i;
++  for (i = 0; i < 16; i++)
++    a[i] = i;
++  foo (a + 2, 16 - 3);
++  for (i = 0; i < 16; i++)
++    if (ref[i] != a[i])
++      abort ();
++  return 0;
++}

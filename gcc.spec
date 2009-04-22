@@ -1,9 +1,9 @@
-%define DATE 20090420
-%define SVNREV 146449
+%define DATE 20090422
+%define SVNREV 146590
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 0.35
+%define gcc_release 1
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -150,6 +150,12 @@ Patch24: gcc44-atom.patch
 Patch26: gcc44-power7.patch
 Patch28: gcc44-pr38757.patch
 Patch30: gcc44-pr39543.patch
+Patch31: gcc44-find_base_term.patch
+Patch32: gcc44-pr39794.patch
+Patch33: gcc44-rh459374-1.patch
+Patch34: gcc44-rh459374-2.patch
+Patch35: gcc44-rh459374-3.patch
+Patch36: gcc44-cswtch.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -437,7 +443,13 @@ which are required to compile with the GNAT.
 %patch24 -p0 -b .atom~
 %patch26 -p0 -b .power7~
 %patch28 -p0 -b .pr38757~
-#%patch30 -p0 -b .pr39543~
+%patch30 -p0 -b .pr39543~
+%patch31 -p0 -b .find_base_term~
+%patch32 -p0 -b .pr39794~
+%patch33 -p0 -b .rh459374-1~
+%patch34 -p0 -b .rh459374-2~
+%patch35 -p0 -b .rh459374-3~
+%patch36 -p0 -b .cswtch~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1748,6 +1760,15 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Apr 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-1
+- update from gcc-4_4-branch
+  - GCC 4.4.0 release
+  - PR libstdc++/39802
+- fix up DSE (PR middle-end/39794)
+- debuginfo fixes for VLA and nested/contained functions (#459374)
+- improve -ftree-switch-conversion optimization if the constant is the
+  same in all cases
+
 * Mon Apr 20 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-0.35
 - update from gcc-4_4-branch
   - PRs middle-end/39804, target/39678, target/39767, tree-optimization/39675,
@@ -1827,7 +1848,7 @@ fi
 - fix memcmp builtin asm redirection (PR middle-end/39443)
 - fix sparcv9 profiledbootstrap (PR bootstrap/39454)
 
-* Thu Mar 12 2009 Dennis Gilmore <dennis@ausil.us> 
+* Thu Mar 12 2009 Dennis Gilmore <dennis@ausil.us>
 - don't build with graphite support on sparc arches
   - still missing some deps
 

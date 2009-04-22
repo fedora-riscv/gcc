@@ -1,6 +1,6 @@
-2009-04-10  Jakub Jelinek  <jakub@redhat.com>
+2009-04-22  Jakub Jelinek  <jakub@redhat.com>
 
-	PR rtl-optimization/39543
+	PR inline-asm/39543
 	* fwprop.c (forward_propagate_asm): New function.
 	(forward_propagate_and_simplify): Propagate also into __asm, if it
 	doesn't increase the number of referenced registers.
@@ -140,7 +140,7 @@
 --- gcc/testsuite/gcc.target/i386/pr39543-1.c.jj	2009-04-09 09:47:16.000000000 +0200
 +++ gcc/testsuite/gcc.target/i386/pr39543-1.c	2009-04-09 09:47:16.000000000 +0200
 @@ -0,0 +1,52 @@
-+/* PR rtl-optimization/39543 */
++/* PR inline-asm/39543 */
 +/* { dg-do compile } */
 +/* { dg-options "-O3 -fomit-frame-pointer" } */
 +
@@ -195,7 +195,7 @@
 --- gcc/testsuite/gcc.target/i386/pr39543-2.c.jj	2009-04-09 09:47:16.000000000 +0200
 +++ gcc/testsuite/gcc.target/i386/pr39543-2.c	2009-04-09 09:47:16.000000000 +0200
 @@ -0,0 +1,51 @@
-+/* PR rtl-optimization/39543 */
++/* PR inline-asm/39543 */
 +/* { dg-do compile } */
 +/* { dg-options "-O3" } */
 +
@@ -249,7 +249,7 @@
 --- gcc/testsuite/gcc.target/i386/pr39543-3.c.jj	2009-04-09 09:47:16.000000000 +0200
 +++ gcc/testsuite/gcc.target/i386/pr39543-3.c	2009-04-09 09:47:16.000000000 +0200
 @@ -0,0 +1,42 @@
-+/* PR rtl-optimization/39543 */
++/* PR inline-asm/39543 */
 +/* { dg-do compile } */
 +/* { dg-options "-O2" } */
 +

@@ -1,0 +1,468 @@
+2009-04-22  Jakub Jelinek  <jakub@redhat.com>
+
+	* tree-nested.c (get_nonlocal_vla_type): If not optimizing, call
+	note_nonlocal_vla_type for nonlocal VLAs.
+	(note_nonlocal_vla_type, note_nonlocal_block_vlas,
+	contains_remapped_vars, remap_vla_decls): New functions.
+	(convert_nonlocal_reference_stmt): If not optimizing, call
+	note_nonlocal_block_vlas on GIMPLE_BIND block vars.
+	(nesting_copy_decl): Return {VAR,PARM,RESULT}_DECL unmodified
+	if it wasn't found in var_map.
+	(finalize_nesting_tree_1): Call remap_vla_decls.  If outermost
+	GIMPLE_BIND doesn't have gimple_bind_block, chain debug_var_chain
+	to BLOCK_VARS (DECL_INITIAL (root->context)) instead of calling
+	declare_vars.
+	* gimplify.c (nonlocal_vlas): New variable.
+	(gimplify_var_or_parm_decl): Add debug VAR_DECLs for non-local
+	referenced VLAs.
+	(gimplify_body): Create and destroy nonlocal_vlas.
+
+	* trans-decl.c: Include pointer-set.h.
+	(nonlocal_dummy_decl_pset, tree nonlocal_dummy_decls): New variables.
+	(gfc_nonlocal_dummy_array_decl): New function.
+	(gfc_get_symbol_decl): Call it for non-local dummy args with saved
+	descriptor.
+	(gfc_get_symbol_decl): Set DECL_BY_REFERENCE when needed.
+	(gfc_generate_function_code): Initialize nonlocal_dummy_decl{s,_pset},
+	chain it to outermost block's vars, destroy it afterwards.
+
+	* Make-lang.in (trans-decl.o): Depend on pointer-set.h.
+
+--- gcc/tree-nested.c.jj	2009-04-21 19:24:25.000000000 +0200
++++ gcc/tree-nested.c	2009-04-22 10:18:38.000000000 +0200
+@@ -770,6 +770,7 @@ get_frame_field (struct nesting_info *in
+   return x;
+ }
+ 
++static void note_nonlocal_vla_type (struct nesting_info *info, tree type);
+ 
+ /* A subroutine of convert_nonlocal_reference_op.  Create a local variable
+    in the nested function with DECL_VALUE_EXPR set to reference the true
+@@ -840,6 +841,11 @@ get_nonlocal_debug_decl (struct nesting_
+   TREE_CHAIN (new_decl) = info->debug_var_chain;
+   info->debug_var_chain = new_decl;
+ 
++  if (!optimize
++      && info->context != target_context
++      && variably_modified_type_p (TREE_TYPE (decl), NULL))
++    note_nonlocal_vla_type (info, TREE_TYPE (decl));
++
+   return new_decl;
+ }
+ 
+@@ -1111,6 +1117,60 @@ convert_nonlocal_omp_clauses (tree *pcla
+   return need_chain;
+ }
+ 
++/* Create nonlocal debug decls for nonlocal VLA array bounds.  */
++
++static void
++note_nonlocal_vla_type (struct nesting_info *info, tree type)
++{
++  while (POINTER_TYPE_P (type) && !TYPE_NAME (type))
++    type = TREE_TYPE (type);
++
++  if (TYPE_NAME (type)
++      && TREE_CODE (TYPE_NAME (type)) == TYPE_DECL
++      && DECL_ORIGINAL_TYPE (TYPE_NAME (type)))
++    type = DECL_ORIGINAL_TYPE (TYPE_NAME (type));
++
++  while (POINTER_TYPE_P (type)
++	 || TREE_CODE (type) == VECTOR_TYPE
++	 || TREE_CODE (type) == FUNCTION_TYPE
++	 || TREE_CODE (type) == METHOD_TYPE)
++    type = TREE_TYPE (type);
++
++  if (TREE_CODE (type) == ARRAY_TYPE)
++    {
++      tree domain, t;
++
++      note_nonlocal_vla_type (info, TREE_TYPE (type));
++      domain = TYPE_DOMAIN (type);
++      if (domain)
++	{
++	  t = TYPE_MIN_VALUE (domain);
++	  if (t && (TREE_CODE (t) == VAR_DECL || TREE_CODE (t) == PARM_DECL)
++	      && decl_function_context (t) != info->context)
++	    get_nonlocal_debug_decl (info, t);
++	  t = TYPE_MAX_VALUE (domain);
++	  if (t && (TREE_CODE (t) == VAR_DECL || TREE_CODE (t) == PARM_DECL)
++	      && decl_function_context (t) != info->context)
++	    get_nonlocal_debug_decl (info, t);
++	}
++    }
++}
++
++/* Create nonlocal debug decls for nonlocal VLA array bounds for VLAs
++   in BLOCK.  */
++
++static void
++note_nonlocal_block_vlas (struct nesting_info *info, tree block)
++{
++  tree var;
++
++  for (var = BLOCK_VARS (block); var; var = TREE_CHAIN (var))
++    if (TREE_CODE (var) == VAR_DECL
++	&& variably_modified_type_p (TREE_TYPE (var), NULL)
++	&& DECL_HAS_VALUE_EXPR_P (var)
++	&& decl_function_context (var) != info->context)
++      note_nonlocal_vla_type (info, TREE_TYPE (var));
++}
+ 
+ /* Callback for walk_gimple_stmt.  Rewrite all references to VAR and
+    PARM_DECLs that belong to outer functions.  This handles statements
+@@ -1202,6 +1262,13 @@ convert_nonlocal_reference_stmt (gimple_
+ 	         info, gimple_omp_body (stmt));
+       break;
+ 
++    case GIMPLE_BIND:
++      if (!optimize && gimple_bind_block (stmt))
++	note_nonlocal_block_vlas (info, gimple_bind_block (stmt));
++
++      *handled_ops_p = false;
++      return NULL_TREE;
++
+     default:
+       /* For every other statement that we are not interested in
+ 	 handling here, let the walker traverse the operands.  */
+@@ -1979,9 +2046,117 @@ nesting_copy_decl (tree decl, copy_body_
+       return new_decl;
+     }
+ 
++  if (TREE_CODE (decl) == VAR_DECL
++      || TREE_CODE (decl) == PARM_DECL
++      || TREE_CODE (decl) == RESULT_DECL)
++    return decl;
++
+   return copy_decl_no_change (decl, id);
+ }
+ 
++/* A helper function for remap_vla_decls.  See if *TP contains
++   some remapped variables.  */
++
++static tree
++contains_remapped_vars (tree *tp, int *walk_subtrees, void *data)
++{
++  struct nesting_info *root = (struct nesting_info *) data;
++  tree t = *tp;
++  void **slot;
++
++  if (DECL_P (t))
++    {
++      *walk_subtrees = 0;
++      slot = pointer_map_contains (root->var_map, t);
++
++      if (slot)
++	return (tree) *slot;
++    }
++  return NULL;
++}
++
++/* Remap VLA decls in BLOCK and subblocks if remapped variables are
++   involved.  */
++
++static void
++remap_vla_decls (tree block, struct nesting_info *root)
++{
++  tree var, subblock, val, type;
++  struct nesting_copy_body_data id;
++
++  for (subblock = BLOCK_SUBBLOCKS (block);
++       subblock;
++       subblock = BLOCK_CHAIN (subblock))
++    remap_vla_decls (subblock, root);
++
++  for (var = BLOCK_VARS (block); var; var = TREE_CHAIN (var))
++    {
++      if (TREE_CODE (var) == VAR_DECL
++	  && variably_modified_type_p (TREE_TYPE (var), NULL)
++	  && DECL_HAS_VALUE_EXPR_P (var))
++	{
++	  type = TREE_TYPE (var);
++	  val = DECL_VALUE_EXPR (var);
++	  if (walk_tree (&type, contains_remapped_vars, root, NULL) != NULL
++	      ||  walk_tree (&val, contains_remapped_vars, root, NULL) != NULL)
++	    break;
++	}
++    }
++  if (var == NULL_TREE)
++    return;
++
++  memset (&id, 0, sizeof (id));
++  id.cb.copy_decl = nesting_copy_decl;
++  id.cb.decl_map = pointer_map_create ();
++  id.root = root;
++
++  for (; var; var = TREE_CHAIN (var))
++    if (TREE_CODE (var) == VAR_DECL
++	&& variably_modified_type_p (TREE_TYPE (var), NULL)
++	&& DECL_HAS_VALUE_EXPR_P (var))
++      {
++	struct nesting_info *i;
++	tree newt, t, context;
++
++	t = type = TREE_TYPE (var);
++	val = DECL_VALUE_EXPR (var);
++	if (walk_tree (&type, contains_remapped_vars, root, NULL) == NULL
++	    && walk_tree (&val, contains_remapped_vars, root, NULL) == NULL)
++	  continue;
++
++	context = decl_function_context (var);
++	for (i = root; i; i = i->outer)
++	  if (i->context == context)
++	    break;
++
++	if (i == NULL)
++	  continue;
++
++	id.cb.src_fn = i->context;
++	id.cb.dst_fn = i->context;
++	id.cb.src_cfun = DECL_STRUCT_FUNCTION (root->context);
++
++	TREE_TYPE (var) = newt = remap_type (type, &id.cb);
++	while (POINTER_TYPE_P (newt) && !TYPE_NAME (newt))
++	  {
++	    newt = TREE_TYPE (newt);
++	    t = TREE_TYPE (t);
++	  }
++	if (TYPE_NAME (newt)
++	    && TREE_CODE (TYPE_NAME (newt)) == TYPE_DECL
++	    && DECL_ORIGINAL_TYPE (TYPE_NAME (newt))
++	    && newt != t
++	    && TYPE_NAME (newt) == TYPE_NAME (t))
++	  TYPE_NAME (newt) = remap_decl (TYPE_NAME (newt), &id.cb);
++
++	walk_tree (&val, copy_tree_body_r, &id.cb, NULL);
++	if (val != DECL_VALUE_EXPR (var))
++	  SET_DECL_VALUE_EXPR (var, val);
++      }
++
++  pointer_map_destroy (id.cb.decl_map);
++}
++
+ /* Do "everything else" to clean up or complete state collected by the
+    various walking passes -- lay out the types and decls, generate code
+    to initialize the frame decl, store critical expressions in the
+@@ -2118,6 +2293,9 @@ finalize_nesting_tree_1 (struct nesting_
+   if (root->debug_var_chain)
+     {
+       tree debug_var;
++      gimple scope;
++
++      remap_vla_decls (DECL_INITIAL (root->context), root);
+ 
+       for (debug_var = root->debug_var_chain; debug_var;
+ 	   debug_var = TREE_CHAIN (debug_var))
+@@ -2170,9 +2348,13 @@ finalize_nesting_tree_1 (struct nesting_
+ 	  pointer_map_destroy (id.cb.decl_map);
+ 	}
+ 
+-      declare_vars (root->debug_var_chain,
+-		    gimple_seq_first_stmt (gimple_body (root->context)),
+-		    true);
++      scope = gimple_seq_first_stmt (gimple_body (root->context));
++      if (gimple_bind_block (scope))
++	declare_vars (root->debug_var_chain, scope, true);
++      else
++	BLOCK_VARS (DECL_INITIAL (root->context))
++	  = chainon (BLOCK_VARS (DECL_INITIAL (root->context)),
++		     root->debug_var_chain);
+     }
+ 
+   /* Dump the translated tree function.  */
+--- gcc/gimplify.c.jj	2009-04-21 19:23:29.000000000 +0200
++++ gcc/gimplify.c	2009-04-22 00:20:41.000000000 +0200
+@@ -1851,6 +1851,9 @@ gimplify_conversion (tree *expr_p)
+   return GS_OK;
+ }
+ 
++/* Nonlocal VLAs seen in the current function.  */
++static struct pointer_set_t *nonlocal_vlas;
++
+ /* Gimplify a VAR_DECL or PARM_DECL.  Returns GS_OK if we expanded a 
+    DECL_VALUE_EXPR, and it's worth re-examining things.  */
+ 
+@@ -1881,7 +1884,36 @@ gimplify_var_or_parm_decl (tree *expr_p)
+   /* If the decl is an alias for another expression, substitute it now.  */
+   if (DECL_HAS_VALUE_EXPR_P (decl))
+     {
+-      *expr_p = unshare_expr (DECL_VALUE_EXPR (decl));
++      tree value_expr = DECL_VALUE_EXPR (decl);
++
++      /* For referenced nonlocal VLAs add a decl for debugging purposes
++	 to the current function.  */
++      if (TREE_CODE (decl) == VAR_DECL
++	  && TREE_CODE (DECL_SIZE_UNIT (decl)) != INTEGER_CST
++	  && nonlocal_vlas != NULL
++	  && TREE_CODE (value_expr) == INDIRECT_REF
++	  && TREE_CODE (TREE_OPERAND (value_expr, 0)) == VAR_DECL
++	  && decl_function_context (decl) != current_function_decl)
++	{
++	  struct gimplify_omp_ctx *ctx = gimplify_omp_ctxp;
++	  while (ctx && ctx->region_type == ORT_WORKSHARE)
++	    ctx = ctx->outer_context;
++	  if (!ctx && !pointer_set_insert (nonlocal_vlas, decl))
++	    {
++	      tree copy = copy_node (decl), block;
++
++	      lang_hooks.dup_lang_specific_decl (copy);
++	      SET_DECL_RTL (copy, NULL_RTX);
++	      TREE_USED (copy) = 1;
++	      block = DECL_INITIAL (current_function_decl);
++	      TREE_CHAIN (copy) = BLOCK_VARS (block);
++	      BLOCK_VARS (block) = copy;
++	      SET_DECL_VALUE_EXPR (copy, unshare_expr (value_expr));
++	      DECL_HAS_VALUE_EXPR_P (copy) = 1;
++	    }
++	}
++
++      *expr_p = unshare_expr (value_expr);
+       return GS_OK;
+     }
+ 
+@@ -7359,6 +7391,9 @@ gimplify_body (tree *body_p, tree fndecl
+   unshare_body (body_p, fndecl);
+   unvisit_body (body_p, fndecl);
+ 
++  if (cgraph_node (fndecl)->origin)
++    nonlocal_vlas = pointer_set_create ();
++
+   /* Make sure input_location isn't set to something weird.  */
+   input_location = DECL_SOURCE_LOCATION (fndecl);
+ 
+@@ -7394,6 +7429,12 @@ gimplify_body (tree *body_p, tree fndecl
+       gimple_bind_set_body (outer_bind, parm_stmts);
+     }
+ 
++  if (nonlocal_vlas)
++    {
++      pointer_set_destroy (nonlocal_vlas);
++      nonlocal_vlas = NULL;
++    }
++
+   pop_gimplify_context (outer_bind);
+   gcc_assert (gimplify_ctxp == NULL);
+ 
+--- gcc/fortran/Make-lang.in.jj	2008-12-11 13:30:28.000000000 +0100
++++ gcc/fortran/Make-lang.in	2009-04-21 19:26:35.000000000 +0200
+@@ -319,7 +319,7 @@ fortran/convert.o: $(GFORTRAN_TRANS_DEPS
+ fortran/trans.o: $(GFORTRAN_TRANS_DEPS) tree-iterator.h
+ fortran/trans-decl.o: $(GFORTRAN_TRANS_DEPS) gt-fortran-trans-decl.h \
+   $(CGRAPH_H) $(TARGET_H) $(FUNCTION_H) $(FLAGS_H) $(RTL_H) $(GIMPLE_H) \
+-  $(TREE_DUMP_H) debug.h
++  $(TREE_DUMP_H) debug.h pointer-set.h
+ fortran/trans-types.o: $(GFORTRAN_TRANS_DEPS) gt-fortran-trans-types.h \
+   $(REAL_H) toplev.h $(TARGET_H) $(FLAGS_H) dwarf2out.h
+ fortran/trans-const.o: $(GFORTRAN_TRANS_DEPS)
+--- gcc/fortran/trans-decl.c.jj	2009-04-14 10:18:29.000000000 +0200
++++ gcc/fortran/trans-decl.c	2009-04-21 19:26:35.000000000 +0200
+@@ -37,6 +37,7 @@ along with GCC; see the file COPYING3.  
+ #include "cgraph.h"
+ #include "debug.h"
+ #include "gfortran.h"
++#include "pointer-set.h"
+ #include "trans.h"
+ #include "trans-types.h"
+ #include "trans-array.h"
+@@ -60,6 +61,8 @@ static GTY(()) tree current_function_ret
+ static GTY(()) tree saved_function_decls;
+ static GTY(()) tree saved_parent_function_decls;
+ 
++static struct pointer_set_t *nonlocal_dummy_decl_pset;
++static GTY(()) tree nonlocal_dummy_decls;
+ 
+ /* The namespace of the module we're currently generating.  Only used while
+    outputting decls for module variables.  Do not rely on this being set.  */
+@@ -870,6 +873,38 @@ gfc_build_dummy_array_decl (gfc_symbol *
+   return decl;
+ }
+ 
++/* For symbol SYM with GFC_DECL_SAVED_DESCRIPTOR used in contained
++   function add a VAR_DECL to the current function with DECL_VALUE_EXPR
++   pointing to the artificial variable for debug info purposes.  */
++
++static void
++gfc_nonlocal_dummy_array_decl (gfc_symbol *sym)
++{
++  tree decl, dummy;
++
++  if (! nonlocal_dummy_decl_pset)
++    nonlocal_dummy_decl_pset = pointer_set_create ();
++
++  if (pointer_set_insert (nonlocal_dummy_decl_pset, sym->backend_decl))
++    return;
++
++  dummy = GFC_DECL_SAVED_DESCRIPTOR (sym->backend_decl);
++  decl = build_decl (VAR_DECL, DECL_NAME (dummy),
++		     TREE_TYPE (sym->backend_decl));
++  DECL_ARTIFICIAL (decl) = 0;
++  TREE_USED (decl) = 1;
++  TREE_PUBLIC (decl) = 0;
++  TREE_STATIC (decl) = 0;
++  DECL_EXTERNAL (decl) = 0;
++  if (DECL_BY_REFERENCE (dummy))
++    DECL_BY_REFERENCE (decl) = 1;
++  DECL_LANG_SPECIFIC (decl) = DECL_LANG_SPECIFIC (sym->backend_decl);
++  SET_DECL_VALUE_EXPR (decl, sym->backend_decl);
++  DECL_HAS_VALUE_EXPR_P (decl) = 1;
++  DECL_CONTEXT (decl) = DECL_CONTEXT (sym->backend_decl);
++  TREE_CHAIN (decl) = nonlocal_dummy_decls;
++  nonlocal_dummy_decls = decl;
++}
+ 
+ /* Return a constant or a variable to use as a string length.  Does not
+    add the decl to the current scope.  */
+@@ -1010,6 +1045,13 @@ gfc_get_symbol_decl (gfc_symbol * sym)
+ 	{
+ 	  gfc_add_assign_aux_vars (sym);
+ 	}
++
++      if (sym->attr.dimension
++	  && DECL_LANG_SPECIFIC (sym->backend_decl)
++	  && GFC_DECL_SAVED_DESCRIPTOR (sym->backend_decl)
++	  && DECL_CONTEXT (sym->backend_decl) != current_function_decl)
++	gfc_nonlocal_dummy_array_decl (sym);
++
+       return sym->backend_decl;
+     }
+ 
+@@ -1129,6 +1171,13 @@ gfc_get_symbol_decl (gfc_symbol * sym)
+ 	  sym->attr.pointer || sym->attr.allocatable);
+     }
+ 
++  if (!TREE_STATIC (decl)
++      && POINTER_TYPE_P (TREE_TYPE (decl))
++      && !sym->attr.pointer
++      && !sym->attr.allocatable
++      && !sym->attr.proc_pointer)
++    DECL_BY_REFERENCE (decl) = 1;
++
+   return decl;
+ }
+ 
+@@ -3852,6 +3901,9 @@ gfc_generate_function_code (gfc_namespac
+ 
+   gfc_generate_contained_functions (ns);
+ 
++  nonlocal_dummy_decls = NULL;
++  nonlocal_dummy_decl_pset = NULL;
++
+   generate_local_vars (ns);
+ 
+   /* Keep the parent fake result declaration in module functions
+@@ -4111,6 +4163,15 @@ gfc_generate_function_code (gfc_namespac
+     = build3_v (BIND_EXPR, decl, DECL_SAVED_TREE (fndecl),
+ 		DECL_INITIAL (fndecl));
+ 
++  if (nonlocal_dummy_decls)
++    {
++      BLOCK_VARS (DECL_INITIAL (fndecl))
++	= chainon (BLOCK_VARS (DECL_INITIAL (fndecl)), nonlocal_dummy_decls);
++      pointer_set_destroy (nonlocal_dummy_decl_pset);
++      nonlocal_dummy_decls = NULL;
++      nonlocal_dummy_decl_pset = NULL;
++    }
++
+   /* Output the GENERIC tree.  */
+   dump_function (TDI_original, fndecl);
+ 
