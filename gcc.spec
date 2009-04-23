@@ -1,5 +1,5 @@
-%define DATE 20090422
-%define SVNREV 146590
+%define DATE 20090423
+%define SVNREV 146636
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
@@ -150,12 +150,11 @@ Patch24: gcc44-atom.patch
 Patch26: gcc44-power7.patch
 Patch28: gcc44-pr38757.patch
 Patch30: gcc44-pr39543.patch
-Patch31: gcc44-find_base_term.patch
-Patch32: gcc44-pr39794.patch
-Patch33: gcc44-rh459374-1.patch
-Patch34: gcc44-rh459374-2.patch
-Patch35: gcc44-rh459374-3.patch
-Patch36: gcc44-cswtch.patch
+Patch31: gcc44-pr39794.patch
+Patch32: gcc44-rh459374-1.patch
+Patch33: gcc44-rh459374-2.patch
+Patch34: gcc44-rh459374-3.patch
+Patch35: gcc44-cswtch.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -444,12 +443,11 @@ which are required to compile with the GNAT.
 %patch26 -p0 -b .power7~
 %patch28 -p0 -b .pr38757~
 %patch30 -p0 -b .pr39543~
-%patch31 -p0 -b .find_base_term~
-%patch32 -p0 -b .pr39794~
-%patch33 -p0 -b .rh459374-1~
-%patch34 -p0 -b .rh459374-2~
-%patch35 -p0 -b .rh459374-3~
-%patch36 -p0 -b .cswtch~
+%patch31 -p0 -b .pr39794~
+%patch32 -p0 -b .rh459374-1~
+%patch33 -p0 -b .rh459374-2~
+%patch34 -p0 -b .rh459374-3~
+%patch35 -p0 -b .cswtch~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1760,10 +1758,11 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
-* Wed Apr 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-1
+* Thu Apr 23 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-1
 - update from gcc-4_4-branch
   - GCC 4.4.0 release
-  - PR libstdc++/39802
+  - PRs libstdc++/39802, c++/39639, c/39855, rtl-optimization/39762,
+	testsuite/39781, tree-optimization/39824
 - fix up DSE (PR middle-end/39794)
 - debuginfo fixes for VLA and nested/contained functions (#459374)
 - improve -ftree-switch-conversion optimization if the constant is the
