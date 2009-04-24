@@ -1,9 +1,9 @@
-%define DATE 20090423
-%define SVNREV 146636
+%define DATE 20090424
+%define SVNREV 146674
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 1
+%define gcc_release 2
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -155,6 +155,7 @@ Patch32: gcc44-rh459374-1.patch
 Patch33: gcc44-rh459374-2.patch
 Patch34: gcc44-rh459374-3.patch
 Patch35: gcc44-cswtch.patch
+Patch36: gcc44-pr39867.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -448,6 +449,7 @@ which are required to compile with the GNAT.
 %patch33 -p0 -b .rh459374-2~
 %patch34 -p0 -b .rh459374-3~
 %patch35 -p0 -b .cswtch~
+%patch36 -p0 -b .pr39867~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1172,7 +1174,7 @@ fi
 /sbin/install-info \
   --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
 /sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gnat_ugn_unw.info.gz || :
+  --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
 /sbin/install-info \
   --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
 
@@ -1181,7 +1183,7 @@ if [ $1 = 0 ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
   /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gnat_ugn_unw.info.gz || :
+    --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
 fi
@@ -1758,12 +1760,18 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Apr 24 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-2
+- update from gcc-4_4-branch
+  - PR c++/38228
+- fix folding of cond expr with comparison to MAX/MIN (PR middle-end/39867)
+- fix up gcc-gnat install-info arguments (#452783)
+
 * Thu Apr 23 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-1
 - update from gcc-4_4-branch
   - GCC 4.4.0 release
   - PRs libstdc++/39802, c++/39639, c/39855, rtl-optimization/39762,
 	testsuite/39781, tree-optimization/39824
-- fix up DSE (PR middle-end/39794)
+- fix up DSE (PR rtl-optimization/39794)
 - debuginfo fixes for VLA and nested/contained functions (#459374)
 - improve -ftree-switch-conversion optimization if the constant is the
   same in all cases
