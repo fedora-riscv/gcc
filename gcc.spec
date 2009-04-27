@@ -1,9 +1,9 @@
-%define DATE 20090424
-%define SVNREV 146674
+%define DATE 20090427
+%define SVNREV 146836
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 2
+%define gcc_release 3
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -147,15 +147,12 @@ Patch20: gcc44-libtool-no-rpath.patch
 Patch21: gcc44-cloog-dl.patch
 Patch22: gcc44-raw-string.patch
 Patch24: gcc44-atom.patch
-Patch26: gcc44-power7.patch
+Patch25: gcc44-power7.patch
+Patch26: gcc44-power7-2.patch
+Patch27: gcc44-power7-3.patch
 Patch28: gcc44-pr38757.patch
-Patch30: gcc44-pr39543.patch
-Patch31: gcc44-pr39794.patch
-Patch32: gcc44-rh459374-1.patch
-Patch33: gcc44-rh459374-2.patch
-Patch34: gcc44-rh459374-3.patch
-Patch35: gcc44-cswtch.patch
-Patch36: gcc44-pr39867.patch
+Patch29: gcc44-pr39856.patch
+Patch30: gcc44-pr39903.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -441,15 +438,12 @@ which are required to compile with the GNAT.
 %endif
 %patch22 -p0 -b .raw-string~
 %patch24 -p0 -b .atom~
-%patch26 -p0 -b .power7~
+%patch25 -p0 -b .power7~
+%patch26 -p0 -b .power7-2~
+%patch27 -p0 -b .power7-3~
 %patch28 -p0 -b .pr38757~
-%patch30 -p0 -b .pr39543~
-%patch31 -p0 -b .pr39794~
-%patch32 -p0 -b .rh459374-1~
-%patch33 -p0 -b .rh459374-2~
-%patch34 -p0 -b .rh459374-3~
-%patch35 -p0 -b .cswtch~
-%patch36 -p0 -b .pr39867~
+%patch29 -p0 -b .pr39856~
+%patch30 -p0 -b .pr39903~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1760,6 +1754,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Apr 27 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-3
+- update from gcc-4_4-branch
+  - PR bootstrap/39739
+  - fix -Wunused-value (#497545, PR c/39889)
+- backport further power7-meissner branch changes (#497816)
+- fix reg-stack ICE on SPEC2k6 453.povray with -m32 -O3 -msse3
+  (PR target/39856)
+- fix x86_64 ICE on passing structure with flexible array member
+  (PR target/39903)
+
 * Fri Apr 24 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-2
 - update from gcc-4_4-branch
   - PR c++/38228
@@ -1818,7 +1822,7 @@ fi
 	tree-optimization/39557
 - emit debuginfo for block local externs in C (PR debug/39563)
 - fix -maltivec conditional vector macro (PR target/39558)
-- teach fwprop to handle asm (PR rtl-optimization/39543)
+- teach fwprop to handle asm (PR inline-asm/39543)
 
 * Tue Mar 24 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-0.29
 - update from trunk
