@@ -1,0 +1,68 @@
+2009-05-05  Jakub Jelinek  <jakub@redhat.com>
+	    Ben Elliston <bje@au.ibm.com>
+
+	PR middle-end/40035
+	* dse.c (check_mem_read_rtx): Guard against width == -1.
+
+	* gcc.target/i386/pr40035.c: New test.
+
+--- gcc/dse.c       (revision 147137)
++++ gcc/dse.c       (working copy)
+@@ -2245,6 +2245,7 @@ check_mem_read_rtx (rtx *loc, void *data
+ 	  if (store_info->rhs
+ 	      && store_info->group_id == -1
+ 	      && store_info->cse_base == base
++	      && width != -1
+ 	      && offset >= store_info->begin
+ 	      && offset + width <= store_info->end
+ 	      && all_positions_needed_p (store_info,
+--- gcc/testsuite/gcc.c-torture/compile/pr40035.c (revision 0)
++++ gcc/testsuite/gcc.c-torture/compile/pr40035.c (revision 0)
+@@ -0,0 +1,46 @@
++/* PR middle-end/40035 */
++
++typedef __SIZE_TYPE__ size_t;
++
++struct kernel_param {
++ const char *name;
++ unsigned int perm;
++};
++
++extern int parse_args(const char *name,
++        char *args,
++        struct kernel_param *params,
++        unsigned num,
++        int (*unknown)(char *param, char *val));
++
++void *memmove(void *dest, const void *src, size_t count);
++size_t strlen(const char *s);
++
++static char *static_command_line;
++
++static int unknown_bootoption(char *param, char *val)
++{
++
++ if (val) {
++
++  if (val == param+strlen(param)+1)
++   val[-1] = '=';
++  else if (val == param+strlen(param)+2) {
++   val[-2] = '=';
++   memmove(val-1, val, strlen(val)+1);
++   val--;
++  }
++ }
++ return 0;
++}
++
++
++void start_kernel(void)
++{
++ char * command_line;
++ extern struct kernel_param __start___param[], __stop___param[];
++
++ parse_args("Booting kernel", static_command_line, __start___param,
++     __stop___param - __start___param,
++     &unknown_bootoption);
++}
+

@@ -1,3 +1,205 @@
+2009-04-26  Michael Meissner  <meissner@linux.vnet.ibm.com>
+
+	* config/rs6000/vector.md (vector_vsel<mode>): Generate the insns
+	directly instead of calling VSX/Altivec expanders.
+
+	* config/rs6000/rs6000-c.c (rs6000_cpu_cpp_builtins): Map VSX
+	builtins that are identical to Altivec, to the Altivec vesion.
+	(altivec_overloaded_builtins): Add V2DF/V2DI sel, perm support.
+	(altivec_resolve_overloaded_builtin): Add V2DF/V2DI support.
+
+	* config/rs6000/rs6000.c (rs6000_expand_vector_init): Rename VSX
+	splat functions.
+	(expand_vector_set): Merge V2DF/V2DI code.
+	(expand_vector_extract): Ditto.
+	(bdesc_3arg): Add more VSX builtins.
+	(bdesc_2arg): Ditto.
+	(bdesc_1arg): Ditto.
+	(rs6000_expand_ternop_builtin): Require xxpermdi 3rd argument to
+	be 2 bit-constant, and V2DF/V2DI set to be a 1 bit-constant.
+	(altivec_expand_builtin): Add support for VSX overloaded builtins.
+	(altivec_init_builtins): Ditto.
+	(rs6000_common_init_builtins): Ditto.
+	(rs6000_init_builtins): Add V2DI types and vector long support.
+	(rs6000_handle_altivec_attribute): Ditto.
+	(rs6000_mange_type): Ditto.
+
+	* config/rs6000/vsx.md (UNSPEC_*): Add new UNSPEC constants.
+	(vsx_vsel<mode>): Add support for all vector types, including
+	Altivec types.
+	(vsx_ftrunc<mode>2): Emit the correct instruction.
+	(vsx_x<VSv>r<VSs>i): New builtin rounding mode insns.
+	(vsx_x<VSv>r<VSs>ic): Ditto.
+	(vsx_concat_<mode>): Key off of VSX memory instructions being
+	generated instead of the vector arithmetic unit to enable V2DI
+	mode.
+	(vsx_extract_<mode>): Ditto.
+	(vsx_set_<mode>): Rewrite as an unspec.
+	(vsx_xxpermdi2_<mode>): Rename old vsx_xxpermdi_<mode> here.  Key
+	off of VSX memory instructions instead of arithmetic unit.
+	(vsx_xxpermdi_<mode>): New insn for __builtin_vsx_xxpermdi.
+	(vsx_splat_<mode>): Rename from vsx_splat<mode>.
+	(vsx_xxspltw_<mode>): Change from V4SF only to V4SF/V4SI modes.
+	Fix up constraints.  Key off of memory instructions instead of
+	arithmetic instructions to allow use with V4SI.
+	(vsx_xxmrghw_<mode>): Ditto.
+	(vsx_xxmrglw_<mode>): Ditto.
+	(vsx_xxsldwi_<mode>): Implement vector shift double by word
+	immediate.
+
+	* config/rs6000/rs6000.h (VSX_BUILTIN_*): Update for current
+	builtins being generated.
+	(RS6000_BTI_unsigned_V2DI): Add vector long support.
+	(RS6000_BTI_bool_long): Ditto.
+	(RS6000_BTI_bool_V2DI): Ditto.
+	(unsigned_V2DI_type_node): Ditto.
+	(bool_long_type_node): Ditto.
+	(bool_V2DI_type_node): Ditto.
+
+	* config/rs6000/altivec.md (altivec_vsel<mode>): Add '*' since we
+	don't need the generator function now.  Use VSX instruction if
+	-mvsx.
+	(altivec_vmrghw): Use VSX instruction if -mvsx.
+	(altivec_vmrghsf): Ditto.
+	(altivec_vmrglw): Ditto.
+	(altivec_vmrglsf): Ditto.
+
+	* doc/extend.texi (PowerPC AltiVec/VSX Built-in Functions):
+	Document that under VSX, vector double/long are available.
+
+testsuite/
+	* gcc.target/powerpc/vsx-builtin-3.c: New test for VSX builtins.
+
+2009-04-23  Michael Meissner  <meissner@linux.vnet.ibm.com>
+
+	* config/rs6000/vector.md (VEC_E): New iterator to add V2DImode.
+	(vec_init<mode>): Use VEC_E instead of VEC_C iterator, to add
+	V2DImode support.
+	(vec_set<mode>): Ditto.
+	(vec_extract<mode>): Ditto.
+
+	* config/rs6000/predicates.md (easy_vector_constant): Add support
+	for setting TImode to 0.
+
+	* config/rs6000/rs6000.opt (-mvsx-vector-memory): Delete old debug
+	switch that is no longer used.
+	(-mvsx-vector-float): Ditto.
+	(-mvsx-vector-double): Ditto.
+	(-mvsx-v4sf-altivec-regs): Ditto.
+	(-mreload-functions): Ditto.
+	(-mallow-timode): New debug switch.
+
+	* config/rs6000/rs6000.c (rs6000_ira_cover_classes): New target
+	hook for IRA cover classes, to know that under VSX the float and
+	altivec registers are part of the same register class, but before
+	they weren't.
+	(TARGET_IRA_COVER_CLASSES): Set ira cover classes target hookd.
+	(rs6000_hard_regno_nregs): Key off of whether VSX/Altivec memory
+	instructions are supported, and not whether the vector unit has
+	arithmetic support to enable V2DI/TI mode.
+	(rs6000_hard_regno_mode_ok): Ditto.
+	(rs6000_init_hard_regno_mode_ok): Add V2DImode, TImode support.
+	Drop several of the debug switches.
+	(rs6000_emit_move): Force TImode constants to memory if we have
+	either Altivec or VSX.
+	(rs6000_builtin_conversion): Use correct insns for V2DI<->V2DF
+	conversions.
+	(rs6000_expand_vector_init): Add V2DI support.
+	(rs6000_expand_vector_set): Ditto.
+	(avoiding_indexed_address_p): Simplify tests to say if the mode
+	uses VSX/Altivec memory instructions we can't eliminate reg+reg
+	addressing.
+	(rs6000_legitimize_address): Move VSX/Altivec REG+REG support
+	before the large integer support.
+	(rs6000_legitimate_address): Add support for TImode in VSX/Altivec
+	registers.
+	(rs6000_emit_move): Ditto.
+	(def_builtin): Change internal error message to provide more
+	information.
+	(bdesc_2arg): Add conversion builtins.
+	(builtin_hash_function): New function for hashing all of the types
+	for builtin functions.
+	(builtin_hash_eq): Ditto.
+	(builtin_function_type): Ditto.
+	(builtin_mode_to_type): New static for builtin argument hashing.
+	(builtin_hash_table): Ditto.
+	(rs6000_common_init_builtins): Rewrite so that types for builtin
+	functions are only created when we need them, and use a hash table
+	to store all of the different argument combinations that are
+	created.  Add support for VSX conversion builtins.
+	(rs6000_preferred_reload_class): Add TImode support.
+	(reg_classes_cannot_change_mode_class): Be stricter about VSX and
+	Altivec vector types.
+	(rs6000_emit_vector_cond_expr): Use VSX_MOVE_MODE, not
+	VSX_VECTOR_MOVE_MODE.
+	(rs6000_handle_altivec_attribute): Allow __vector long on VSX.
+
+	* config/rs6000/vsx.md (VSX_D): New iterator for vectors with
+	64-bit elements.
+	(VSX_M): New iterator for 128 bit types for moves, except for
+	TImode.
+	(VSm, VSs, VSr): Add TImode.
+	(VSr4, VSr5): New mode attributes for float<->double conversion.
+	(VSX_SPDP): New iterator for float<->double conversion.
+	(VS_spdp_*): New mode attributes for float<->double conversion.
+	(UNSPEC_VSX_*): Rename unspec constants to remove XV from the
+	names.  Change all users.
+	(vsx_mov<mode>): Drop TImode support here.
+	(vsx_movti): New TImode support, allow GPRs, but favor VSX
+	registers.
+	(vsx_<VS_spdp_insn>): New support for float<->double conversions.
+	(vsx_xvcvdpsp): Delete, move into vsx_<VS_spdp_insn>.
+	(vsx_xvcvspdp): Ditto.
+	(vsx_xvcvuxdsp): New conversion insn.
+	(vsx_xvcvspsxds): Ditto.
+	(vsx_xvcvspuxds): Ditto.
+	(vsx_concat_<mode>): Generalize V2DF permute/splat operations to
+	include V2DI.
+	(vsx_set_<mode>): Ditto.
+	(vsx_extract_<mode>): Ditto.
+	(vsx_xxpermdi_<mode>): Ditto.
+	(vsx_splat<mode>): Ditto.
+
+	* config/rs6000/rs6000.h (VSX_VECTOR_MOVE_MODE): Delete.
+	(VSX_MOVE_MODE): Add TImode.
+	(IRA_COVER_CLASSES): Delete.
+	(IRA_COVER_CLASSES_PRE_VSX): New cover classes for machines
+	without VSX where float and altivec are different registers.
+	(IRA_COVER_CLASS_VSX): New cover classes for machines with VSX
+	where float and altivec are part of the same register class.
+
+	* config/rs6000/altivec.md (VM2): New iterator for 128-bit types,
+	except TImode.
+	(altivec_mov<mode>): Drop movti mode here.
+	(altivec_movti): Add movti insn, and allow GPRs, but favor altivec
+	registers.
+
+2009-04-16  Michael Meissner  <meissner@linux.vnet.ibm.com>
+
+	* config/rs6000/rs6000-protos.h (rs6000_has_indirect_jump_p): New
+	declaration.
+	(rs6000_set_indirect_jump): Ditto.
+
+	* config/rs6000/rs6000.c (struct machine_function): Add
+	indirect_jump_p field.
+	(rs6000_override_options): Wrap warning messages in N_().  If
+	-mvsx was implicitly set, don't give a warning for -msoft-float,
+	just silently turn off vsx.
+	(rs6000_secondary_reload_inner): Don't use strict register
+	checking, since pseudos may still be present.
+	(register_move_cost): If -mdebug=cost, print out cost information.
+	(rs6000_memory_move_cost): Ditto.
+	(rs6000_has_indirect_jump_p): New function, return true if
+	current function has an indirect jump.
+	(rs6000_set_indirect_jump): New function, note that an indirect
+	jump has been generated.
+
+	* config/rs6000/rs6000.md (indirect_jump): Note that we've
+	generated an indirect jump.
+	(tablejump): Ditto.
+	(doloop_end): Do not generate decrement ctr and branch
+	instructions if an indirect jump has been generated.
+
 --- gcc/doc/extend.texi	(revision 146119)
 +++ gcc/doc/extend.texi	(revision 146798)
 @@ -7094,7 +7094,7 @@ instructions, but allow the compiler to 
@@ -253,208 +455,6 @@
 +  d[i][0] = __builtin_vsx_xxsldwi (d[i][1], d[i][2], 3); i++;
 +  return i;
 +}
-2009-04-26  Michael Meissner  <meissner@linux.vnet.ibm.com>
-
-	* config/rs6000/vector.md (vector_vsel<mode>): Generate the insns
-	directly instead of calling VSX/Altivec expanders.
-
-	* config/rs6000/rs6000-c.c (rs6000_cpu_cpp_builtins): Map VSX
-	builtins that are identical to Altivec, to the Altivec vesion.
-	(altivec_overloaded_builtins): Add V2DF/V2DI sel, perm support.
-	(altivec_resolve_overloaded_builtin): Add V2DF/V2DI support.
-
-	* config/rs6000/rs6000.c (rs6000_expand_vector_init): Rename VSX
-	splat functions.
-	(expand_vector_set): Merge V2DF/V2DI code.
-	(expand_vector_extract): Ditto.
-	(bdesc_3arg): Add more VSX builtins.
-	(bdesc_2arg): Ditto.
-	(bdesc_1arg): Ditto.
-	(rs6000_expand_ternop_builtin): Require xxpermdi 3rd argument to
-	be 2 bit-constant, and V2DF/V2DI set to be a 1 bit-constant.
-	(altivec_expand_builtin): Add support for VSX overloaded builtins.
-	(altivec_init_builtins): Ditto.
-	(rs6000_common_init_builtins): Ditto.
-	(rs6000_init_builtins): Add V2DI types and vector long support.
-	(rs6000_handle_altivec_attribute): Ditto.
-	(rs6000_mange_type): Ditto.
-
-	* config/rs6000/vsx.md (UNSPEC_*): Add new UNSPEC constants.
-	(vsx_vsel<mode>): Add support for all vector types, including
-	Altivec types.
-	(vsx_ftrunc<mode>2): Emit the correct instruction.
-	(vsx_x<VSv>r<VSs>i): New builtin rounding mode insns.
-	(vsx_x<VSv>r<VSs>ic): Ditto.
-	(vsx_concat_<mode>): Key off of VSX memory instructions being
-	generated instead of the vector arithmetic unit to enable V2DI
-	mode.
-	(vsx_extract_<mode>): Ditto.
-	(vsx_set_<mode>): Rewrite as an unspec.
-	(vsx_xxpermdi2_<mode>): Rename old vsx_xxpermdi_<mode> here.  Key
-	off of VSX memory instructions instead of arithmetic unit.
-	(vsx_xxpermdi_<mode>): New insn for __builtin_vsx_xxpermdi.
-	(vsx_splat_<mode>): Rename from vsx_splat<mode>.
-	(vsx_xxspltw_<mode>): Change from V4SF only to V4SF/V4SI modes.
-	Fix up constraints.  Key off of memory instructions instead of
-	arithmetic instructions to allow use with V4SI.
-	(vsx_xxmrghw_<mode>): Ditto.
-	(vsx_xxmrglw_<mode>): Ditto.
-	(vsx_xxsldwi_<mode>): Implement vector shift double by word
-	immediate.
-
-	* config/rs6000/rs6000.h (VSX_BUILTIN_*): Update for current
-	builtins being generated.
-	(RS6000_BTI_unsigned_V2DI): Add vector long support.
-	(RS6000_BTI_bool_long): Ditto.
-	(RS6000_BTI_bool_V2DI): Ditto.
-	(unsigned_V2DI_type_node): Ditto.
-	(bool_long_type_node): Ditto.
-	(bool_V2DI_type_node): Ditto.
-
-	* config/rs6000/altivec.md (altivec_vsel<mode>): Add '*' since we
-	don't need the generator function now.  Use VSX instruction if
-	-mvsx.
-	(altivec_vmrghw): Use VSX instruction if -mvsx.
-	(altivec_vmrghsf): Ditto.
-	(altivec_vmrglw): Ditto.
-	(altivec_vmrglsf): Ditto.
-
-	* doc/extend.texi (PowerPC AltiVec/VSX Built-in Functions):
-	Document that under VSX, vector double/long are available.
-
-testsuite/
-	* gcc.target/powerpc/vsx-builtin-3.c: New test for VSX builtins.
-
-2009-04-23  Michael Meissner  <meissner@linux.vnet.ibm.com>
-
-	* config/rs6000/vector.md (VEC_E): New iterator to add V2DImode.
-	(vec_init<mode>): Use VEC_E instead of VEC_C iterator, to add
-	V2DImode support.
-	(vec_set<mode>): Ditto.
-	(vec_extract<mode>): Ditto.
-
-	* config/rs6000/predicates.md (easy_vector_constant): Add support
-	for setting TImode to 0.
-
-	* config/rs6000/rs6000.opt (-mvsx-vector-memory): Delete old debug
-	switch that is no longer used.
-	(-mvsx-vector-float): Ditto.
-	(-mvsx-vector-double): Ditto.
-	(-mvsx-v4sf-altivec-regs): Ditto.
-	(-mreload-functions): Ditto.
-	(-mallow-timode): New debug switch.
-
-	* config/rs6000/rs6000.c (rs6000_ira_cover_classes): New target
-	hook for IRA cover classes, to know that under VSX the float and
-	altivec registers are part of the same register class, but before
-	they weren't.
-	(TARGET_IRA_COVER_CLASSES): Set ira cover classes target hookd.
-	(rs6000_hard_regno_nregs): Key off of whether VSX/Altivec memory
-	instructions are supported, and not whether the vector unit has
-	arithmetic support to enable V2DI/TI mode.
-	(rs6000_hard_regno_mode_ok): Ditto.
-	(rs6000_init_hard_regno_mode_ok): Add V2DImode, TImode support.
-	Drop several of the debug switches.
-	(rs6000_emit_move): Force TImode constants to memory if we have
-	either Altivec or VSX.
-	(rs6000_builtin_conversion): Use correct insns for V2DI<->V2DF
-	conversions.
-	(rs6000_expand_vector_init): Add V2DI support.
-	(rs6000_expand_vector_set): Ditto.
-	(avoiding_indexed_address_p): Simplify tests to say if the mode
-	uses VSX/Altivec memory instructions we can't eliminate reg+reg
-	addressing.
-	(rs6000_legitimize_address): Move VSX/Altivec REG+REG support
-	before the large integer support.
-	(rs6000_legitimate_address): Add support for TImode in VSX/Altivec
-	registers.
-	(rs6000_emit_move): Ditto.
-	(def_builtin): Change internal error message to provide more
-	information.
-	(bdesc_2arg): Add conversion builtins.
-	(builtin_hash_function): New function for hashing all of the types
-	for builtin functions.
-	(builtin_hash_eq): Ditto.
-	(builtin_function_type): Ditto.
-	(builtin_mode_to_type): New static for builtin argument hashing.
-	(builtin_hash_table): Ditto.
-	(rs6000_common_init_builtins): Rewrite so that types for builtin
-	functions are only created when we need them, and use a hash table
-	to store all of the different argument combinations that are
-	created.  Add support for VSX conversion builtins.
-	(rs6000_preferred_reload_class): Add TImode support.
-	(reg_classes_cannot_change_mode_class): Be stricter about VSX and
-	Altivec vector types.
-	(rs6000_emit_vector_cond_expr): Use VSX_MOVE_MODE, not
-	VSX_VECTOR_MOVE_MODE.
-	(rs6000_handle_altivec_attribute): Allow __vector long on VSX.
-
-	* config/rs6000/vsx.md (VSX_D): New iterator for vectors with
-	64-bit elements.
-	(VSX_M): New iterator for 128 bit types for moves, except for
-	TImode.
-	(VSm, VSs, VSr): Add TImode.
-	(VSr4, VSr5): New mode attributes for float<->double conversion.
-	(VSX_SPDP): New iterator for float<->double conversion.
-	(VS_spdp_*): New mode attributes for float<->double conversion.
-	(UNSPEC_VSX_*): Rename unspec constants to remove XV from the
-	names.  Change all users.
-	(vsx_mov<mode>): Drop TImode support here.
-	(vsx_movti): New TImode support, allow GPRs, but favor VSX
-	registers.
-	(vsx_<VS_spdp_insn>): New support for float<->double conversions.
-	(vsx_xvcvdpsp): Delete, move into vsx_<VS_spdp_insn>.
-	(vsx_xvcvspdp): Ditto.
-	(vsx_xvcvuxdsp): New conversion insn.
-	(vsx_xvcvspsxds): Ditto.
-	(vsx_xvcvspuxds): Ditto.
-	(vsx_concat_<mode>): Generalize V2DF permute/splat operations to
-	include V2DI.
-	(vsx_set_<mode>): Ditto.
-	(vsx_extract_<mode>): Ditto.
-	(vsx_xxpermdi_<mode>): Ditto.
-	(vsx_splat<mode>): Ditto.
-
-	* config/rs6000/rs6000.h (VSX_VECTOR_MOVE_MODE): Delete.
-	(VSX_MOVE_MODE): Add TImode.
-	(IRA_COVER_CLASSES): Delete.
-	(IRA_COVER_CLASSES_PRE_VSX): New cover classes for machines
-	without VSX where float and altivec are different registers.
-	(IRA_COVER_CLASS_VSX): New cover classes for machines with VSX
-	where float and altivec are part of the same register class.
-
-	* config/rs6000/altivec.md (VM2): New iterator for 128-bit types,
-	except TImode.
-	(altivec_mov<mode>): Drop movti mode here.
-	(altivec_movti): Add movti insn, and allow GPRs, but favor altivec
-	registers.
-
-2009-04-16  Michael Meissner  <meissner@linux.vnet.ibm.com>
-
-	* config/rs6000/rs6000-protos.h (rs6000_has_indirect_jump_p): New
-	declaration.
-	(rs6000_set_indirect_jump): Ditto.
-
-	* config/rs6000/rs6000.c (struct machine_function): Add
-	indirect_jump_p field.
-	(rs6000_override_options): Wrap warning messages in N_().  If
-	-mvsx was implicitly set, don't give a warning for -msoft-float,
-	just silently turn off vsx.
-	(rs6000_secondary_reload_inner): Don't use strict register
-	checking, since pseudos may still be present.
-	(register_move_cost): If -mdebug=cost, print out cost information.
-	(rs6000_memory_move_cost): Ditto.
-	(rs6000_has_indirect_jump_p): New function, return true if
-	current function has an indirect jump.
-	(rs6000_set_indirect_jump): New function, note that an indirect
-	jump has been generated.
-
-	* config/rs6000/rs6000.md (indirect_jump): Note that we've
-	generated an indirect jump.
-	(tablejump): Ditto.
-	(doloop_end): Do not generate decrement ctr and branch
-	instructions if an indirect jump has been generated.
-
 --- gcc/config/rs6000/vector.md	(revision 146119)
 +++ gcc/config/rs6000/vector.md	(revision 146798)
 @@ -39,6 +39,9 @@ (define_mode_iterator VEC_M [V16QI V8HI 

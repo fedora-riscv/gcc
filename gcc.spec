@@ -1,9 +1,9 @@
-%define DATE 20090427
-%define SVNREV 146836
+%define DATE 20090506
+%define SVNREV 147193
 %define gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 3
+%define gcc_release 4
 %define _unpackaged_files_terminate_build 0
 %define multilib_64_archs sparc64 ppc64 s390x x86_64
 %define include_gappletviewer 1
@@ -18,6 +18,7 @@
 %else
 %define build_cloog 1
 %endif
+%define build_libstdcxx_docs 1
 # If you don't have already a usable gcc-java and libgcj for your arch,
 # do on some arch which has it rpmbuild -bc --with java_tar gcc41.spec
 # which creates libjava-classes-%{version}-%{release}.tar.bz2
@@ -99,6 +100,10 @@ BuildRequires: libunwind >= 0.98
 %if %{build_cloog}
 BuildRequires: ppl >= 0.10, ppl-devel >= 0.10, cloog-ppl >= 0.15, cloog-ppl-devel >= 0.15
 %endif
+%if %{build_libstdcxx_docs}
+BuildRequires: doxygen
+BuildRequires: graphviz
+%endif
 Requires: cpp = %{version}-%{release}
 # Need .eh_frame ld optimizations
 # Need proper visibility support
@@ -152,7 +157,10 @@ Patch26: gcc44-power7-2.patch
 Patch27: gcc44-power7-3.patch
 Patch28: gcc44-pr38757.patch
 Patch29: gcc44-pr39856.patch
-Patch30: gcc44-pr39903.patch
+Patch30: gcc44-libstdc++-docs.patch
+Patch31: gcc44-pr39666.patch
+Patch32: gcc44-pr40035.patch
+Patch33: gcc44-pr39942.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -216,6 +224,15 @@ Autoreq: true
 This is the GNU implementation of the standard C++ libraries.  This
 package includes the header files and libraries needed for C++
 development. This includes rewritten implementation of STL.
+
+%package -n libstdc++-docs
+Summary: Documentation for the GNU standard C++ library
+Group: Development/Libraries
+Autoreq: true
+
+%description -n libstdc++-docs
+Manual, doxygen generated API information and Frequently Asked Questions
+for the GNU standard C++ library.
 
 %package objc
 Summary: Objective-C support for GCC
@@ -443,7 +460,12 @@ which are required to compile with the GNAT.
 %patch27 -p0 -b .power7-3~
 %patch28 -p0 -b .pr38757~
 %patch29 -p0 -b .pr39856~
-%patch30 -p0 -b .pr39903~
+%if %{build_libstdcxx_docs}
+%patch30 -p0 -b .libstdc++-docs~
+%endif
+%patch31 -p0 -b .pr39666~
+%patch32 -p0 -b .pr40035~
+%patch33 -p0 -b .pr39942~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -660,6 +682,14 @@ done
 make -C gcc generated-manpages
 for i in ../gcc/doc/*.texi; do mv -f $i.orig $i; done
 
+# Make generated doxygen pages.
+%if %{build_libstdcxx_docs}
+cd %{gcc_target_platform}/libstdc++-v3
+make doc-html-doxygen
+make doc-man-doxygen
+cd ../..
+%endif
+
 # Copy various doc files here and there
 cd ..
 mkdir -p rpm.doc/gfortran rpm.doc/objc
@@ -709,10 +739,6 @@ tar cf - -T libjava-classes.list | bzip2 -9 > $RPM_SOURCE_DIR/libjava-classes-%{
 
 %install
 rm -fr $RPM_BUILD_ROOT
-
-perl -pi -e \
-  's~href="l(ibstdc|atest)~href="http://gcc.gnu.org/onlinedocs/libstdc++/l\1~' \
-  libstdc++-v3/doc/html/api.html
 
 cd obj-%{gcc_target_platform}
 
@@ -793,6 +819,16 @@ done
 # People can always precompile on their own whatever they want, but
 # shipping this for everybody is unnecessary.
 rm -rf $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/stdc++.h.gch
+
+%if %{build_libstdcxx_docs}
+libstdcxx_doc_builddir=%{gcc_target_platform}/libstdc++-v3/doc/doxygen
+mkdir -p ../rpm.doc/libstdc++-v3
+cp -r -p ../libstdc++-v3/doc/html ../rpm.doc/libstdc++-v3/html
+mv $libstdcxx_doc_builddir/html ../rpm.doc/libstdc++-v3/html/api
+mkdir -p $RPM_BUILD_ROOT%{_mandir}
+mv $libstdcxx_doc_builddir/man/man3 $RPM_BUILD_ROOT%{_mandir}/man3/
+find ../rpm.doc/libstdc++-v3 -name \*~ | xargs rm
+%endif
 
 %ifarch sparcv9 sparc64
 ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
@@ -1441,7 +1477,14 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libsupc++.a
 %endif
-%doc rpm.doc/changelogs/libstdc++-v3/ChangeLog* libstdc++-v3/README* libstdc++-v3/doc/html/
+%doc rpm.doc/changelogs/libstdc++-v3/ChangeLog* libstdc++-v3/README*
+
+%if %{build_libstdcxx_docs}
+%files -n libstdc++-docs
+%defattr(-,root,root)
+%{_mandir}/man3/*
+%doc rpm.doc/libstdc++-v3/html
+%endif
 
 %files objc
 %defattr(-,root,root)
@@ -1754,6 +1797,25 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed May  6 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-4
+- update from gcc-4_4-branch
+  - PRs c++/40013, libgcj/39899, libstdc++/39868, libstdc++/39880,
+	libstdc++/39881, libstdc++/39882, libstdc++/39909, middle-end/39937,
+	rtl-optimization/39914, target/39565, testsuite/39769,
+	testsuite/39776, testsuite/39790, testsuite/39807,
+	tree-optimization/39941
+  - fix phiprop tuplification (#496400, PR tree-optimization/40022)
+- don't add artificial default case label if switch labels already
+  cover the whole range (PR middle-end/39666)
+- fix DSE with block reads (PR middle-end/40035)
+- fix debuginfo for C++ typedef struct {...} T (PR debug/35463)
+- remove some unnecessary padding on x86_64/i386 added for >= 4 control
+  flow insns in a 16-byte block (PR target/39942)
+- don't create invalid DWARF location lists containing DW_OP_reg*
+  followed by DW_OP_deref*, instead use DW_OP_breg* 0 (#481675)
+- add libstdc++-docs subpackage, move html manual to it, add doxygen
+  generated html and man pages
+
 * Mon Apr 27 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-3
 - update from gcc-4_4-branch
   - PR bootstrap/39739
