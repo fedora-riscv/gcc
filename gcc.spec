@@ -1,41 +1,41 @@
-%define DATE 20090506
-%define SVNREV 147193
-%define gcc_version 4.4.0
+%global DATE 20090514
+%global SVNREV 147523
+%global gcc_version 4.4.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%define gcc_release 4
-%define _unpackaged_files_terminate_build 0
-%define multilib_64_archs sparc64 ppc64 s390x x86_64
-%define include_gappletviewer 1
+%global gcc_release 5
+%global _unpackaged_files_terminate_build 0
+%global multilib_64_archs sparc64 ppc64 s390x x86_64
+%global include_gappletviewer 1
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
-%define build_ada 1
+%global build_ada 1
 %else
-%define build_ada 0
+%global build_ada 0
 %endif
-%define build_java 1
+%global build_java 1
 %ifarch %{sparc}
-%define build_cloog 0
+%global build_cloog 0
 %else
-%define build_cloog 1
+%global build_cloog 1
 %endif
-%define build_libstdcxx_docs 1
+%global build_libstdcxx_docs 1
 # If you don't have already a usable gcc-java and libgcj for your arch,
 # do on some arch which has it rpmbuild -bc --with java_tar gcc41.spec
 # which creates libjava-classes-%{version}-%{release}.tar.bz2
 # With this then on the new arch do rpmbuild -ba -v --with java_bootstrap gcc41.spec
-%define bootstrap_java %{?_with_java_bootstrap:%{build_java}}%{!?_with_java_bootstrap:0}
-%define build_java_tar %{?_with_java_tar:%{build_java}}%{!?_with_java_tar:0}
+%global bootstrap_java %{?_with_java_bootstrap:%{build_java}}%{!?_with_java_bootstrap:0}
+%global build_java_tar %{?_with_java_tar:%{build_java}}%{!?_with_java_tar:0}
 %ifarch s390x
-%define multilib_32_arch s390
+%global multilib_32_arch s390
 %endif
 %ifarch sparc64
-%define multilib_32_arch sparcv9
+%global multilib_32_arch sparcv9
 %endif
 %ifarch ppc64
-%define multilib_32_arch ppc
+%global multilib_32_arch ppc
 %endif
 %ifarch x86_64
-%define multilib_32_arch i586
+%global multilib_32_arch i586
 %endif
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
@@ -53,7 +53,7 @@ Source0: gcc-%{version}-%{DATE}.tar.bz2
 Source1: libgcc_post_upgrade.c
 Source2: README.libgcjwebplugin.so
 Source3: protoize.1
-%define fastjar_ver 0.97
+%global fastjar_ver 0.97
 Source4: http://download.savannah.nongnu.org/releases/fastjar/fastjar-%{fastjar_ver}.tar.gz
 URL: http://gcc.gnu.org
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -132,7 +132,8 @@ Obsoletes: libgnat < %{version}-%{release}
 %if %{build_cloog}
 Requires: cloog-ppl >= 0.15
 %endif
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 AutoReq: true
 
 Patch0: gcc44-hack.patch
@@ -158,25 +159,23 @@ Patch27: gcc44-power7-3.patch
 Patch28: gcc44-pr38757.patch
 Patch29: gcc44-pr39856.patch
 Patch30: gcc44-libstdc++-docs.patch
-Patch31: gcc44-pr39666.patch
-Patch32: gcc44-pr40035.patch
-Patch33: gcc44-pr39942.patch
+Patch31: gcc44-pr39942.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
 %ifnarch %{arm}
-%define _gnu %{nil}
+%global _gnu %{nil}
 %endif
 %ifarch sparcv9
-%define gcc_target_platform sparc64-%{_vendor}-%{_target_os}
+%global gcc_target_platform sparc64-%{_vendor}-%{_target_os}
 %endif
 %ifarch ppc
-%define gcc_target_platform ppc64-%{_vendor}-%{_target_os}
+%global gcc_target_platform ppc64-%{_vendor}-%{_target_os}
 %endif
 %ifnarch sparcv9 ppc
-%define gcc_target_platform %{_target_platform}
+%global gcc_target_platform %{_target_platform}
 %endif
 
 %description
@@ -270,7 +269,8 @@ Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgfortran = %{version}-%{release}
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description gfortran
@@ -289,7 +289,8 @@ Fortran dynamically linked programs.
 %package -n libgomp
 Summary: GCC OpenMP v3.0 shared support library
 Group: System Environment/Libraries
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 
 %description -n libgomp
 This package contains GCC shared support library which is needed
@@ -324,7 +325,8 @@ Requires: gcc = %{version}-%{release}
 Requires: libgcj = %{version}-%{release}
 Requires: libgcj-devel = %{version}-%{release}
 Requires: /usr/share/java/eclipse-ecj.jar
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description java
@@ -334,7 +336,8 @@ bytecode into native code.
 %package -n libgcj
 Summary: Java runtime library for gcc
 Group: System Environment/Libraries
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 Requires: zip >= 2.1
 Requires: gtk2 >= 2.4.0
 Requires: glib2 >= 2.4.0
@@ -379,7 +382,8 @@ The Java(tm) runtime library sources for use in Eclipse.
 %package -n cpp
 Summary: The C Preprocessor
 Group: Development/Languages
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description -n cpp
@@ -409,7 +413,8 @@ Summary: Ada 95 support for GCC
 Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgnat = %{version}-%{release}, libgnat-devel = %{version}-%{release}
-Prereq: /sbin/install-info
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description gnat
@@ -463,9 +468,7 @@ which are required to compile with the GNAT.
 %if %{build_libstdcxx_docs}
 %patch30 -p0 -b .libstdc++-docs~
 %endif
-%patch31 -p0 -b .pr39666~
-%patch32 -p0 -b .pr40035~
-%patch33 -p0 -b .pr39942~
+%patch31 -p0 -b .pr39942~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -519,7 +522,7 @@ fi
 # fastjar, build it anyway.
 mkdir fastjar-%{fastjar_ver}/obj-%{gcc_target_platform}
 cd fastjar-%{fastjar_ver}/obj-%{gcc_target_platform}
-../configure CFLAGS="$RPM_OPT_FLAGS" --prefix=%{_prefix} --mandir=%{_mandir} --infodir=%{_infodir}
+../configure CFLAGS="%{optflags}" --prefix=%{_prefix} --mandir=%{_mandir} --infodir=%{_infodir}
 make %{?_smp_mflags}
 export PATH=`pwd`${PATH:+:$PATH}
 cd ../../
@@ -559,7 +562,7 @@ cd ..
 %endif
 
 CC=gcc
-OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'`
+OPT_FLAGS=`echo %{optflags}|sed -e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-m64//g;s/-m32//g;s/-m31//g'`
 %ifarch sparc
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mcpu=ultrasparc/-mtune=ultrasparc/g;s/-mcpu=v[78]//g'`
@@ -658,19 +661,6 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 #GCJFLAGS="$OPT_FLAGS" make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" bootstrap
 GCJFLAGS="$OPT_FLAGS" make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" profiledbootstrap
 
-# run the tests.
-make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
-echo ====================TESTING=========================
-( ../contrib/test_summary || : ) 2>&1 | sed -n '/^cat.*EOF/,/^EOF/{/^cat.*EOF/d;/^EOF/d;/^LAST_UPDATED:/d;p;}'
-echo ====================TESTING END=====================
-mkdir testlogs-%{_target_platform}-%{version}-%{release}
-for i in `find . -name \*.log | grep -F testsuite/ | grep -v 'config.log\|acats\|ada'`; do
-  ln $i testlogs-%{_target_platform}-%{version}-%{release}/ || :
-done
-tar cf - testlogs-%{_target_platform}-%{version}-%{release} | bzip2 -9c \
-  | uuencode testlogs-%{_target_platform}.tar.bz2 || :
-rm -rf testlogs-%{_target_platform}-%{version}-%{release}
-
 # Make protoize
 make -C gcc CC="./xgcc -B ./ -O2" proto
 
@@ -738,7 +728,7 @@ tar cf - -T libjava-classes.list | bzip2 -9 > $RPM_SOURCE_DIR/libjava-classes-%{
 %endif
 
 %install
-rm -fr $RPM_BUILD_ROOT
+rm -fr %{buildroot}
 
 cd obj-%{gcc_target_platform}
 
@@ -754,31 +744,31 @@ TARGET_PLATFORM=%{gcc_target_platform}
 # There are some MP bugs in libstdc++ Makefiles
 make -C %{gcc_target_platform}/libstdc++-v3
 
-make prefix=$RPM_BUILD_ROOT%{_prefix} mandir=$RPM_BUILD_ROOT%{_mandir} \
-  infodir=$RPM_BUILD_ROOT%{_infodir} install
+make prefix=%{buildroot}%{_prefix} mandir=%{buildroot}%{_mandir} \
+  infodir=%{buildroot}%{_infodir} install
 %if %{build_java}
-make DESTDIR=$RPM_BUILD_ROOT -C %{gcc_target_platform}/libjava install-src.zip
+make DESTDIR=%{buildroot} -C %{gcc_target_platform}/libjava install-src.zip
 %endif
 %if %{build_ada}
-chmod 644 $RPM_BUILD_ROOT%{_infodir}/gnat*
+chmod 644 %{buildroot}%{_infodir}/gnat*
 %endif
 
-FULLPATH=$RPM_BUILD_ROOT%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
-FULLEPATH=$RPM_BUILD_ROOT%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+FULLPATH=%{buildroot}%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+FULLEPATH=%{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
 
 # fix some things
-ln -sf gcc $RPM_BUILD_ROOT%{_prefix}/bin/cc
-mkdir -p $RPM_BUILD_ROOT/lib
-ln -sf ..%{_prefix}/bin/cpp $RPM_BUILD_ROOT/lib/cpp
-ln -sf gfortran $RPM_BUILD_ROOT%{_prefix}/bin/f95
-rm -f $RPM_BUILD_ROOT%{_infodir}/dir
-gzip -9 $RPM_BUILD_ROOT%{_infodir}/*.info*
-ln -sf gcc $RPM_BUILD_ROOT%{_prefix}/bin/gnatgcc
+ln -sf gcc %{buildroot}%{_prefix}/bin/cc
+mkdir -p %{buildroot}/lib
+ln -sf ..%{_prefix}/bin/cpp %{buildroot}/lib/cpp
+ln -sf gfortran %{buildroot}%{_prefix}/bin/f95
+rm -f %{buildroot}%{_infodir}/dir
+gzip -9 %{buildroot}%{_infodir}/*.info*
+ln -sf gcc %{buildroot}%{_prefix}/bin/gnatgcc
 
 cxxconfig="`find %{gcc_target_platform}/libstdc++-v3/include -name c++config.h`"
 for i in `find %{gcc_target_platform}/[36]*/libstdc++-v3/include -name c++config.h 2>/dev/null`; do
   if ! diff -up $cxxconfig $i; then
-    cat > $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/c++config.h <<EOF
+    cat > %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/c++config.h <<EOF
 #ifndef _CPP_CPPCONFIG_WRAPPER
 #define _CPP_CPPCONFIG_WRAPPER 1
 #include <bits/wordsize.h>
@@ -801,7 +791,7 @@ EOF
   fi
 done
 
-for f in `find $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/ -name c++config.h`; do
+for f in `find %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/ -name c++config.h`; do
   for i in 1 2 4 8; do
     sed -i -e 's/#define _GLIBCXX_ATOMIC_BUILTINS_'$i' 1/#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_'$i'\
 &\
@@ -818,25 +808,25 @@ done
 # 4) it is huge
 # People can always precompile on their own whatever they want, but
 # shipping this for everybody is unnecessary.
-rm -rf $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/stdc++.h.gch
+rm -rf %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/stdc++.h.gch
 
 %if %{build_libstdcxx_docs}
 libstdcxx_doc_builddir=%{gcc_target_platform}/libstdc++-v3/doc/doxygen
 mkdir -p ../rpm.doc/libstdc++-v3
 cp -r -p ../libstdc++-v3/doc/html ../rpm.doc/libstdc++-v3/html
 mv $libstdcxx_doc_builddir/html ../rpm.doc/libstdc++-v3/html/api
-mkdir -p $RPM_BUILD_ROOT%{_mandir}
-mv $libstdcxx_doc_builddir/man/man3 $RPM_BUILD_ROOT%{_mandir}/man3/
+mkdir -p %{buildroot}%{_mandir}
+mv $libstdcxx_doc_builddir/man/man3 %{buildroot}%{_mandir}/man3/
 find ../rpm.doc/libstdc++-v3 -name \*~ | xargs rm
 %endif
 
 %ifarch sparcv9 sparc64
-ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
-  $RPM_BUILD_ROOT%{_prefix}/bin/sparc-%{_vendor}-%{_target_os}-gcc
+ln -f %{buildroot}%{_prefix}/bin/%{gcc_target_platform}-gcc \
+  %{buildroot}%{_prefix}/bin/sparc-%{_vendor}-%{_target_os}-gcc
 %endif
 %ifarch ppc ppc64
-ln -f $RPM_BUILD_ROOT%{_prefix}/bin/%{gcc_target_platform}-gcc \
-  $RPM_BUILD_ROOT%{_prefix}/bin/ppc-%{_vendor}-%{_target_os}-gcc
+ln -f %{buildroot}%{_prefix}/bin/%{gcc_target_platform}-gcc \
+  %{buildroot}%{_prefix}/bin/ppc-%{_vendor}-%{_target_os}-gcc
 %endif
 
 %ifarch sparcv9 ppc
@@ -851,24 +841,24 @@ else
   FULLLPATH=$FULLPATH
 fi
 
-find $RPM_BUILD_ROOT -name \*.la | xargs rm -f
+find %{buildroot} -name \*.la | xargs rm -f
 %if %{build_java}
 # gcj -static doesn't work properly anyway, unless using --whole-archive
 # and saving 35MB is not bad.
-find $RPM_BUILD_ROOT -name libgcj.a -o -name libgtkpeer.a \
+find %{buildroot} -name libgcj.a -o -name libgtkpeer.a \
 		     -o -name libgjsmalsa.a -o -name libgcj-tools.a -o -name libjvm.a \
 		     -o -name libgij.a -o -name libgcj_bc.a -o -name libjavamath.a \
   | xargs rm -f
 
-mv $RPM_BUILD_ROOT%{_prefix}/lib/libgcj.spec $FULLPATH/
+mv %{buildroot}%{_prefix}/lib/libgcj.spec $FULLPATH/
 sed -i -e 's/lib: /&%%{static:%%eJava programs cannot be linked statically}/' \
   $FULLPATH/libgcj.spec
 %endif
 
-mkdir -p $RPM_BUILD_ROOT/%{_lib}
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgcc_s.so.1 $RPM_BUILD_ROOT/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
-chmod 755 $RPM_BUILD_ROOT/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
-ln -sf libgcc_s-%{gcc_version}-%{DATE}.so.1 $RPM_BUILD_ROOT/%{_lib}/libgcc_s.so.1
+mkdir -p %{buildroot}/%{_lib}
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
+chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
+ln -sf libgcc_s-%{gcc_version}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
 ln -sf /%{_lib}/libgcc_s.so.1 $FULLPATH/libgcc_s.so
 %ifarch sparcv9 ppc
 ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
@@ -877,30 +867,30 @@ ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
 ln -sf /lib/libgcc_s.so.1 $FULLPATH/32/libgcc_s.so
 %endif
 
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgomp.spec $FULLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.spec $FULLPATH/
 
 %if %{build_ada}
-mv -f $FULLPATH/adalib/libgnarl-*.so $RPM_BUILD_ROOT%{_prefix}/%{_lib}/
-mv -f $FULLPATH/adalib/libgnat-*.so $RPM_BUILD_ROOT%{_prefix}/%{_lib}/
+mv -f $FULLPATH/adalib/libgnarl-*.so %{buildroot}%{_prefix}/%{_lib}/
+mv -f $FULLPATH/adalib/libgnat-*.so %{buildroot}%{_prefix}/%{_lib}/
 rm -f $FULLPATH/adalib/libgnarl.so* $FULLPATH/adalib/libgnat.so*
 %endif
 
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/libexec/getconf
+mkdir -p %{buildroot}%{_prefix}/libexec/getconf
 if gcc/xgcc -B gcc/ -E -dD -xc /dev/null | grep __LONG_MAX__.*2147483647; then
-  ln -sf POSIX_V6_ILP32_OFF32 $RPM_BUILD_ROOT%{_prefix}/libexec/getconf/default
+  ln -sf POSIX_V6_ILP32_OFF32 %{buildroot}%{_prefix}/libexec/getconf/default
 else
-  ln -sf POSIX_V6_LP64_OFF64 $RPM_BUILD_ROOT%{_prefix}/libexec/getconf/default
+  ln -sf POSIX_V6_LP64_OFF64 %{buildroot}%{_prefix}/libexec/getconf/default
 fi
 
 %if %{build_java}
 pushd ../fastjar-%{fastjar_ver}/obj-%{gcc_target_platform}
-make install DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=%{buildroot}
 popd
 
 if [ "%{_lib}" != "lib" ]; then
-  mkdir -p $RPM_BUILD_ROOT%{_prefix}/%{_lib}/pkgconfig
-  sed '/^libdir/s/lib$/%{_lib}/' $RPM_BUILD_ROOT%{_prefix}/lib/pkgconfig/libgcj-*.pc \
-    > $RPM_BUILD_ROOT%{_prefix}/%{_lib}/pkgconfig/`basename $RPM_BUILD_ROOT%{_prefix}/lib/pkgconfig/libgcj-*.pc`
+  mkdir -p %{buildroot}%{_prefix}/%{_lib}/pkgconfig
+  sed '/^libdir/s/lib$/%{_lib}/' %{buildroot}%{_prefix}/lib/pkgconfig/libgcj-*.pc \
+    > %{buildroot}%{_prefix}/%{_lib}/pkgconfig/`basename %{buildroot}%{_prefix}/lib/pkgconfig/libgcj-*.pc`
 fi
 %endif
 
@@ -931,14 +921,14 @@ ln -sf ../../../../%{_lib}/libgij.so.10.* libgij.so
 %endif
 fi
 %if %{build_java}
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgcj_bc.so $FULLLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgcj_bc.so $FULLLPATH/
 %endif
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libstdc++.*a $FULLLPATH/
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libsupc++.*a .
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgfortran.*a .
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libobjc.*a .
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgomp.*a .
-mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libmudflap{,th}.*a $FULLLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++.*a $FULLLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libsupc++.*a .
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgfortran.*a .
+mv -f %{buildroot}%{_prefix}/%{_lib}/libobjc.*a .
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.*a .
+mv -f %{buildroot}%{_prefix}/%{_lib}/libmudflap{,th}.*a $FULLLPATH/
 
 %if %{build_ada}
 %ifarch sparcv9 ppc
@@ -996,10 +986,10 @@ ln -sf ../`echo ../../../../lib/libgij.so.10.* | sed s~/lib/~/lib64/~` 64/libgij
 ln -sf lib32/libgcj_bc.so libgcj_bc.so
 ln -sf ../lib64/libgcj_bc.so 64/libgcj_bc.so
 %endif
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libsupc++.*a 64/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libgfortran.*a 64/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libobjc.*a 64/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/libgomp.*a 64/
+mv -f %{buildroot}%{_prefix}/lib64/libsupc++.*a 64/
+mv -f %{buildroot}%{_prefix}/lib64/libgfortran.*a 64/
+mv -f %{buildroot}%{_prefix}/lib64/libobjc.*a 64/
+mv -f %{buildroot}%{_prefix}/lib64/libgomp.*a 64/
 ln -sf lib32/libstdc++.a libstdc++.a
 ln -sf ../lib64/libstdc++.a 64/libstdc++.a
 ln -sf lib32/libmudflap.a libmudflap.a
@@ -1029,10 +1019,10 @@ ln -sf ../`echo ../../../../lib64/libgcj.so.10.* | sed s~/../lib64/~/~` 32/libgc
 ln -sf ../`echo ../../../../lib64/libgcj-tools.so.10.* | sed s~/../lib64/~/~` 32/libgcj-tools.so
 ln -sf ../`echo ../../../../lib64/libgij.so.10.* | sed s~/../lib64/~/~` 32/libgij.so
 %endif
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libsupc++.*a 32/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libgfortran.*a 32/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libobjc.*a 32/
-mv -f $RPM_BUILD_ROOT%{_prefix}/lib/libgomp.*a 32/
+mv -f %{buildroot}%{_prefix}/lib/libsupc++.*a 32/
+mv -f %{buildroot}%{_prefix}/lib/libgfortran.*a 32/
+mv -f %{buildroot}%{_prefix}/lib/libobjc.*a 32/
+mv -f %{buildroot}%{_prefix}/lib/libgomp.*a 32/
 %endif
 %ifarch sparc64 ppc64
 ln -sf ../lib32/libstdc++.a 32/libstdc++.a
@@ -1071,14 +1061,14 @@ strip -g `find . \( -name libgfortran.a -o -name libobjc.a -o -name libgomp.a \
 		    -o -name libmudflap.a -o -name libmudflapth.a \
 		    -o -name libgcc.a -o -name libgcov.a \) -a -type f`
 popd
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgfortran.so.3.*
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgomp.so.1.*
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libmudflap{,th}.so.0.*
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libobjc.so.2.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgfortran.so.3.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgomp.so.1.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libmudflap{,th}.so.0.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.2.*
 
 %if %{build_ada}
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgnarl*so*
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libgnat*so*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgnarl*so*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgnat*so*
 %endif
 
 mv $FULLPATH/include-fixed/syslimits.h $FULLPATH/include/syslimits.h
@@ -1091,7 +1081,7 @@ for h in `find $FULLPATH/include -name \*.h`; do
   fi
 done
 
-cat > $RPM_BUILD_ROOT%{_prefix}/bin/c89 <<"EOF"
+cat > %{buildroot}%{_prefix}/bin/c89 <<"EOF"
 #!/bin/sh
 fl="-std=c89"
 for opt; do
@@ -1103,7 +1093,7 @@ for opt; do
 done
 exec gcc $fl ${1+"$@"}
 EOF
-cat > $RPM_BUILD_ROOT%{_prefix}/bin/c99 <<"EOF"
+cat > %{buildroot}%{_prefix}/bin/c99 <<"EOF"
 #!/bin/sh
 fl="-std=c99"
 for opt; do
@@ -1115,11 +1105,11 @@ for opt; do
 done
 exec gcc $fl ${1+"$@"}
 EOF
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/bin/c?9
+chmod 755 %{buildroot}%{_prefix}/bin/c?9
 
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/sbin
-gcc -static -Os %{SOURCE1} -o $RPM_BUILD_ROOT%{_prefix}/sbin/libgcc_post_upgrade
-strip $RPM_BUILD_ROOT%{_prefix}/sbin/libgcc_post_upgrade
+mkdir -p %{buildroot}%{_prefix}/sbin
+gcc -static -Os %{SOURCE1} -o %{buildroot}%{_prefix}/sbin/libgcc_post_upgrade
+strip %{buildroot}%{_prefix}/sbin/libgcc_post_upgrade
 
 cd ..
 %find_lang %{name}
@@ -1127,38 +1117,54 @@ cd ..
 
 # Remove binaries we will not be including, so that they don't end up in
 # gcc-debuginfo
-rm -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/{libffi*,libiberty.a}
+rm -f %{buildroot}%{_prefix}/%{_lib}/{libffi*,libiberty.a}
 rm -f $FULLEPATH/install-tools/{mkheaders,fixincl}
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/{32,64}/libiberty.a
-rm -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/libssp*
-rm -f $RPM_BUILD_ROOT%{_prefix}/bin/gnative2ascii
+rm -f %{buildroot}%{_prefix}/lib/{32,64}/libiberty.a
+rm -f %{buildroot}%{_prefix}/%{_lib}/libssp*
+rm -f %{buildroot}%{_prefix}/bin/gnative2ascii
 
 %ifarch %{multilib_64_archs}
 # Remove libraries for the other arch on multilib arches
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/lib*.so*
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/lib*.a
+rm -f %{buildroot}%{_prefix}/lib/lib*.so*
+rm -f %{buildroot}%{_prefix}/lib/lib*.a
 %else
 %ifarch sparcv9 ppc
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib64/lib*.so*
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib64/lib*.a
+rm -f %{buildroot}%{_prefix}/lib64/lib*.so*
+rm -f %{buildroot}%{_prefix}/lib64/lib*.a
 %endif
 %endif
 
 %if %{build_java}
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/share/java/gcj-endorsed \
-	 $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
-chmod 755 $RPM_BUILD_ROOT%{_prefix}/share/java/gcj-endorsed \
-	  $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-%{version} \
-	  $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
-touch $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-%{version}/classmap.db
+mkdir -p %{buildroot}%{_prefix}/share/java/gcj-endorsed \
+	 %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
+chmod 755 %{buildroot}%{_prefix}/share/java/gcj-endorsed \
+	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{version} \
+	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
+touch %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db
 %endif
 
-install -m644 %{SOURCE3} $RPM_BUILD_ROOT%{_mandir}/man1/protoize.1
-echo '.so man1/protoize.1' > $RPM_BUILD_ROOT%{_mandir}/man1/unprotoize.1
-chmod 644 $RPM_BUILD_ROOT%{_mandir}/man1/unprotoize.1
+install -m644 %{SOURCE3} %{buildroot}%{_mandir}/man1/protoize.1
+echo '.so man1/protoize.1' > %{buildroot}%{_mandir}/man1/unprotoize.1
+chmod 644 %{buildroot}%{_mandir}/man1/unprotoize.1
+
+%check
+cd obj-%{gcc_target_platform}
+
+# run the tests.
+make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
+echo ====================TESTING=========================
+( LC_ALL=C ../contrib/test_summary || : ) 2>&1 | sed -n '/^cat.*EOF/,/^EOF/{/^cat.*EOF/d;/^EOF/d;/^LAST_UPDATED:/d;p;}'
+echo ====================TESTING END=====================
+mkdir testlogs-%{_target_platform}-%{version}-%{release}
+for i in `find . -name \*.log | grep -F testsuite/ | grep -v 'config.log\|acats\|ada'`; do
+  ln $i testlogs-%{_target_platform}-%{version}-%{release}/ || :
+done
+tar cf - testlogs-%{_target_platform}-%{version}-%{release} | bzip2 -9c \
+  | uuencode testlogs-%{_target_platform}.tar.bz2 || :
+rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
 /sbin/install-info \
@@ -1274,7 +1280,7 @@ fi
 %postun -n libmudflap -p /sbin/ldconfig
 
 %files -f %{name}.lang
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/cc
 %{_prefix}/bin/c89
 %{_prefix}/bin/c99
@@ -1397,7 +1403,7 @@ fi
 %doc gcc/README* rpm.doc/changelogs/gcc/ChangeLog* gcc/COPYING*
 
 %files -n cpp -f cpplib.lang
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 /lib/cpp
 %{_prefix}/bin/cpp
 %{_mandir}/man1/cpp.1*
@@ -1408,14 +1414,14 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1
 
 %files -n libgcc
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 /%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
 /%{_lib}/libgcc_s.so.1
 %{_prefix}/sbin/libgcc_post_upgrade
 %doc gcc/COPYING.LIB
 
 %files c++
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/%{gcc_target_platform}-*++
 %{_prefix}/bin/g++
 %{_prefix}/bin/c++
@@ -1449,11 +1455,11 @@ fi
 %doc rpm.doc/changelogs/gcc/cp/ChangeLog*
 
 %files -n libstdc++
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libstdc++.so.6*
 
 %files -n libstdc++-devel
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/include/c++
 %dir %{_prefix}/include/c++/%{gcc_version}
 %{_prefix}/include/c++/%{gcc_version}/[^gjos]*
@@ -1487,7 +1493,7 @@ fi
 %endif
 
 %files objc
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
@@ -1513,18 +1519,18 @@ fi
 %doc libobjc/THREADS* rpm.doc/changelogs/libobjc/ChangeLog*
 
 %files objc++
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1objplus
 
 %files -n libobjc
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libobjc.so.2*
 
 %files gfortran
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/gfortran
 %{_prefix}/bin/f95
 %{_mandir}/man1/gfortran.1*
@@ -1559,12 +1565,12 @@ fi
 %doc rpm.doc/gfortran/*
 
 %files -n libgfortran
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libgfortran.so.3*
 
 %if %{build_java}
 %files java
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/gcj
 %{_prefix}/bin/gjavah
 %{_prefix}/bin/gcjh
@@ -1606,7 +1612,7 @@ fi
 %doc rpm.doc/changelogs/gcc/java/ChangeLog*
 
 %files -n libgcj
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/jv-convert
 %{_prefix}/bin/gij
 %{_prefix}/bin/gjar
@@ -1667,7 +1673,7 @@ fi
 %endif
 
 %files -n libgcj-devel
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
@@ -1700,7 +1706,7 @@ fi
 %doc rpm.doc/libjava/*
 
 %files -n libgcj-src
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/share/java
 %{_prefix}/share/java/src*.zip
 %{_prefix}/share/java/libgcj-tools-%{version}.jar
@@ -1708,7 +1714,7 @@ fi
 
 %if %{build_ada}
 %files gnat
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/bin/gnat*
 %{_infodir}/gnat*
 %dir %{_prefix}/lib/gcc
@@ -1735,12 +1741,12 @@ fi
 %doc rpm.doc/changelogs/gcc/ada/ChangeLog*
 
 %files -n libgnat
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libgnat-*.so
 %{_prefix}/%{_lib}/libgnarl-*.so
 
 %files -n libgnat-devel
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
@@ -1761,18 +1767,18 @@ fi
 %endif
 
 %files -n libgomp
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libgomp.so.1*
 %{_infodir}/libgomp.info*
 %doc rpm.doc/changelogs/libgomp/ChangeLog*
 
 %files -n libmudflap
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libmudflap.so.0*
 %{_prefix}/%{_lib}/libmudflapth.so.0*
 
 %files -n libmudflap-devel
-%defattr(-,root,root)
+%defattr(-,root,root,-)
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
@@ -1797,6 +1803,18 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu May 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-5
+- update from gcc-4_4-branch
+  - PRs c++/17395, c/39983, fortran/38863, fortran/38956, fortran/39879,
+	fortran/40018, libstdc++/39546, libstdc++/40038, middle-end/39986,
+	middle-end/40021, middle-end/40023, middle-end/40043,
+	middle-end/40057, middle-end/40080, target/37179,
+	tree-optimization/40062, tree-optimization/40074
+- fix Fortran FMT= character array arguments (#492209, PR fortran/39865)
+- allow putting breakpoints on Fortran END{SUBROUTINE,FUNCTION}
+  (PR fortran/34153)
+- incorporate changes suggested in gcc44 package review (#498911)
+
 * Wed May  6 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-4
 - update from gcc-4_4-branch
   - PRs c++/40013, libgcj/39899, libstdc++/39868, libstdc++/39880,
