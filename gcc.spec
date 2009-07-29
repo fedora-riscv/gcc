@@ -1,9 +1,9 @@
-%global DATE 20090514
-%global SVNREV 147523
-%global gcc_version 4.4.0
+%global DATE 20090729
+%global SVNREV 150210
+%global gcc_version 4.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -40,14 +40,14 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+, GPLv3+ with exceptions and GPLv2+ with exceptions
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_4-branch@%{SVNREV} gcc-%{version}-%{DATE}
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/fc11-4_4-branch@%{SVNREV} gcc-%{version}-%{DATE}
 # tar cf - gcc-%{version}-%{DATE} | bzip2 -9 > gcc-%{version}-%{DATE}.tar.bz2
 Source0: gcc-%{version}-%{DATE}.tar.bz2
 Source1: libgcc_post_upgrade.c
@@ -152,14 +152,14 @@ Patch16: gcc44-libgomp-omp_h-multilib.patch
 Patch20: gcc44-libtool-no-rpath.patch
 Patch21: gcc44-cloog-dl.patch
 Patch22: gcc44-raw-string.patch
-Patch24: gcc44-atom.patch
+Patch24: gcc44-unwind-debug-hook.patch
 Patch25: gcc44-power7.patch
 Patch26: gcc44-power7-2.patch
 Patch27: gcc44-power7-3.patch
 Patch28: gcc44-pr38757.patch
-Patch29: gcc44-pr39856.patch
-Patch30: gcc44-libstdc++-docs.patch
-Patch31: gcc44-pr39942.patch
+Patch29: gcc44-libstdc++-docs.patch
+Patch30: gcc44-rh503816-1.patch
+Patch31: gcc44-rh503816-2.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -459,16 +459,16 @@ which are required to compile with the GNAT.
 %patch21 -p0 -b .cloog-dl~
 %endif
 %patch22 -p0 -b .raw-string~
-%patch24 -p0 -b .atom~
+%patch24 -p0 -b .unwind-debug-hook~
 %patch25 -p0 -b .power7~
 %patch26 -p0 -b .power7-2~
 %patch27 -p0 -b .power7-3~
 %patch28 -p0 -b .pr38757~
-%patch29 -p0 -b .pr39856~
 %if %{build_libstdcxx_docs}
-%patch30 -p0 -b .libstdc++-docs~
+%patch29 -p0 -b .libstdc++-docs~
 %endif
-%patch31 -p0 -b .pr39942~
+%patch30 -p0 -b .rh503816-1~
+%patch31 -p0 -b .rh503816-2~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -481,7 +481,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.4\.1/4.4.0/' gcc/BASE-VER
+sed -i -e 's/4\.4\.2/4.4.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
@@ -1803,6 +1803,61 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Jul 29 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-2.fc11
+- update from gcc-4_4-branch
+  - GCC 4.4.1 release
+  - PRs fortran/40727, rtl-optimization/40710, target/40832,
+	tree-optimization/40321, libfortran/40714, target/39943, target/40809,
+	tree-optimization/40792, c++/40740, libstdc++/40691, middle-end/40747,
+	c++/36628, c++/37206, c++/40502, c++/40684, c++/40689, fortran/40440,
+	rtl-optimization/40667, target/40668, c++/35828, c++/37816, c++/37946,
+	c++/40557, c++/40633, c++/40639, debug/40666, target/38900, c++/40274,
+	c++/40342, c++/40566, c++/40595, c++/40619, c/39902, fortran/40443,
+	fortran/40551, fortran/40576, fortran/40594, fortran/40638,
+	libfortran/40576, libstdc++/40297, libstdc++/40600, middle-end/40585,
+	middle-end/40669, other/40024, target/40587, tree-optimization/40493,
+	tree-optimization/40542, tree-optimization/40550,
+	tree-optimization/40579, tree-optimization/40582,
+	tree-optimization/40640, fortran/39800, fortran/40402,
+	libstdc++/40497, middle-end/40389, middle-end/40404, middle-end/40446,
+	middle-end/40460, objc/28050, target/40470, tree-optimization/40492,
+	fortran/40168, c++/40381, libfortran/40330, ada/40166,
+	bootstrap/40027, c++/38064, c++/39754, c++/40007,
+	c++/40139, c/40172, c++/40306, c++/40307, c++/40308, c++/40311,
+	c++/40370, c++/40372, c++/40373, debug/40109, fortran/22423,
+	fortran/38654, fortran/39893, fortran/40019, fortran/40195,
+	libfortran/25561, libfortran/37754, libfortran/38668,
+	libfortran/39665, libfortran/39667, libfortran/39702,
+	libfortran/39709, libfortran/39782, libfortran/40334,
+	libgfortran/39664, libgomp/40174, libstdc++/36211, libstdc++/40192,
+	libstdc++/40296, libstdc++/40299, middle-end/32950, middle-end/40147,
+	middle-end/40204, middle-end/40233, middle-end/40252,
+	middle-end/40291, middle-end/40328, middle-end/40340,
+	rtl-optimization/40105, target/40017, target/40153, target/40266,
+	testsuite/39907, tree-optimization/39999, tree-optimization/40087,
+	tree-optimization/40238, tree-optimization/40254
+  - fix ICE in gsi_insert_seq_nodes_after (#505798,
+    PR tree-optimization/40813)
+  - fix ICE in gimplify_conversion (#511229, PR c++/40780)
+- fix Fortran MINLOC/MAXLOC/MINVAL/MAXVAL handling of infinities and NaNs,
+  speed them up (PRs fortran/40643, fortran/31067)
+- fix ICE with Fortran data xfer without io unit (PR fortran/40839)
+- vectorize unsigned int -> {float,double} conversions on x86/x86_64
+  (PR target/40811)
+- avoid overlapping entries in .debug_ranges section (PR debug/40713)
+- speed up polyhedron NF (PR middle-end/34163)
+- fix debug info for inlines (PR debug/40573)
+- optimize assuming allocatable arrays in the innermost
+  dimension are always stride 1 (PR fortran/32131)
+- decrease memory consumption and speed up var-tracking pass (#503816)
+- add -mcrc32 support on ix86
+- fix up ix86 padding for branch mispredicts
+- improve .debug_loc generation
+- support Atom for -march=native
+- add -mmovbe support for Atom
+- improve ix86 instruction length computation, remove some unneeded padding
+- add unwind debug hook for gdb
+
 * Thu May 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.0-5
 - update from gcc-4_4-branch
   - PRs c++/17395, c/39983, fortran/38863, fortran/38956, fortran/39879,
