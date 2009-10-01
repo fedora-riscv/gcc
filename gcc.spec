@@ -1,9 +1,9 @@
-%global DATE 20090925
-%global SVNREV 152158
+%global DATE 20091001
+%global SVNREV 152364
 %global gcc_version 4.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 17
+%global gcc_release 18
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -40,7 +40,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions
@@ -160,6 +160,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
+Patch20: gcc44-vta-rh521991.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -466,6 +467,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
+%patch20 -p0 -b .vta-rh521991~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1185,55 +1187,65 @@ rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 rm -rf %{buildroot}
 
 %post
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gcc.info.gz || :
+if [ -f %{_infodir}/gcc.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gcc.info.gz || :
+fi
 
 %preun
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/gcc.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gcc.info.gz || :
 fi
 
 %post -n cpp
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/cpp.info.gz || :
+if [ -f %{_infodir}/cpp.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/cpp.info.gz || :
+fi
 
 %preun -n cpp
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/cpp.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/cpp.info.gz || :
 fi
 
 %post gfortran
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
+if [ -f %{_infodir}/gfortran.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
+fi
 
 %preun gfortran
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/gfortran.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
 fi
 
 %post java
+if [ -f %{_infodir}/gcj.info.gz ]; then
 /sbin/install-info \
   --info-dir=%{_infodir} %{_infodir}/gcj.info.gz || :
+fi
 
 %preun java
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/gcj.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gcj.info.gz || :
 fi
 
 %post gnat
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
+if [ -f %{_infodir}/gnat_rm.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
+fi
 
 %preun gnat
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/gnat_rm.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
   /sbin/install-info --delete \
@@ -1257,13 +1269,15 @@ fi
 
 %post -n libgcj
 /sbin/ldconfig
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/cp-tools.info.gz || :
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/fastjar.info.gz || :
+if [ -f %{_infodir}/cp-tools.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/cp-tools.info.gz || :
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/fastjar.info.gz || :
+fi
 
 %preun -n libgcj
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/cp-tools.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/cp-tools.info.gz || :
   /sbin/install-info --delete \
@@ -1282,11 +1296,13 @@ fi
 
 %post -n libgomp
 /sbin/ldconfig
-/sbin/install-info \
-  --info-dir=%{_infodir} %{_infodir}/libgomp.info.gz || :
+if [ -f %{_infodir}/libgomp.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/libgomp.info.gz || :
+fi
 
 %preun -n libgomp
-if [ $1 = 0 ]; then
+if [ $1 = 0 -a -f %{_infodir}/libgomp.info.gz ]; then
   /sbin/install-info --delete \
     --info-dir=%{_infodir} %{_infodir}/libgomp.info.gz || :
 fi
@@ -1354,7 +1370,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/immintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/avxintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/x86intrin.h
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mmintrin-common.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/fma4intrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm_malloc.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm3dnow.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/cpuid.h
@@ -1821,6 +1837,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Oct  1 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-18
+- update from gcc-4_4-branch
+  - PRs ada/41100, target/22093
+- VTA backports
+  - PRs debug/41438, debug/41474, target/41279, testsuite/41444
+- fix VTA ICE on Linux kernel (#521991)
+- AMD Orochi -mfma4 support
+- don't run install-info if info files are missing because of --excludedocs
+  (#515921, #515960, #515962, #515965, #516000, #516008, #516014)
+
 * Fri Sep 25 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-17
 - update from gcc-4_4-branch
   - fix vectorizer for power7 (#463846)
