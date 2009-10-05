@@ -1,9 +1,9 @@
-%global DATE 20091001
-%global SVNREV 152364
+%global DATE 20091005
+%global SVNREV 152471
 %global gcc_version 4.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 18
+%global gcc_release 19
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,6 +161,7 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-vta-rh521991.patch
+Patch21: gcc44-pr41317.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -468,6 +469,7 @@ which are required to compile with the GNAT.
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .vta-rh521991~
+%patch21 -p0 -b .pr41317~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1837,6 +1839,17 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Oct  5 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-19
+- update from gcc-4_4-branch
+  - PRs fortran/41479, fortran/41515
+- VTA backports
+  - PRs debug/41353, debug/41404, rtl-optimization/41511
+  - another debug info fix for decls passed by reference (#527057,
+    PR debug/41558)
+  - don't emit DW_AT_name on DW_TAG_const_type (#526970)
+- avoid invalid folding of casts to addresses of first fields
+  (#527121, PR middle-end/41317)
+
 * Thu Oct  1 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-18
 - update from gcc-4_4-branch
   - PRs ada/41100, target/22093
