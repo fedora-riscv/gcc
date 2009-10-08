@@ -1,9 +1,9 @@
-%global DATE 20091005
-%global SVNREV 152471
+%global DATE 20091008
+%global SVNREV 152555
 %global gcc_version 4.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 19
+%global gcc_release 20
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,7 +161,8 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-vta-rh521991.patch
-Patch21: gcc44-pr41317.patch
+Patch21: gcc44-vta-rh521991-2.patch
+Patch22: gcc44-vta-pr41353-c9.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -469,7 +470,8 @@ which are required to compile with the GNAT.
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .vta-rh521991~
-%patch21 -p0 -b .pr41317~
+%patch21 -p0 -b .vta-rh521991-2~
+%patch22 -p0 -b .vta-pr41353-c9~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1839,6 +1841,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Oct  8 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-20
+- update from gcc-4_4-branch
+  - PRs c++/39863, c++/41038
+- avoid redundant DW_AT_const_value when abstract origin already has one
+  (#527430) 
+- another VTA debug stmt renaming bugfix (#521991)
+
 * Mon Oct  5 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-19
 - update from gcc-4_4-branch
   - PRs fortran/41479, fortran/41515
