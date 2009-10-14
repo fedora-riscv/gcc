@@ -1,9 +1,9 @@
-%global DATE 20091010
-%global SVNREV 152620
+%global DATE 20091014
+%global SVNREV 152775
 %global gcc_version 4.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 21
+%global gcc_release 22
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -160,10 +160,8 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-vta-rh521991.patch
-Patch21: gcc44-vta-rh521991-2.patch
-Patch22: gcc44-pr41646.patch
-Patch23: gcc44-rhel6-power4.patch
+Patch20: gcc44-powerpc-with-tune.patch
+Patch21: gcc44-unwind-leltgegt.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -470,12 +468,8 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .vta-rh521991~
-%patch21 -p0 -b .vta-rh521991-2~
-%patch22 -p0 -b .pr41646~
-%if 0%{?rhel} >= 6
-%patch23 -p0 -b .rhel6-power4~
-%endif
+%patch20 -p0 -b .powerpc-with-tune~
+%patch21 -p0 -b .unwind-leltgegt~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -650,6 +644,11 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 %endif
 %ifarch sparc sparcv9
 	--host=%{gcc_target_platform} --build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=v7
+%endif
+%if 0%{?rhel} >= 6
+%ifarch ppc ppc64
+	--with-cpu-32=power4 --with-tune-32=power6 --with-cpu-64=power4 --with-tune-64=power6 \
+%endif
 %endif
 %ifarch ppc
 	--build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=default32
@@ -1845,6 +1844,22 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Oct 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-22
+- update from gcc-4_4-branch
+  - PRs target/26515, target/38948
+  - fix s390{,x} BLKmode symbol handling
+  - fix i?86 testqi splitter (#528206, PR target/41680)
+- VTA backports
+  - introduce debug temps (PRs debug/41264, debug/41338, debug/41343,
+    debug/41447, target/41693)
+  - build debug stmts on updates (PR debug/41616)
+  - fix another with/without -save-temps debug info difference
+    (#526841, PR preprocessor/41543)
+  - fix invalid ranges in .debug_loc section (PR debug/41695)
+%if 0%{?rhel} >= 6
+- if -mcpu= isn't specified, default to -mcpu=power4 (#463549)
+%endif
+
 * Sat Oct 10 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-21
 - update from gcc-4_4-branch
   - fix s390{,x} prefetch for pre-z10 CPUs (#524552)
@@ -1853,9 +1868,6 @@ fi
     (PR preprocessor/41445)
 - fix ICE with small BLKmode returning call (#516028,
   PR rtl-optimization/41646)
-%if 0%{?rhel} >= 6
-- if -mcpu= isn't specified, default to -mcpu=power4 (#463549)
-%endif
 
 * Thu Oct  8 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-20
 - update from gcc-4_4-branch
