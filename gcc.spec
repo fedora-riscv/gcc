@@ -1,9 +1,9 @@
-%global DATE 20091014
-%global SVNREV 152775
-%global gcc_version 4.4.1
+%global DATE 20091015
+%global SVNREV 152859
+%global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 22
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -65,7 +65,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Need binutils which support mffgpr and mftgpr >= 2.17.50.0.2-8
 # Need binutils which support --build-id >= 2.17.50.0.17-3
 # Need binutils which support %gnu_unique_object >= 2.19.51.0.14
-BuildRequires: binutils >= 2.19.51.0.14
+# Need binutils which support .cfi_sections >= 2.19.51.0.14-33
+BuildRequires: binutils >= 2.19.51.0.14-33
 # While gcc doesn't include statically linked binaries, during testing
 # -static is used several times.
 BuildRequires: glibc-static
@@ -118,8 +119,9 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that supports --hash-style=gnu
 # Need binutils that support mffgpr/mftgpr
 # Need binutils that support --build-id
-# Need binutils which support %gnu_unique_object
-Requires: binutils >= 2.19.51.0.14
+# Need binutils that support %gnu_unique_object
+# Need binutils that support .cfi_sections
+Requires: binutils >= 2.19.51.0.14-33
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 Requires: glibc-devel >= 2.2.90-12
@@ -160,7 +162,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-powerpc-with-tune.patch
+Patch20: gcc44-pr40521.patch
 Patch21: gcc44-unwind-leltgegt.patch
 
 Patch1000: fastjar-0.97-segfault.patch
@@ -468,7 +470,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .powerpc-with-tune~
+%patch20 -p0 -b .pr40521~
 %patch21 -p0 -b .unwind-leltgegt~
 
 # This testcase doesn't compile.
@@ -482,7 +484,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.4\.2/4.4.1/' gcc/BASE-VER
+sed -i -e 's/4\.4\.3/4.4.2/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 # Default to -gdwarf-3 rather than -gdwarf-2
@@ -1844,6 +1846,15 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Oct 15 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-1
+- update from gcc-4_4-branch
+  - GCC 4.4.2 release
+  - PRs middle-end/22072, target/41665
+- don't emit -Wpadded warnings for builtin structures
+- don't generate .eh_frame, but generate .debug_frame when -g and none of
+  -fasynchronous-unwind-tables/-fexceptions/-funwind-tables is used
+  (PR debug/40521)
+
 * Wed Oct 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-22
 - update from gcc-4_4-branch
   - PRs target/26515, target/38948
