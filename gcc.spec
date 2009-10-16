@@ -1,9 +1,9 @@
-%global DATE 20091015
-%global SVNREV 152859
+%global DATE 20091016
+%global SVNREV 152909
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -164,6 +164,7 @@ Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-pr40521.patch
 Patch21: gcc44-unwind-leltgegt.patch
+Patch22: gcc44-pr40521-2.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -472,6 +473,7 @@ which are required to compile with the GNAT.
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .pr40521~
 %patch21 -p0 -b .unwind-leltgegt~
+%patch22 -p0 -b .pr40521-2~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1846,6 +1848,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Oct 16 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-2
+- update from gcc-4_4-branch
+  - PR target/40913
+- VTA backports
+  - PR debug/41717
+- fix Ada .eh_frame generation (PR debug/40521)
+
 * Thu Oct 15 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-1
 - update from gcc-4_4-branch
   - GCC 4.4.2 release
