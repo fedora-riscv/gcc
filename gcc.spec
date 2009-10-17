@@ -1,9 +1,9 @@
-%global DATE 20091016
-%global SVNREV 152909
+%global DATE 20091017
+%global SVNREV 152957
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -1181,6 +1181,13 @@ chmod 644 %{buildroot}%{_mandir}/man1/unprotoize.1
 %check
 cd obj-%{gcc_target_platform}
 
+%if %{build_java}
+export PATH=`pwd`/../fastjar-%{fastjar_ver}/obj-%{gcc_target_platform}${PATH:+:$PATH}
+%if !%{bootstrap_java}
+export PATH=`pwd`/java_hacks${PATH:+:$PATH}
+%endif
+%endif
+
 # run the tests.
 make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
 echo ====================TESTING=========================
@@ -1848,6 +1855,10 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sat Oct 17 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-3
+- fix VTA handling in the scheduler (PR debug/41535)
+- fix up %%check section to be able to find ecj1
+
 * Fri Oct 16 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-2
 - update from gcc-4_4-branch
   - PR target/40913
