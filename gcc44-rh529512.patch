@@ -1,0 +1,39 @@
+2009-10-18  Jakub Jelinek  <jakub@redhat.com>
+
+	* cfgexpand.c (expand_debug_expr): Fail if bitpos < 0 for non-MEM
+	op0.
+
+	* gcc.dg/debug/vta-3.c: New test.
+
+--- gcc/cfgexpand.c.jj	2009-10-16 01:45:11.000000000 +0200
++++ gcc/cfgexpand.c	2009-10-18 14:02:25.000000000 +0200
+@@ -2593,6 +2593,9 @@ expand_debug_expr (tree exp)
+ 	if (bitpos == 0 && mode == GET_MODE (op0))
+ 	  return op0;
+ 
++        if (bitpos < 0)
++          return NULL;
++
+ 	if ((bitpos % BITS_PER_UNIT) == 0
+ 	    && bitsize == GET_MODE_BITSIZE (mode1))
+ 	  {
+--- gcc/testsuite/gcc.dg/debug/vta-3.c.jj	2009-10-18 14:44:12.000000000 +0200
++++ gcc/testsuite/gcc.dg/debug/vta-3.c	2009-10-18 14:44:32.000000000 +0200
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++
++int
++foo (void)
++{
++  union { char e[8]; int i; } a, b;
++  char *c, *d;
++  unsigned int i;
++  c = a.e;
++  d = &b.e[sizeof (int) - 1];
++  for (i = 0; i < sizeof (int); i++)
++    {
++      *d = *c++;
++      --d;
++    }
++  return b.i;
++}

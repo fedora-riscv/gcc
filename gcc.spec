@@ -1,9 +1,9 @@
-%global DATE 20091017
-%global SVNREV 152957
+%global DATE 20091018
+%global SVNREV 152967
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -165,6 +165,7 @@ Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-pr40521.patch
 Patch21: gcc44-unwind-leltgegt.patch
 Patch22: gcc44-pr40521-2.patch
+Patch23: gcc44-rh529512.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -474,6 +475,7 @@ which are required to compile with the GNAT.
 %patch20 -p0 -b .pr40521~
 %patch21 -p0 -b .unwind-leltgegt~
 %patch22 -p0 -b .pr40521-2~
+%patch23 -p0 -b .rh529512~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1855,6 +1857,12 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sun Oct 18 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-4
+- update from gcc-4_4-branch
+  - PRs c++/37204, c++/37766, c++/37875, c++/38798, c++/40092,
+	libstdc++/40654, libstdc++/40826
+- fix VTA ICE on invalid pointer arithmetics (#529512)
+
 * Sat Oct 17 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-3
 - fix VTA handling in the scheduler (PR debug/41535)
 - fix up %%check section to be able to find ecj1
