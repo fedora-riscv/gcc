@@ -1,0 +1,19 @@
+2009-10-19  Alexandre Oliva  <aoliva@redhat.com>
+
+	PR debug/41739
+	* haifa-sched.c (try_ready): Skip debug deps updating speculation
+	status.
+
+--- gcc/haifa-sched.c.orig	2009-10-19 11:28:14.000000000 -0200
++++ gcc/haifa-sched.c	2009-10-19 11:33:19.000000000 -0200
+@@ -3754,6 +3754,10 @@ try_ready (rtx next)
+ 	    {
+ 	      ds_t ds = DEP_STATUS (dep) & SPECULATIVE;
+ 
++	      if (DEBUG_INSN_P (DEP_PRO (dep))
++		  && !DEBUG_INSN_P (next))
++		continue;
++
+ 	      if (first_p)
+ 		{
+ 		  first_p = false;

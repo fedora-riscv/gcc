@@ -1,0 +1,18 @@
+2009-10-19  Alexandre Oliva  <aoliva@redhat.com>
+
+	* tree-ssa-dce.c (eliminate_unnecessary_stmts): Don't regard
+	the removal of a debug stmt as a significant change.
+
+--- gcc/tree-ssa-dce.c.orig	2009-10-19 12:29:56.000000000 -0200
++++ gcc/tree-ssa-dce.c	2009-10-19 12:30:36.000000000 -0200
+@@ -1129,8 +1129,9 @@ eliminate_unnecessary_stmts (void)
+ 	  /* If GSI is not necessary then remove it.  */
+ 	  if (!gimple_plf (stmt, STMT_NECESSARY))
+ 	    {
++	      if (!is_gimple_debug (stmt))
++		something_changed = true;
+ 	      remove_dead_stmt (&gsi, bb);
+-	      something_changed = true;
+ 	    }
+ 	  else if (is_gimple_call (stmt))
+ 	    {
