@@ -1,9 +1,9 @@
-%global DATE 20091019
-%global SVNREV 152998
+%global DATE 20091022
+%global SVNREV 153454
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,9 +161,6 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-ppc-const-builtins.patch
-Patch21: gcc44-vta-dce-debug-stmt-no-change.patch
-Patch22: gcc44-vta-sched-deps-debug-spec.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -469,9 +466,6 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .ppc-const-builtins~
-%patch21 -p0 -b .vta-dce-debug-stmt-no-change~
-%patch22 -p0 -b .vta-sched-deps-debug-spec~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1853,6 +1847,14 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Oct 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-6
+- update from gcc-4_4-branch
+  - PR target/41702
+  - fix a pod2man error in gcc.1 (#530102)
+  - fix mangling of very large names
+- document -print-multi-os-directory in gcc.info and gcc.1
+  (#529659, PR other/25507)
+
 * Mon Oct 19 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-5
 - update from gcc-4_4-branch
   - PR fortran/41755
