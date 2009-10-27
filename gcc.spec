@@ -1,9 +1,9 @@
-%global DATE 20091022
-%global SVNREV 153454
+%global DATE 20091027
+%global SVNREV 153608
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,6 +161,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
+Patch20: gcc44-pr41762.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -466,6 +467,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
+%patch20 -p0 -b .pr41762~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1847,6 +1849,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue Oct 27 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-7
+- update from gcc-4_4-branch
+  - PRs c++/40808, c/41842, cp-tools/39177
+- VTA backports
+  - PR bootstrap/41345
+- don't emit DW_AT_name: <anonymous struct> etc. into debug info
+  (#530304, PR debug/41828)
+- power7 ABI fixes (PR target/41787)
+- fix ICE in ix86_pic_register_p (PR target/41762)
+
 * Thu Oct 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-6
 - update from gcc-4_4-branch
   - PR target/41702
