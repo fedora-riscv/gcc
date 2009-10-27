@@ -1,6 +1,6 @@
 --- libada/Makefile.in.jj	2009-01-14 12:07:35.000000000 +0100
 +++ libada/Makefile.in	2009-01-15 14:25:33.000000000 +0100
-@@ -67,17 +67,39 @@ version := $(shell cat $(srcdir)/../gcc/
+@@ -69,18 +69,40 @@ version := $(shell cat $(srcdir)/../gcc/
  libsubdir := $(libdir)/gcc/$(target_noncanonical)/$(version)$(MULTISUBDIR)
  ADA_RTS_DIR=$(GCC_DIR)/ada/rts$(subst /,_,$(MULTISUBDIR))
  
@@ -38,12 +38,14 @@
          "SHELL=$(SHELL)" \
 -        "GNATLIBFLAGS=$(GNATLIBFLAGS) $(MULTIFLAGS)" \
 -        "GNATLIBCFLAGS=$(GNATLIBCFLAGS) $(MULTIFLAGS)" \
+-        "GNATLIBCFLAGS_FOR_C=$(GNATLIBCFLAGS_FOR_C) $(MULTIFLAGS)" \
 +        "GNATLIBFLAGS=$(strip $(GNATLIBFLAGS) $(MULTIFLAGS) $(DEFAULTMULTIFLAGS))" \
 +        "GNATLIBCFLAGS=$(strip $(GNATLIBCFLAGS) $(MULTIFLAGS) $(DEFAULTMULTIFLAGS))" \
++        "GNATLIBCFLAGS_FOR_C=$(strip $(GNATLIBCFLAGS_FOR_C) $(MULTIFLAGS) $(DEFAULTMULTIFLAGS))" \
          "TARGET_LIBGCC2_CFLAGS=$(TARGET_LIBGCC2_CFLAGS)" \
          "THREAD_KIND=$(THREAD_KIND)" \
          "TRACE=$(TRACE)" \
-@@ -88,7 +110,7 @@ LIBADA_FLAGS_TO_PASS = \
+@@ -91,7 +113,7 @@ LIBADA_FLAGS_TO_PASS = \
          "exeext=.exeext.should.not.be.used " \
  	'CC=the.host.compiler.should.not.be.needed' \
  	"GCC_FOR_TARGET=$(CC)" \
