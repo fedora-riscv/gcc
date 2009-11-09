@@ -1,9 +1,9 @@
-%global DATE 20091102
-%global SVNREV 153815
+%global DATE 20091109
+%global SVNREV 154032
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -1381,6 +1381,8 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/avxintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/x86intrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/fma4intrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/xopintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/lwpintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm_malloc.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm3dnow.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/cpuid.h
@@ -1847,6 +1849,17 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Nov  9 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-9
+- update from gcc-4_4-branch
+  - PRs c++/35067, c++/36912, c++/36959, c++/37093, c++/38699, c++/39786,
+	c++/41856, c++/41876, c++/41967, c++/9381, fortran/41772,
+	fortran/41909, middle-end/41963, rtl-optimization/41917,
+	target/41900, tree-optimization/41643
+- selected backports from trunk
+  - PRs debug/41801, middle-end/41837, target/41985, tree-optimization/41841
+- initial AMD Orochi -mxop and -mlwp support
+- try to avoid wrapping CONST_INTs/VOIDmode CONST_DOUBLEs into CONST
+
 * Mon Nov  2 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-8
 - update from gcc-4_4-branch
   - PRs c++/41754, fortran/41777, fortran/41850, libstdc++/40852
