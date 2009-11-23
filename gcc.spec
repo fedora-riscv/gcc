@@ -1,9 +1,9 @@
-%global DATE 20091114
-%global SVNREV 154179
+%global DATE 20091123
+%global SVNREV 154454
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 11
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -1849,6 +1849,15 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Nov 23 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-11
+- update from gcc-4_4-branch
+  - PRs c++/42059, c++/42061, libgfortran/42090
+- VTA backports
+  - PRs debug/41886, debug/41888, debug/41926, tree-optimization/42078
+- optimize non-COMDAT constructors and destructors without virtual
+  bases by making the base and complete ctor or dtor aliases of
+  each other (PR c++/3187)
+
 * Sat Nov 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-10
 - update from gcc-4_4-branch
   - PRs c++/21008, c++/37037, c++/41972, c++/41994, middle-end/40946,
