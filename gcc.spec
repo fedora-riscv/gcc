@@ -1,9 +1,9 @@
-%global DATE 20091123
-%global SVNREV 154454
+%global DATE 20091202
+%global SVNREV 154902
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 11
+%global gcc_release 12
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -1849,6 +1849,15 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Dec  2 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-12
+- update from gcc-4_4-branch
+  - PRs c++/42234, fortran/41278, fortran/41807, fortran/42162, target/42113,
+	target/42165
+  - don't ICE on -O256 (#539923)
+- fix -mregnames on ppc/ppc64
+- optimize even COMDAT constructors and destructors without virtual
+  bases (PR c++/3187)
+
 * Mon Nov 23 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-11
 - update from gcc-4_4-branch
   - PRs c++/42059, c++/42061, libgfortran/42090
