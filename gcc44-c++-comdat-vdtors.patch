@@ -1,0 +1,478 @@
+2009-12-09  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/42317
+	* cgraph.h (struct cgraph_node): Add same_comdat_group field.
+	* cgraph.c (cgraph_remove_node): Unchain node from same_comdat_group
+	cirtuclar list.
+	* ipa.c (cgraph_remove_unreachable_nodes): For any reachable node
+	mark all its same_comdat_group nodes as also reachable.
+	* ipa-cp.c (ipcp_initialize_node_lattices, ipcp_estimate_growth,
+	ipcp_insert_stage): Handle same_comdat_group nodes that are only
+	reachable through a different reachable node in the same comdat
+	group.
+	* cgraphunit.c (cgraph_analyze_functions): Mark all other
+	same_comdat_group nodes as reachable.
+	(cgraph_mark_functions_to_output): For each node->process process
+	also other same_comdat_group nodes.
+	* ipa-inline.c (cgraph_clone_inlined_nodes): Don't reuse nodes
+	with same_comdat_group non-NULL.
+
+	* decl2.c (cp_write_global_declarations): Clear DECL_EXTERNAL
+	also on all other functions in the same comdat group.
+	* optimize.c (maybe_clone_body): Also optimize virtual implicit
+	dtors.  For virtual comdat dtors tell cgraph that base and deleting
+	dtor are in the same comdat group.
+
+	* config/abi/pre/gnu.ver: Don't export certain base dtors that
+	weren't previously exported.
+
+	* g++.dg/opt/dtor2.C: New test.
+	* g++.dg/opt/dtor2.h: New file.
+	* g++.dg/opt/dtor2-aux.cc: New file.
+
+--- gcc/cgraph.c.jj	2009-11-23 14:31:26.000000000 +0100
++++ gcc/cgraph.c	2009-12-09 09:48:54.000000000 +0100
+@@ -1152,6 +1152,20 @@ cgraph_remove_node (struct cgraph_node *
+   while (node->same_body)
+     cgraph_remove_same_body_alias (node->same_body);
+ 
++  if (node->same_comdat_group)
++    {
++      struct cgraph_node *prev;
++      for (prev = node->same_comdat_group;
++	   prev->same_comdat_group != node;
++	   prev = prev->same_comdat_group)
++	;
++      if (node->same_comdat_group == prev)
++	prev->same_comdat_group = NULL;
++      else
++	prev->same_comdat_group = node->same_comdat_group;
++      node->same_comdat_group = NULL;
++    }
++
+   /* While all the clones are removed after being proceeded, the function
+      itself is kept in the cgraph even after it is compiled.  Check whether
+      we are done with this body and reclaim it proactively if this is the case.
+--- gcc/ipa-cp.c.jj	2009-07-21 18:27:05.000000000 +0200
++++ gcc/ipa-cp.c	2009-12-09 12:30:43.000000000 +0100
+@@ -487,7 +487,11 @@ ipcp_initialize_node_lattices (struct cg
+   if (ipa_is_called_with_var_arguments (info))
+     type = IPA_BOTTOM;
+   else if (!node->needed)
+-    type = IPA_TOP;
++    {
++      type = IPA_TOP;
++      if (node->same_comdat_group && !node->callers)
++	type = IPA_BOTTOM;
++    }
+   /* When cloning is allowed, we can assume that externally visible functions
+      are not called.  We will compensate this by cloning later.  */
+   else if (ipcp_cloning_candidate_p (node))
+@@ -1046,7 +1050,8 @@ ipcp_estimate_growth (struct cgraph_node
+   struct cgraph_edge *cs;
+   int redirectable_node_callers = 0;
+   int removable_args = 0;
+-  bool need_original = node->needed;
++  bool need_original = node->needed
++		       || (node->same_comdat_group && !node->callers);
+   struct ipa_node_params *info;
+   int i, count;
+   int growth;
+@@ -1235,7 +1240,7 @@ ipcp_insert_stage (void)
+       for (cs = node->callers; cs != NULL; cs = cs->next_caller)
+ 	if (cs->caller == node || ipcp_need_redirect_p (cs))
+ 	  break;
+-      if (!cs && !node->needed)
++      if (!cs && !node->needed && !(node->same_comdat_group && !node->callers))
+ 	bitmap_set_bit (dead_nodes, node->uid);
+ 
+       info = IPA_NODE_REF (node);
+--- gcc/ipa-inline.c.jj	2009-03-04 12:10:20.000000000 +0100
++++ gcc/ipa-inline.c	2009-12-09 10:03:01.000000000 +0100
+@@ -209,6 +209,7 @@ cgraph_clone_inlined_nodes (struct cgrap
+ 	 In that case just go ahead and re-use it.  */
+       if (!e->callee->callers->next_caller
+ 	  && !e->callee->needed
++	  && !e->callee->same_comdat_group
+ 	  && !cgraph_new_nodes)
+ 	{
+ 	  gcc_assert (!e->callee->global.inlined_to);
+--- gcc/ipa.c.jj	2009-01-14 12:06:29.000000000 +0100
++++ gcc/ipa.c	2009-12-09 09:59:32.000000000 +0100
+@@ -1,5 +1,5 @@
+ /* Basic IPA optimizations and utilities.
+-   Copyright (C) 2003, 2004, 2005, 2007, 2008 Free Software Foundation,
++   Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009 Free Software Foundation,
+    Inc.
+ 
+ This file is part of GCC.
+@@ -142,6 +142,21 @@ cgraph_remove_unreachable_nodes (bool be
+ 	    e->callee->aux = first;
+ 	    first = e->callee;
+ 	  }
++      /* If any function in a comdat group is reachable, force
++	 all other functions in the same comdat group to be
++	 also reachable.  */
++      if (node->same_comdat_group
++	  && !node->global.inlined_to)
++	{
++	  for (next = node->same_comdat_group;
++	       next != node;
++	       next = next->same_comdat_group)
++	    if (!next->aux)
++	      {
++		next->aux = first;
++		first = next;
++	      }
++	}
+     }
+ 
+   /* Remove unreachable nodes.  Extern inline functions need special care;
+--- gcc/cp/decl2.c.jj	2009-12-02 15:24:40.000000000 +0100
++++ gcc/cp/decl2.c	2009-12-09 10:04:32.000000000 +0100
+@@ -3557,7 +3557,7 @@ cp_write_global_declarations (void)
+ 	      && DECL_INITIAL (decl)
+ 	      && decl_needed_p (decl))
+ 	    {
+-	      struct cgraph_node *alias;
++	      struct cgraph_node *alias, *next;
+ 
+ 	      node = cgraph_get_node (decl);
+ 	      DECL_EXTERNAL (decl) = 0;
+@@ -3569,6 +3569,23 @@ cp_write_global_declarations (void)
+ 		  for (alias = node->same_body; alias; alias = alias->next)
+ 		    DECL_EXTERNAL (alias->decl) = 0;
+ 		}
++	      /* If we mark !DECL_EXTERNAL one of the symbols in some comdat
++		 group, we need to mark all symbols in the same comdat group
++		 that way.  */
++	      if (node->same_comdat_group)
++		for (next = node->same_comdat_group;
++		     next != node;
++		     next = next->same_comdat_group)
++		  {
++		    DECL_EXTERNAL (next->decl) = 0;
++		    if (next->same_body)
++		      {
++			for (alias = next->same_body;
++			     alias;
++			     alias = alias->next)
++			  DECL_EXTERNAL (alias->decl) = 0;
++		      }
++		  }
+ 	    }
+ 
+ 	  /* If we're going to need to write this function out, and
+--- gcc/cp/optimize.c.jj	2009-12-02 10:32:32.000000000 +0100
++++ gcc/cp/optimize.c	2009-12-09 12:55:44.000000000 +0100
+@@ -155,6 +155,7 @@ maybe_clone_body (tree fn)
+   tree fns[3];
+   bool first = true;
+   bool in_charge_parm_used;
++  bool same_comdat_group = false;
+   int idx;
+ 
+   /* We only clone constructors and destructors.  */
+@@ -246,14 +247,13 @@ maybe_clone_body (tree fn)
+ 	  && (SUPPORTS_ONE_ONLY || !DECL_WEAK (fns[0]))
+ 	  && (!DECL_ONE_ONLY (fns[0])
+ 	      || (HAVE_COMDAT_GROUP
+-		  && DECL_WEAK (fns[0])
+-		  /* Don't optimize synthetized virtual dtors, because then
+-		     the deleting and other dtors are emitted when needed
+-		     and so it is not certain we would emit both
+-		     deleting and complete/base dtors in the comdat group.  */
+-		  && (fns[2] == NULL || !DECL_ARTIFICIAL (fn))))
++		  && DECL_WEAK (fns[0])))
+ 	  && cgraph_same_body_alias (clone, fns[0]))
+-	alias = true;
++	{
++	  alias = true;
++	  if (DECL_ONE_ONLY (fns[0]) && fns[2])
++	    same_comdat_group = true;
++	}
+ 
+       /* Build the delete destructor by calling complete destructor
+          and delete function.  */
+@@ -335,6 +335,18 @@ maybe_clone_body (tree fn)
+     }
+   pop_from_top_level ();
+ 
++  if (same_comdat_group)
++    {
++      /* If *[CD][12]* dtors go into the *[CD]5* comdat group and dtor is
++	 virtual, it goes into the same comdat group as well.  */
++      struct cgraph_node *base_dtor_node = cgraph_node (fns[0]);
++      struct cgraph_node *deleting_dtor_node = cgraph_node (fns[2]);
++      gcc_assert (base_dtor_node->same_comdat_group == NULL);
++      gcc_assert (deleting_dtor_node->same_comdat_group == NULL);
++      base_dtor_node->same_comdat_group = deleting_dtor_node;
++      deleting_dtor_node->same_comdat_group = base_dtor_node;
++    }
++ 
+   /* We don't need to process the original function any further.  */
+   return 1;
+ }
+--- gcc/cgraph.h.jj	2009-11-23 14:27:47.000000000 +0100
++++ gcc/cgraph.h	2009-12-09 09:48:54.000000000 +0100
+@@ -149,6 +149,8 @@ struct cgraph_node GTY((chain_next ("%h.
+   /* For normal nodes pointer to the list of alias nodes, in alias
+      nodes pointer to the normal node.  */
+   struct cgraph_node *same_body;
++  /* Circular list of nodes in the same comdat group if non-NULL.  */
++  struct cgraph_node *same_comdat_group;
+   /* For functions with many calls sites it holds map from call expression
+      to the edge to speed up cgraph_edge function.  */
+   htab_t GTY((param_is (struct cgraph_edge))) call_site_hash;
+--- gcc/cgraphunit.c.jj	2009-11-23 15:17:26.000000000 +0100
++++ gcc/cgraphunit.c	2009-12-09 09:52:50.000000000 +0100
+@@ -896,6 +896,14 @@ cgraph_analyze_functions (void)
+ 	if (!edge->callee->reachable)
+ 	  cgraph_mark_reachable_node (edge->callee);
+ 
++      if (node->same_comdat_group)
++	{
++	  for (next = node->same_comdat_group;
++	       next != node;
++	       next = next->same_comdat_group)
++	    cgraph_mark_reachable_node (next);
++	}
++
+       /* If decl is a clone of an abstract function, mark that abstract
+ 	 function so that we don't release its body. The DECL_INITIAL() of that
+          abstract function declaration will be later needed to output debug info.  */
+@@ -984,13 +992,21 @@ static void
+ cgraph_mark_functions_to_output (void)
+ {
+   struct cgraph_node *node;
++#ifdef ENABLE_CHECKING
++  bool check_same_comdat_groups = false;
++
++  for (node = cgraph_nodes; node; node = node->next)
++    gcc_assert (!node->output);
++#endif
+ 
+   for (node = cgraph_nodes; node; node = node->next)
+     {
+       tree decl = node->decl;
+       struct cgraph_edge *e;
+ 
+-      gcc_assert (!node->output);
++      gcc_assert (!node->output || node->same_comdat_group);
++      if (node->output)
++	continue;
+ 
+       for (e = node->callers; e; e = e->next_caller)
+ 	if (e->inline_failed)
+@@ -1005,7 +1021,23 @@ cgraph_mark_functions_to_output (void)
+ 	      || (e && node->reachable))
+ 	  && !TREE_ASM_WRITTEN (decl)
+ 	  && !DECL_EXTERNAL (decl))
+-	node->output = 1;
++	{
++	  node->output = 1;
++	  if (node->same_comdat_group)
++	    {
++	      struct cgraph_node *next;
++	      for (next = node->same_comdat_group;
++		   next != node;
++		   next = next->same_comdat_group)
++		next->output = 1;
++	    }
++	}
++      else if (node->same_comdat_group)
++	{
++#ifdef ENABLE_CHECKING
++	  check_same_comdat_groups = true;
++#endif
++	}
+       else
+ 	{
+ 	  /* We should've reclaimed all functions that are not needed.  */
+@@ -1025,6 +1057,21 @@ cgraph_mark_functions_to_output (void)
+ 	}
+ 
+     }
++#ifdef ENABLE_CHECKING
++  if (check_same_comdat_groups)
++    for (node = cgraph_nodes; node; node = node->next)
++      if (node->same_comdat_group && !node->output)
++	{
++	  tree decl = node->decl;
++	  if (!node->global.inlined_to
++	      && gimple_has_body_p (decl)
++	      && !DECL_EXTERNAL (decl))
++	    {
++	      dump_cgraph_node (stderr, node);
++	      internal_error ("failed to reclaim unneeded function");
++	    }
++	}
++#endif
+ }
+ 
+ /* Expand function specified by NODE.  */
+--- gcc/testsuite/g++.dg/opt/dtor2.C.jj	2009-12-09 09:48:54.000000000 +0100
++++ gcc/testsuite/g++.dg/opt/dtor2.C	2009-12-09 09:48:54.000000000 +0100
+@@ -0,0 +1,13 @@
++// PR c++/42317
++// { dg-do link }
++// { dg-options "-O0" }
++// { dg-additional-sources "dtor2-aux.cc" }
++
++#include "dtor2.h"
++
++D::D (int x) : C (x) {}
++
++int
++main ()
++{
++}
+--- gcc/testsuite/g++.dg/opt/dtor2.h.jj	2009-12-09 09:48:54.000000000 +0100
++++ gcc/testsuite/g++.dg/opt/dtor2.h	2009-12-09 09:48:54.000000000 +0100
+@@ -0,0 +1,29 @@
++struct A
++{
++  A ();
++  ~A ();
++};
++
++struct B
++{
++  A b;
++  virtual void mb ();
++  B (int);
++  virtual ~B ();
++};
++
++struct C : public B
++{
++  virtual void mc ();
++  C (int);
++  ~C ();
++};
++
++inline C::~C () {}
++
++struct D : public C
++{
++  A d;
++  D (int);
++  ~D ();
++};
+--- gcc/testsuite/g++.dg/opt/dtor2-aux.cc.jj	2009-12-09 09:48:54.000000000 +0100
++++ gcc/testsuite/g++.dg/opt/dtor2-aux.cc	2009-12-09 09:48:54.000000000 +0100
+@@ -0,0 +1,16 @@
++// { dg-do compile }
++// { dg-options "" }
++
++#include "dtor2.h"
++
++A::A () {}
++A::~A () {}
++
++void B::mb () {}
++B::B (int) {}
++B::~B () {}
++
++void C::mc () {}
++C::C (int x) : B (x) {}
++
++D::~D () {}
+--- libstdc++-v3/config/abi/pre/gnu.ver.jj	2009-09-16 21:35:18.000000000 +0200
++++ libstdc++-v3/config/abi/pre/gnu.ver	2009-12-09 10:27:43.000000000 +0100
+@@ -72,13 +72,18 @@ GLIBCXX_3.4 {
+       std::c[v-z]*;
+ #     std::[d-g]*;
+       std::d[a-d]*;
+-      std::d[f-z]*;
++      std::d[f-n]*;
++      std::domain_error::d*;
++#     std::domain_error::~d*;
++      std::d[p-z]*;
+       std::e[a-q]*;
+       std::error[^_]*;
+       std::e[s-z]*;
+       std::gslice*;
+       std::h[^a]*;
+-      std::i[a-n]*;
++      std::i[a-m]*;
++      std::invalid_argument::i*;
++#     std::invalid_argument::~i*;
+       std::ios_base::[A-Ha-z]*;
+       std::ios_base::_M_grow_words*;
+       std::ios_base::_M_init*;
+@@ -91,7 +96,8 @@ GLIBCXX_3.4 {
+       std::istrstream*;
+       std::i[t-z]*;
+       std::[A-Zj-k]*;
+-      std::length_error*;
++      std::length_error::l*;
++#     std::length_error::~l*;
+       std::logic_error*;
+       std::locale::[A-Za-e]*;
+       std::locale::facet::[A-Za-z]*;
+@@ -116,10 +122,14 @@ GLIBCXX_3.4 {
+       std::nu[^m]*;
+       std::num[^e]*;
+       std::ostrstream*;
+-      std::out_of_range*;
+-      std::overflow_error*;
++      std::out_of_range::o*;
++#     std::out_of_range::~o*;
++      std::overflow_error::o*;
++#     std::overflow_error::~o*;
+       std::[p-q]*;
+-      std::r[^e]*;
++      std::r[^ae]*;
++      std::range_error::r*;
++#     std::range_error::~r*;
+       std::re[^t]*;
+ #     std::rethrow_exception
+       std::set_new_handler*;
+@@ -137,7 +147,8 @@ GLIBCXX_3.4 {
+       std::tr1::h[^a]*;
+       std::t[s-z]*;
+ #     std::[A-Zu-z]*;
+-      std::underflow_error*;
++      std::underflow_error::u*;
++#     std::underflow_error::~u*;
+       std::uncaught_exception*;
+       std::unexpected*;
+       std::[A-Zv-z]*;
+@@ -258,7 +269,8 @@ GLIBCXX_3.4 {
+     _ZNSt15basic_streambufI[cw]St11char_traitsI[cw]EEaSERKS2_;
+ 
+     # std::basic_stringbuf
+-    _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EE[CD]*;
++    _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EEC*;
++    _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EED[^2]*;
+     _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EE[0-9][a-r]*;
+     _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EE[0-9]seek*;
+     _ZNSt15basic_stringbufI[cw]St11char_traitsI[cw]ESaI[cw]EE[0-9]set*;
+@@ -614,6 +626,16 @@ GLIBCXX_3.4 {
+     _ZGVNSt[^1]*;
+     _ZGVNSt1[^7]*;
+ 
++    # complete and deleting destructors where base destructors should not
++    # be exported.
++    _ZNSt11range_errorD[01]Ev;
++    _ZNSt12domain_errorD[01]Ev;
++    _ZNSt12length_errorD[01]Ev;
++    _ZNSt12out_of_rangeD[01]Ev;
++    _ZNSt14overflow_errorD[01]Ev;
++    _ZNSt15underflow_errorD[01]Ev;
++    _ZNSt16invalid_argumentD[01]Ev;
++
+     # virtual function thunks
+     _ZThn8_NS*;
+     _ZThn16_NS*;
+@@ -866,7 +888,8 @@ GLIBCXX_3.4.10 {
+     _ZNSt15basic_streambufI[cw]St11char_traitsI[cw]EE6stosscEv;
+ 
+     _ZN9__gnu_cxx18stdio_sync_filebufI[cw]St11char_traitsI[cw]EE4syncEv;
+-    _ZN9__gnu_cxx18stdio_sync_filebufI[cw]St11char_traitsI[cw]EE[5-9CD]*;
++    _ZN9__gnu_cxx18stdio_sync_filebufI[cw]St11char_traitsI[cw]EE[5-9C]*;
++    _ZN9__gnu_cxx18stdio_sync_filebufI[cw]St11char_traitsI[cw]EED[^2]*;
+ 
+ } GLIBCXX_3.4.9;
+ 

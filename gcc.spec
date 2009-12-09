@@ -1,9 +1,9 @@
-%global DATE 20091204
-%global SVNREV 154977
+%global DATE 20091209
+%global SVNREV 155104
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 14
+%global gcc_release 15
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,6 +161,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
+Patch20: gcc44-c++-comdat-vdtors.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -466,6 +467,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
+%patch20 -p0 -b .c++-comdat-vdtors~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1383,6 +1385,8 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/fma4intrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/xopintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/lwpintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/abmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/popcntintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm_malloc.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mm3dnow.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/cpuid.h
@@ -1849,6 +1853,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Dec  9 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-15
+- VTA backports
+  - PRs debug/42166, debug/42234, debug/42244, debug/42299
+- fix handling of C++ COMDAT virtual destructors
+- some x86/x86_64 FMA4, XOP, ABM and LWP fixes
+- fix a decltype handling bug in templates (PR c++/42277)
+
 * Fri Dec  4 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-14
 - update from gcc-4_4-branch
   - PRs libstdc++/42261, middle-end/42049
