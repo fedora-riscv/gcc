@@ -1,9 +1,9 @@
-%global DATE 20091211
-%global SVNREV 155176
+%global DATE 20091214
+%global SVNREV 155239
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 16
+%global gcc_release 17
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,6 +161,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
+Patch20: gcc44-pr41183.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -466,6 +467,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
+%patch20 -p0 -b .pr41183~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1851,6 +1853,15 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Dec 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-17
+- propagate TREE_NOTHROW/TREE_READONLY/DECL_PURE_P from ipa-pure-const and
+  EH opt to all same body aliases (#547286)
+- don't emit DWARF location list entries with no location or DW_AT_location
+  with empty blocks (PR debug/41473)
+- fix up AMD LWP support
+- don't crash when mangling C++ decls inside of middle-end generated functions
+  (PR c++/41183)
+
 * Fri Dec 11 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-16
 - update from gcc-4_4-branch
   - PRs c++/27425, c++/34274, c++/42301, fortran/42268, java/41991,
