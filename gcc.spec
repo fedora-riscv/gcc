@@ -1,9 +1,9 @@
-%global DATE 20091214
-%global SVNREV 155239
+%global DATE 20091217
+%global SVNREV 155325
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 17
+%global gcc_release 18
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %global include_gappletviewer 1
@@ -161,7 +161,7 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-pr41183.patch
+Patch20: gcc44-rh546017.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 
@@ -467,7 +467,7 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .pr41183~
+%patch20 -p0 -b .rh546017~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1853,6 +1853,17 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Dec 17 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-18
+- update from gcc-4_4-branch
+  - PRs c++/42387
+- another C++ virtual dtors fix (PR c++/42386)
+- VTA mode and COND_EXEC fixes (PR debug/41679)
+- fix ICE in chrec_convert_1 (#547775)
+- fix debuginfo for optimized out TLS vars
+- use DW_AT_location with DW_OP_addr + DW_OP_stack_value instead of
+  DW_AT_const_value with address in it, use DW_OP_addr + DW_OP_stack_value
+  instead of DW_OP_implicit_value with address (#546017)
+
 * Mon Dec 14 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-17
 - propagate TREE_NOTHROW/TREE_READONLY/DECL_PURE_P from ipa-pure-const and
   EH opt to all same body aliases (#547286)
