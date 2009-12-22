@@ -1,12 +1,16 @@
-%global DATE 20091217
-%global SVNREV 155325
+%global DATE 20091222
+%global SVNREV 155395
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 18
+%global gcc_release 20
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
+%if 0%{?fedora} >= 13
+%global include_gappletviewer 0
+%else
 %global include_gappletviewer 1
+%endif
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
 %global build_ada 1
 %else
@@ -164,6 +168,7 @@ Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-rh546017.patch
 
 Patch1000: fastjar-0.97-segfault.patch
+Patch1001: fastjar-0.97-len1.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -348,7 +353,9 @@ Requires: libart_lgpl >= 2.1.0
 %if %{build_java}
 BuildRequires: gtk2-devel >= 2.4.0
 BuildRequires: glib2-devel >= 2.4.0
+%if %{include_gappletviewer}
 BuildRequires: xulrunner-devel
+%endif
 BuildRequires: libart_lgpl-devel >= 2.1.0
 BuildRequires: alsa-lib-devel
 BuildRequires: libXtst-devel
@@ -475,6 +482,7 @@ rm libjava/testsuite/libjava.lang/PR35020*
 tar xzf %{SOURCE4}
 
 %patch1000 -p0 -b .fastjar-0.97-segfault~
+%patch1001 -p0 -b .fastjar-0.97-len1~
 
 %if %{bootstrap_java}
 tar xjf %{SOURCE10}
@@ -613,7 +621,10 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 %if !%{build_java}
 	--disable-libgcj \
 %else
-	--enable-java-awt=gtk --disable-dssi --enable-plugin \
+	--enable-java-awt=gtk --disable-dssi \
+%if %{include_gappletviewer}
+	--enable-plugin \
+%endif
 	--with-java-home=%{_prefix}/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre \
 	--enable-libgcj-multifile \
 %if !%{bootstrap_java}
@@ -1853,6 +1864,14 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue Dec 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-20
+- fix MEM_SIZE of reload created stack slots (#548825,
+  PR rtl-optimization/42429)
+%if !%{include_gappletviewer}
+- remove gappletviewer, gcjwebplugin and related files for F13 (#548783)
+%endif
+- fix addition of one character long filenames in fastjar (#549493)
+
 * Thu Dec 17 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-18
 - update from gcc-4_4-branch
   - PRs c++/42387
