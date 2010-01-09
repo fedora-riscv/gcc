@@ -1,9 +1,9 @@
-%global DATE 20091222
-%global SVNREV 155395
+%global DATE 20100109
+%global SVNREV 155777
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 20
+%global gcc_release 23
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -165,6 +165,8 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
+Patch20: gcc44-max-vartrack-size.patch
+Patch21: gcc44-pr42657.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -473,6 +475,8 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
+%patch20 -p0 -b .max-vartrack-size~
+%patch21 -p0 -b .pr42657~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1862,6 +1866,32 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sat Jan  9 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-23
+- update from gcc-4_4-branch
+  - PRs target/42511, target/42542, target/42564
+- VTA backports
+  - PRs debug/42630, debug/42631
+- improve construction of ppc64 constants between 0x80000000 and 0xffffffff
+- fix inliner and var-tracking not to drop location info needlessly in certain
+  cases (#552376, PR debug/42657)
+
+* Wed Jan  6 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-22
+- add --param max-vartrack-size=NNNN parameter, give up on
+  -fvar-tracking-assignments if var-tracking hash tables are over that limit
+- fix VTA bugs in the vectorizer (PRs debug/42604, debug/42395)
+- fix VTA bug with noreturn calls (PR middle-end/42363)
+
+* Tue Jan  5 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-21
+- update from gcc-4_4-branch
+  - PRs c++/42331, middle-end/41344, middle-end/42099, other/42611,
+	rtl-optimization/42475, target/40134, target/42448, target/42503,
+	target/42549, tree-optimization/41956, tree-optimization/42231,
+	tree-optimization/42337, tree-optimization/42614
+- fix -m*=native with several sources on the command line (PR driver/42442)
+- avoid code size differences from traversing decl hash tables hashed by uid
+  if uid gap sizes differ
+- fix .debug_ranges with -ffunction-sections (PR debug/42454)
+
 * Tue Dec 22 2009 Jakub Jelinek <jakub@redhat.com> 4.4.2-20
 - fix MEM_SIZE of reload created stack slots (#548825,
   PR rtl-optimization/42429)
@@ -2040,7 +2070,7 @@ fi
 - update from gcc-4_4-branch
   - PRs c++/39863, c++/41038
 - avoid redundant DW_AT_const_value when abstract origin already has one
-  (#527430) 
+  (#527430)
 - another VTA debug stmt renaming bugfix (#521991)
 
 * Mon Oct  5 2009 Jakub Jelinek <jakub@redhat.com> 4.4.1-19

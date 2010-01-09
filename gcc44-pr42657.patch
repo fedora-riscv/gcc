@@ -1,0 +1,73 @@
+2010-01-09  Alexandre Oliva  <aoliva@redhat.com>
+
+	PR debug/42657
+	* var-tracking.c (var_reg_delete): Don't delete the association
+	between REGs and values or one-part variables if the register
+	isn't clobbered.
+
+2010-01-08  Jakub Jelinek  <jakub@redhat.com>
+
+	PR debug/42657
+	* tree-inline.c (copy_debug_stmt): Don't reset debug stmt just
+	because its first operand is a non-localized variable.
+
+--- gcc/tree-inline.c.jj	2010-01-08 10:21:30.000000000 +0100
++++ gcc/tree-inline.c	2010-01-08 10:19:49.000000000 +0100
+@@ -2043,6 +2043,12 @@ copy_debug_stmt (gimple stmt, copy_body_
+       gcc_assert (TREE_CODE (*n) == VAR_DECL);
+       t = *n;
+     }
++  else if (TREE_CODE (t) == VAR_DECL
++	   && !TREE_STATIC (t)
++	   && gimple_in_ssa_p (cfun)
++	   && !pointer_map_contains (id->decl_map, t)
++	   && !var_ann (t))
++    /* T is a non-localized variable.  */;
+   else
+     walk_tree (&t, remap_gimple_op_r, &wi, NULL);
+ 
+--- gcc/var-tracking.c.orig	2010-01-09 07:00:12.000000000 -0200
++++ gcc/var-tracking.c	2010-01-09 07:00:14.000000000 -0200
+@@ -1401,14 +1401,15 @@ var_reg_delete_and_set (dataflow_set *se
+   var_reg_set (set, loc, initialized, set_src);
+ }
+ 
+-/* Delete current content of register LOC in dataflow set SET.  If
+-   CLOBBER is true, also delete any other live copies of the same
+-   variable part.  */
++/* Delete the association of register LOC in dataflow set SET with any
++   variables that aren't onepart.  If CLOBBER is true, also delete any
++   other live copies of the same variable part, and delete the
++   association with onepart dvs too.  */
+ 
+ static void
+ var_reg_delete (dataflow_set *set, rtx loc, bool clobber)
+ {
+-  attrs *reg = &set->regs[REGNO (loc)];
++  attrs *nextp = &set->regs[REGNO (loc)];
+   attrs node, next;
+ 
+   if (clobber)
+@@ -1421,13 +1422,18 @@ var_reg_delete (dataflow_set *set, rtx l
+       clobber_variable_part (set, NULL, dv_from_decl (decl), offset, NULL);
+     }
+ 
+-  for (node = *reg; node; node = next)
++  for (node = *nextp; node; node = next)
+     {
+       next = node->next;
+-      delete_variable_part (set, node->loc, node->dv, node->offset);
+-      pool_free (attrs_pool, node);
++      if (clobber || !dv_onepart_p (node->dv))
++	{
++	  delete_variable_part (set, node->loc, node->dv, node->offset);
++	  pool_free (attrs_pool, node);
++	  *nextp = next;
++	}
++      else
++	nextp = &node->next;
+     }
+-  *reg = NULL;
+ }
+ 
+ /* Delete content of register with number REGNO in dataflow set SET.  */
