@@ -1,0 +1,68 @@
+2010-01-09  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/42608
+	* varasm.c (declare_weak): Add weak attribute to decl if it
+	doesn't have one already.
+	(assemble_external): Only add decls to weak_decls if they also
+	have weak attribute.
+
+	* g++.dg/template/instantiate11.C: New test.
+
+--- gcc/varasm.c.jj	2009-11-09 16:38:29.000000000 +0100
++++ gcc/varasm.c	2010-01-08 13:30:12.000000000 +0100
+@@ -2309,13 +2309,15 @@ assemble_external (tree decl ATTRIBUTE_U
+   /* We want to output annotation for weak and external symbols at
+      very last to check if they are references or not.  */
+ 
+-  if (SUPPORTS_WEAK && DECL_WEAK (decl)
++  if (SUPPORTS_WEAK
++      && DECL_WEAK (decl)
+       /* TREE_STATIC is a weird and abused creature which is not
+ 	 generally the right test for whether an entity has been
+ 	 locally emitted, inlined or otherwise not-really-extern, but
+ 	 for declarations that can be weak, it happens to be
+ 	 match.  */
+-      && !TREE_STATIC (decl))
++      && !TREE_STATIC (decl)
++      && lookup_attribute ("weak", DECL_ATTRIBUTES (decl)))
+     weak_decls = tree_cons (NULL, decl, weak_decls);
+ 
+ #ifdef ASM_OUTPUT_EXTERNAL
+@@ -5008,6 +5010,9 @@ declare_weak (tree decl)
+     warning (0, "weak declaration of %q+D not supported", decl);
+ 
+   mark_weak (decl);
++  if (!lookup_attribute ("weak", DECL_ATTRIBUTES (decl)))
++    DECL_ATTRIBUTES (decl)
++      = tree_cons (get_identifier ("weak"), NULL, DECL_ATTRIBUTES (decl));
+ }
+ 
+ static void
+--- gcc/testsuite/g++.dg/template/instantiate11.C.jj	2010-01-08 13:48:58.000000000 +0100
++++ gcc/testsuite/g++.dg/template/instantiate11.C	2010-01-08 14:18:44.000000000 +0100
+@@ -0,0 +1,25 @@
++// PR c++/42608
++// { dg-do compile }
++
++template <class U, class V>
++struct A;
++
++template <class V>
++struct A<int, V>
++{
++  void f ();
++};
++
++template struct A<int, int>;
++
++int
++main ()
++{
++  A<int, int> a;
++  a.f ();
++  return 0;
++}
++
++// Make sure we get undefined reference error if
++// A<int, int>::f () isn't instantiated elsewhere.
++// { dg-final { scan-assembler-not "weak\[\n\t\]*_ZN1AIiiE1fEv" } }

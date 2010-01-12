@@ -1,9 +1,9 @@
-%global DATE 20100109
-%global SVNREV 155777
+%global DATE 20100112
+%global SVNREV 155843
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 23
+%global gcc_release 24
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -165,8 +165,9 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-max-vartrack-size.patch
+Patch20: gcc44-pr41371.patch
 Patch21: gcc44-pr42657.patch
+Patch22: gcc44-pr42608.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -475,8 +476,9 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .max-vartrack-size~
+%patch20 -p0 -b .pr41371~
 %patch21 -p0 -b .pr42657~
+%patch22 -p0 -b .pr42608~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1866,6 +1868,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Jan 12 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-24
+- update from gcc-4_4-branch
+  - PRs debug/42662, libjava/40859
+- speed up var-tracking on various KDE sources (PR debug/41371)
+- revert --param max-vartrack-size=NNNN hack
+- fix up epilogue unwinding with -fsched2-use-superblocks (PR middle-end/41883)
+- fix a -fcompare-debug failure (PR tree-optimization/42645)
+- don't make undef symbols weak just because they are known to have C++ vague
+  linkage (PR c++/42608)
+
 * Sat Jan  9 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-23
 - update from gcc-4_4-branch
   - PRs target/42511, target/42542, target/42564
