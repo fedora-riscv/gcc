@@ -11,8 +11,8 @@
 	flag_var_tracking_assignments.
 	* Makefile.in (var-tracking.o): Adjust dependencies.
 	
---- gcc/doc/invoke.texi.jj	2009-12-09 00:36:51.000000000 +0100
-+++ gcc/doc/invoke.texi	2010-01-05 10:23:34.000000000 +0100
+--- gcc/doc/invoke.texi.jj	2010-01-09 20:39:58.000000000 +0100
++++ gcc/doc/invoke.texi	2010-01-21 10:00:15.979730377 +0100
 @@ -7937,6 +7937,15 @@ with more basic blocks than this paramet
  motion optimization performed on them.  The default value of the
  parameter is 1000 for -O1 and 10000 for -O2 and above.
@@ -29,8 +29,8 @@
  @item min-nondebug-insn-uid
  Use uids starting at this parameter for nondebug insns.  The range below
  the parameter is reserved exclusively for debug insns created by
---- gcc/params.def.jj	2009-09-16 21:35:17.000000000 +0200
-+++ gcc/params.def	2010-01-06 10:18:04.000000000 +0100
+--- gcc/params.def.jj	2010-01-09 20:39:58.000000000 +0100
++++ gcc/params.def	2010-01-21 10:00:15.980730943 +0100
 @@ -771,6 +771,13 @@ DEFPARAM (PARAM_LOOP_INVARIANT_MAX_BBS_I
  	  "max basic blocks number in loop for loop invariant motion",
  	  10000, 0, 0)
@@ -45,18 +45,18 @@
  /* Set minimum insn uid for non-debug insns.  */
  
  DEFPARAM (PARAM_MIN_NONDEBUG_INSN_UID,
---- gcc/var-tracking.c.jj	2009-12-17 20:42:04.000000000 +0100
-+++ gcc/var-tracking.c	2010-01-06 10:17:28.000000000 +0100
-@@ -108,6 +108,8 @@
- #include "tree-pass.h"
+--- gcc/var-tracking.c.jj	2010-01-21 09:10:37.000000000 +0100
++++ gcc/var-tracking.c	2010-01-21 10:00:15.983740989 +0100
+@@ -109,6 +109,8 @@
+ #include "tree-flow.h"
  #include "cselib.h"
  #include "target.h"
 +#include "toplev.h"
 +#include "params.h"
  
- /* Type of micro operation.  */
- enum micro_operation_type
-@@ -443,7 +445,7 @@ static int add_uses (rtx *, void *);
+ /* var-tracking.c assumes that tree code with the same value as VALUE rtx code
+    has no chance to appear in REG_EXPR/MEM_EXPRs and isn't a decl.
+@@ -451,7 +453,7 @@ static int add_uses (rtx *, void *);
  static void add_uses_1 (rtx *, void *);
  static void add_stores (rtx, const_rtx, void *);
  static bool compute_bb_dataflow (basic_block);
@@ -64,8 +64,8 @@
 +static bool vt_find_locations (void);
  
  static void dump_attrs_list (attrs);
- static int dump_variable_slot (void **, void *);
-@@ -5454,7 +5456,7 @@ compute_bb_dataflow (basic_block bb)
+ static int dump_var_slot (void **, void *);
+@@ -5511,7 +5513,7 @@ compute_bb_dataflow (basic_block bb)
  
  /* Find the locations of variables in the whole function.  */
  
@@ -74,7 +74,7 @@
  vt_find_locations (void)
  {
    fibheap_t worklist, pending, fibheap_swap;
-@@ -5465,6 +5467,8 @@ vt_find_locations (void)
+@@ -5522,6 +5524,8 @@ vt_find_locations (void)
    int *rc_order;
    int i;
    int htabsz = 0;
@@ -83,7 +83,7 @@
  
    /* Compute reverse completion order of depth first search of the CFG
       so that the data-flow runs faster.  */
-@@ -5486,7 +5490,7 @@ vt_find_locations (void)
+@@ -5543,7 +5547,7 @@ vt_find_locations (void)
      fibheap_insert (pending, bb_order[bb->index], bb);
    sbitmap_ones (in_pending);
  
@@ -92,7 +92,7 @@
      {
        fibheap_swap = pending;
        pending = worklist;
-@@ -5509,11 +5513,11 @@ vt_find_locations (void)
+@@ -5566,11 +5570,11 @@ vt_find_locations (void)
  
  	      SET_BIT (visited, bb->index);
  
@@ -107,7 +107,7 @@
  		  oldinsz
  		    = htab_elements (shared_hash_htab (VTI (bb)->in.vars));
  		  oldoutsz
-@@ -5577,9 +5581,20 @@ vt_find_locations (void)
+@@ -5634,9 +5638,20 @@ vt_find_locations (void)
  		}
  
  	      changed = compute_bb_dataflow (bb);
@@ -131,7 +131,7 @@
  
  	      if (changed)
  		{
-@@ -5630,7 +5645,7 @@ vt_find_locations (void)
+@@ -5687,7 +5702,7 @@ vt_find_locations (void)
  	}
      }
  
@@ -140,7 +140,7 @@
      FOR_EACH_BB (bb)
        gcc_assert (VTI (bb)->flooded);
  
-@@ -5640,6 +5655,8 @@ vt_find_locations (void)
+@@ -5698,6 +5713,8 @@ vt_find_locations (void)
    sbitmap_free (visited);
    sbitmap_free (in_worklist);
    sbitmap_free (in_pending);
@@ -149,7 +149,7 @@
  }
  
  /* Print the content of the LIST to dump file.  */
-@@ -7542,9 +7558,11 @@ vt_finalize (void)
+@@ -7600,9 +7617,11 @@ vt_finalize (void)
  
  /* The entry point to variable tracking pass.  */
  
@@ -163,7 +163,7 @@
    if (flag_var_tracking_assignments < 0)
      {
        delete_debug_insns ();
-@@ -7569,7 +7587,31 @@ variable_tracking_main (void)
+@@ -7627,7 +7646,31 @@ variable_tracking_main (void)
  	}
      }
  
@@ -196,7 +196,7 @@
  
    if (dump_file && (dump_flags & TDF_DETAILS))
      {
-@@ -7583,6 +7625,19 @@ variable_tracking_main (void)
+@@ -7641,6 +7684,19 @@ variable_tracking_main (void)
    vt_debug_insns_local (false);
    return 0;
  }
@@ -216,15 +216,14 @@
  
  static bool
  gate_handle_var_tracking (void)
---- gcc/Makefile.in.jj	2010-01-04 10:07:40.000000000 +0100
-+++ gcc/Makefile.in	2010-01-05 10:24:39.000000000 +0100
-@@ -2750,7 +2750,8 @@ regstat.o : regstat.c $(CONFIG_H) $(SYST
- var-tracking.o : var-tracking.c $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) \
+--- gcc/Makefile.in.jj	2010-01-21 08:58:12.000000000 +0100
++++ gcc/Makefile.in	2010-01-21 10:00:45.555730868 +0100
+@@ -2751,7 +2751,7 @@ var-tracking.o : var-tracking.c $(CONFIG
     $(RTL_H) $(TREE_H) hard-reg-set.h insn-config.h reload.h $(FLAGS_H) \
     $(BASIC_BLOCK_H) output.h sbitmap.h alloc-pool.h $(FIBHEAP_H) $(HASHTAB_H) \
--   $(REGS_H) $(EXPR_H) $(TIMEVAR_H) tree-pass.h cselib.h $(TARGET_H)
-+   $(REGS_H) $(EXPR_H) $(TIMEVAR_H) tree-pass.h cselib.h $(TARGET_H) \
-+   $(TOPLEV_H) $(PARAMS_H)
+    $(REGS_H) $(EXPR_H) $(TIMEVAR_H) tree-pass.h cselib.h $(TARGET_H) \
+-   $(TREE_FLOW_H)
++   $(TREE_FLOW_H) $(TOPLEV_H) $(PARAMS_H)
  profile.o : profile.c $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) $(RTL_H) \
     $(TREE_H) $(FLAGS_H) output.h $(REGS_H) $(EXPR_H) $(FUNCTION_H) \
     $(TOPLEV_H) $(COVERAGE_H) $(TREE_FLOW_H) value-prof.h cfghooks.h \

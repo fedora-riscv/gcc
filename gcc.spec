@@ -1,9 +1,9 @@
-%global DATE 20100114
-%global SVNREV 155925
+%global DATE 20100121
+%global SVNREV 156110
 %global gcc_version 4.4.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 26
+%global gcc_release 28
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -1864,6 +1864,22 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Jan 21 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-28
+- update from gcc-4_4-branch
+  - PRs middle-end/42803, rtl-optimization/42691, target/42542, target/42774,
+	tree-optimization/41826, tree-optimization/42773
+  - fix DW_OP_mod handling in the unwinder
+- VTA backports
+  - PRs debug/42782, debug/42767
+  - avoid dead VALUES to magically reappear during var-tracking
+    (#557068, PR debug/42715)
+  - don't assume non-addressable automatic MEMs die at each call
+    during var-tracking (#556975, PR debug/42728)
+
+* Fri Jan 15 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-27
+- fix ICE with std::complex<float> copy (#555705, PR middle-end/42760)
+- avoid exponential hangs in gen_lsm_tmp_name
+
 * Fri Jan 15 2010 Jakub Jelinek <jakub@redhat.com> 4.4.2-26
 - update from gcc-4_4-branch
   - PR c++/42655
