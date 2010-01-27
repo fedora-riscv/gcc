@@ -1,0 +1,65 @@
+2010-01-27  Jakub Jelinek  <jakub@redhat.com>
+
+	* Makefile.in (c-common.o): Depend on $(OPTABS_H).
+	* c-common.c: Include optabs.h.
+	(set_builtin_user_assembler_name): Also handle
+	ffs if int is smaller than word.
+
+	* gcc.dg/builtin-ffs-1.c: New test.
+
+--- gcc/Makefile.in.jj	2010-01-21 08:58:12.000000000 +0100
++++ gcc/Makefile.in	2010-01-27 19:17:05.000000000 +0100
+@@ -1890,7 +1890,7 @@ c-common.o : c-common.c $(CONFIG_H) $(SY
+ 	$(TARGET_H) $(C_TREE_H) tree-iterator.h langhooks.h tree-mudflap.h \
+ 	intl.h opts.h $(REAL_H) $(CPPLIB_H) $(TREE_INLINE_H) $(HASHTAB_H) \
+ 	$(BUILTINS_DEF) $(CGRAPH_H) $(BASIC_BLOCK_H) $(TARGET_DEF_H) \
+-	$(GIMPLE_H) libfuncs.h
++	$(GIMPLE_H) libfuncs.h $(OPTABS_H)
+ 
+ c-pretty-print.o : c-pretty-print.c $(C_PRETTY_PRINT_H) \
+ 	$(C_TREE_H) $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) $(REAL_H) \
+--- gcc/c-common.c.jj	2009-11-09 16:38:29.000000000 +0100
++++ gcc/c-common.c	2010-01-27 19:16:35.000000000 +0100
+@@ -52,6 +52,7 @@ along with GCC; see the file COPYING3.  
+ #include "gimple.h"
+ #include "fixed-value.h"
+ #include "libfuncs.h"
++#include "optabs.h"
+ 
+ cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
+ 
+@@ -4421,6 +4422,14 @@ set_builtin_user_assembler_name (tree de
+     case BUILT_IN_ABORT:
+       abort_libfunc = set_user_assembler_libfunc ("abort", asmspec);
+       break;
++    case BUILT_IN_FFS:
++      if (INT_TYPE_SIZE < BITS_PER_WORD)
++	{
++	  set_user_assembler_libfunc ("ffs", asmspec);
++	  set_optab_libfunc (ffs_optab, mode_for_size (INT_TYPE_SIZE,
++						       MODE_INT, 0), "ffs");
++	}
++      break;
+     default:
+       break;
+     }
+--- gcc/testsuite/gcc.dg/builtin-ffs-1.c.jj	2010-01-27 14:27:45.000000000 +0100
++++ gcc/testsuite/gcc.dg/builtin-ffs-1.c	2010-01-27 14:27:10.000000000 +0100
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++/* { dg-options "-O2" } */
++
++extern int ffs (int) __asm ("__GI_ffs") __attribute__ ((nothrow, const));
++
++int
++ffsll (long long int i)
++{
++  unsigned long long int x = i & -i;
++  
++  if (x <= 0xffffffff)
++    return ffs (i);
++  else
++    return 32 + ffs (i >> 32);
++}
++
++/* { dg-final { scan-assembler-not "\nffs\n|\nffs\[^a-zA-Z0-9_\]|\[^a-zA-Z0-9_\]ffs\n" } } */

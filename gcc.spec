@@ -1,9 +1,9 @@
-%global DATE 20100121
-%global SVNREV 156157
+%global DATE 20100127
+%global SVNREV 156296
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -166,9 +166,7 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-max-vartrack-size.patch
-Patch21: gcc44-vta-non-call-exception.patch
-Patch22: gcc44-rh530847.patch
-Patch23: gcc44-pr42861.patch
+Patch21: gcc44-rh559186.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -478,9 +476,7 @@ which are required to compile with the GNAT.
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .max-vartrack-size~
-%patch21 -p0 -b .vta-non-call-exception~
-%patch22 -p0 -b .rh530847~
-%patch23 -p0 -b .pr42861~
+%patch21 -p0 -b .rh559186~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1870,6 +1866,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Jan 27 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-4
+- update from gcc-4_4-branch
+  - PRs bootstrap/42786, fortran/42866, target/38697, target/42841
+- fix up handling of constant pool elements in dwarf2out
+- fix acats norun.lst handling
+- fix asm redirection of builtin ffs on 64-bit arches (#559186)
+
 * Mon Jan 25 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-3
 - VTA improvements (#556975, PR debug/42861)
 
