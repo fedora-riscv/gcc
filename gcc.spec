@@ -1,9 +1,9 @@
-%global DATE 20100127
-%global SVNREV 156296
+%global DATE 20100208
+%global SVNREV 156609
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -70,7 +70,12 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Need binutils which support --build-id >= 2.17.50.0.17-3
 # Need binutils which support %gnu_unique_object >= 2.19.51.0.14
 # Need binutils which support .cfi_sections >= 2.19.51.0.14-33
+%if 0%{?fedora} >= 13
+# Need binutils which support --no-add-needed >= 2.20.51.0.2-12
+BuildRequires: binutils >= 2.20.51.0.2-12
+%else
 BuildRequires: binutils >= 2.19.51.0.14-33
+%endif
 # While gcc doesn't include statically linked binaries, during testing
 # -static is used several times.
 BuildRequires: glibc-static
@@ -125,7 +130,12 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support --build-id
 # Need binutils that support %gnu_unique_object
 # Need binutils that support .cfi_sections
+%if 0%{?fedora} >= 13
+# Need binutils that support --no-add-needed
+Requires: binutils >= 2.20.51.0.2-12
+%else
 Requires: binutils >= 2.19.51.0.14-33
+%endif
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 Requires: glibc-devel >= 2.2.90-12
@@ -167,6 +177,7 @@ Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-max-vartrack-size.patch
 Patch21: gcc44-rh559186.patch
+Patch22: gcc44-no-add-needed.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -477,6 +488,9 @@ which are required to compile with the GNAT.
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .max-vartrack-size~
 %patch21 -p0 -b .rh559186~
+%if 0%{?fedora} >= 13
+%patch22 -p0 -b .no-add-needed~
+%endif
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1866,6 +1880,18 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon Feb  8 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-5
+- update from gcc-4_4-branch
+  - PRs fortran/38324, fortran/41044, fortran/41167, fortran/42309,
+	fortran/42650, fortran/42736, libfortran/42901, middle-end/42898,
+	middle-end/42995, rtl-optimization/42952, tree-optimization/42462,
+	tree-optimization/42890, tree-optimization/42931
+- VTA backports
+  - PRs target/42924, debug/42896, rtl-optimization/42889
+%if 0%{?fedora} >= 13
+- pass --no-add-needed to the linker
+%endif
+
 * Wed Jan 27 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-4
 - update from gcc-4_4-branch
   - PRs bootstrap/42786, fortran/42866, target/38697, target/42841
