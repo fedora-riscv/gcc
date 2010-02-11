@@ -1,9 +1,9 @@
-%global DATE 20100208
-%global SVNREV 156609
+%global DATE 20100211
+%global SVNREV 156726
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -176,8 +176,7 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-max-vartrack-size.patch
-Patch21: gcc44-rh559186.patch
-Patch22: gcc44-no-add-needed.patch
+Patch21: gcc44-no-add-needed.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -487,9 +486,8 @@ which are required to compile with the GNAT.
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
 %patch20 -p0 -b .max-vartrack-size~
-%patch21 -p0 -b .rh559186~
 %if 0%{?fedora} >= 13
-%patch22 -p0 -b .no-add-needed~
+%patch21 -p0 -b .no-add-needed~
 %endif
 
 # This testcase doesn't compile.
@@ -1880,6 +1878,14 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Feb 11 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-6
+- update from gcc-4_4-branch
+  - PR tree-optimization/42705
+  - fix up -femit-struct-debug-baseonly (#561320, PR debug/43010)
+  - --enable-checking=valgrind bugfixes (PRs fortran/43029, fortran/43030)
+- VTA backports (#562312)
+- some further --enable-checking=valgrind bugfixes (PR target/38781)
+
 * Mon Feb  8 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-5
 - update from gcc-4_4-branch
   - PRs fortran/38324, fortran/41044, fortran/41167, fortran/42309,
