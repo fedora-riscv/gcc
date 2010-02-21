@@ -1,9 +1,9 @@
-%global DATE 20100211
-%global SVNREV 156726
+%global DATE 20100221
+%global SVNREV 156936
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -175,8 +175,9 @@ Patch16: gcc44-unwind-debug-hook.patch
 Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-max-vartrack-size.patch
-Patch21: gcc44-no-add-needed.patch
+Patch20: gcc44-no-add-needed.patch
+Patch21: gcc44-pr42233.patch
+Patch22: gcc44-pr43051.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -485,10 +486,11 @@ which are required to compile with the GNAT.
 %patch18 -p0 -b .libstdc++-docs~
 %endif
 %patch19 -p0 -b .ppc64-aixdesc~
-%patch20 -p0 -b .max-vartrack-size~
 %if 0%{?fedora} >= 13
-%patch21 -p0 -b .no-add-needed~
+%patch20 -p0 -b .no-add-needed~
 %endif
+%patch21 -p0 -b .pr42233~
+#%patch22 -p0 -b .pr43051~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -686,7 +688,7 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 	--with-arch_32=i686 \
 %endif
 %ifarch s390 s390x
-	--with-arch=z9-109 --with-tune=z10 \
+	--with-arch=z9-109 --with-tune=z10 --enable-decimal-float \
 %endif
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform}
@@ -1878,6 +1880,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Sun Feb 21 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-7
+- update from gcc-4_4-branch
+  - PRs c++/43024, c++/43033, fortran/41869, target/40887,
+	tree-optimization/42871, tree-optimization/43074
+- VTA backports (PRs debug/42918, debug/43084)
+- --enable-decimal-float on s390{,x} (#565871)
+- improve __builtin_expect handling, propagate branch probabilities
+  during expansion even for sequences with more than one jump
+  (PR middle-end/42233)
+
 * Thu Feb 11 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-6
 - update from gcc-4_4-branch
   - PR tree-optimization/42705
