@@ -8,3 +8,4 @@ gcc-4_4_3-4_fc13:HEAD:gcc-4.4.3-4.fc13.src.rpm:1264621537
 gcc-4_4_3-5_fc13:HEAD:gcc-4.4.3-5.fc13.src.rpm:1265659730
 gcc-4_4_3-6_fc13:HEAD:gcc-4.4.3-6.fc13.src.rpm:1265925505
 gcc-4_4_3-7_fc13:F-13:gcc-4.4.3-7.fc13.src.rpm:1266793373
+gcc-4_4_3-8_fc13:F-13:gcc-4.4.3-8.fc13.src.rpm:1267230097

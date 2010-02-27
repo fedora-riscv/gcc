@@ -1,9 +1,9 @@
-%global DATE 20100221
-%global SVNREV 156936
+%global DATE 20100226
+%global SVNREV 157097
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13
@@ -1880,6 +1880,14 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Feb 26 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-8
+- update from gcc-4_4-branch
+  - PR libstdc++/21769
+- VTA backports
+  - PRs debug/42800, debug/43077, debug/43150, debug/43160, debug/43161,
+	debug/43165, debug/43166, debug/43190, target/43139
+- fix alignment of some stack vars (PR middle-end/39315)
+
 * Sun Feb 21 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-7
 - update from gcc-4_4-branch
   - PRs c++/43024, c++/43033, fortran/41869, target/40887,
