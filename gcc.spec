@@ -1,9 +1,9 @@
-%global DATE 20100327
-%global SVNREV 157778
+%global DATE 20100401
+%global SVNREV 157910
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 13
+%global gcc_release 14
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -1876,6 +1876,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Thu Apr  1 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-14
+- update from gcc-4_4-branch
+  - PRs other/43562, c++/41185, c++/41786, fortran/43409, fortran/43551,
+	libfortran/43409, middle-end/43600, target/39254, target/43524,
+	tree-optimization/43528
+- update raw string support to match N3077
+- VTA backports
+  - PRs bootstrap/43596, debug/42977, debug/43557, debug/43593,
+	target/43580
+
 * Sat Mar 27 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-13
 - update from gcc-4_4-branch
   - PRs c/43381, libfortran/43517, target/42113
