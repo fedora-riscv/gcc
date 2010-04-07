@@ -1,9 +1,9 @@
-%global DATE 20100401
-%global SVNREV 157910
+%global DATE 20100407
+%global SVNREV 158059
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 14
+%global gcc_release 15
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -1876,6 +1876,13 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Wed Apr  7 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-15
+- update from gcc-4_4-branch
+  - PRs libfortran/43605, target/43638
+- AMD XOP fixes (#579493, PRs target/42664, target/43667)
+- fix raw string support on big endian hosts (PR preprocessor/43642)
+- allow -gdwarf-4 option
+
 * Thu Apr  1 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-14
 - update from gcc-4_4-branch
   - PRs other/43562, c++/41185, c++/41786, fortran/43409, fortran/43551,
