@@ -1,9 +1,9 @@
-%global DATE 20100407
-%global SVNREV 158061
+%global DATE 20100409
+%global SVNREV 158152
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 15
+%global gcc_release 16
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -1876,6 +1876,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Apr  9 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-16
+- update from gcc-4_4-branch
+  - PRs ada/41912, fortran/43539, middle-end/42956, middle-end/43614,
+	target/38085, target/43458, target/43643, target/43668,
+	tree-optimization/43186, tree-optimization/43560,
+	tree-optimization/43607, tree-optimization/43629
+- VTA backports
+  - PR debug/43670
+- fix xop-vpermil2p* tests (target/43103)
+
 * Wed Apr  7 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-15
 - update from gcc-4_4-branch
   - PRs libfortran/43605, target/43638
