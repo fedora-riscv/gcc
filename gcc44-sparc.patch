@@ -1,0 +1,54 @@
+--- gcc-4.4.3-20100409/gcc/config/sparc/sparc.c.orig	2010-04-14 21:20:14.000000000 -0500
++++ gcc-4.4.3-20100409/gcc/config/sparc/sparc.c	2010-04-14 21:21:51.000000000 -0500
+@@ -371,10 +371,6 @@
+ static void emit_save_or_restore_regs (int);
+ static void sparc_asm_function_prologue (FILE *, HOST_WIDE_INT);
+ static void sparc_asm_function_epilogue (FILE *, HOST_WIDE_INT);
+-#if defined (OBJECT_FORMAT_ELF)
+-static void sparc_elf_asm_named_section (const char *, unsigned int, tree)
+-    ATTRIBUTE_UNUSED;
+-#endif
+ 
+ static int sparc_adjust_cost (rtx, rtx, rtx, int);
+ static int sparc_issue_rate (void);
+@@ -7848,27 +7844,6 @@
+     }
+ }
+ 
+-#if defined (OBJECT_FORMAT_ELF)
+-static void
+-sparc_elf_asm_named_section (const char *name, unsigned int flags,
+-			     tree decl)
+-{
+-  fprintf (asm_out_file, "\t.section\t\"%s\"", name);
+-
+-  if (!(flags & SECTION_DEBUG))
+-    fputs (",#alloc", asm_out_file);
+-  if (flags & SECTION_WRITE)
+-    fputs (",#write", asm_out_file);
+-  if (flags & SECTION_TLS)
+-    fputs (",#tls", asm_out_file);
+-  if (flags & SECTION_CODE)
+-    fputs (",#execinstr", asm_out_file);
+-
+-  /* ??? Handle SECTION_BSS.  */
+-
+-  fputc ('\n', asm_out_file);
+-}
+-#endif /* OBJECT_FORMAT_ELF */
+ 
+ /* We do not allow indirect calls to be optimized into sibling calls.
+ 
+--- gcc-4.4.3-20100409/gcc/config/sparc/sysv4.h.orig	2010-04-14 21:20:54.000000000 -0500
++++ gcc-4.4.3-20100409/gcc/config/sparc/sysv4.h	2010-04-14 21:22:24.000000000 -0500
+@@ -127,10 +127,6 @@
+ #undef DTORS_SECTION_ASM_OP
+ #define DTORS_SECTION_ASM_OP    "\t.section\t\".dtors\",#alloc,#write"
+ 
+-/* Switch into a generic section.  */
+-#undef TARGET_ASM_NAMED_SECTION
+-#define TARGET_ASM_NAMED_SECTION  sparc_elf_asm_named_section
+-
+ #undef ASM_OUTPUT_ALIGNED_BSS
+ #define ASM_OUTPUT_ALIGNED_BSS(FILE, DECL, NAME, SIZE, ALIGN) \
+   asm_output_aligned_bss (FILE, DECL, NAME, SIZE, ALIGN)
