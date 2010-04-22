@@ -1,9 +1,9 @@
-%global DATE 20100409
-%global SVNREV 158152
+%global DATE 20100422
+%global SVNREV 158631
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 17
+%global gcc_release 18
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -176,7 +176,6 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-no-add-needed.patch
-Patch21: gcc44-sparc.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -488,7 +487,6 @@ which are required to compile with the GNAT.
 %if 0%{?fedora} >= 13
 %patch20 -p0 -b .no-add-needed~
 %endif
-%patch21 -p1 -b .sparc-gss
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1878,9 +1876,16 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
-* Wed Apr 14 2010 Dennis Gilmore <dennis@ausil.us> 4.4.3-17
-- rebase and reapply patch for
-- use gas .section syntax (#530847)
+* Thu Apr 22 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-18
+- update from gcc-4_4-branch
+  - PRs fortran/43339, fortran/43836, libgcj/40860, libgomp/43569,
+	libgomp/43706, libstdc++/40518, middle-end/43337, middle-end/43570,
+	tree-optimization/43769, tree-optimization/43771
+  - fix ICE when compiling 64-bit Wine (#583501, PR target/43662)
+- VTA backports
+  - PRs debug/40040, debug/43762
+- add support for -Wunused-but-set-{parameter,variable} non-default
+  warnings for C (#538266, PRs c/18624, bootstrap/43699)
 
 * Fri Apr  9 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-16
 - update from gcc-4_4-branch
