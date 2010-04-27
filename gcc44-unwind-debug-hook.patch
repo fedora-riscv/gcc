@@ -1,3 +1,7 @@
+2010-04-27  Jakub Jelinek  <jakub@redhat.com>
+
+	* unwind-dw2.c (_Unwind_DebugHook): Add used attribute.
+
 2009-05-27  Tom Tromey  <tromey@redhat.com>
 
 	* unwind-dw2.c (_Unwind_DebugHook): New function.
@@ -5,11 +9,12 @@
 
 --- gcc/unwind-dw2.c	(revision 147933)
 +++ gcc/unwind-dw2.c	(revision 147934)
-@@ -1473,18 +1473,31 @@ uw_init_context_1 (struct _Unwind_Contex
+@@ -1473,18 +1473,32 @@ uw_init_context_1 (struct _Unwind_Contex
    context->ra = __builtin_extract_return_addr (outer_ra);
  }
  
-+static void _Unwind_DebugHook (void *, void *) __attribute__ ((__noinline__));
++static void _Unwind_DebugHook (void *, void *)
++  __attribute__ ((__noinline__, __used__));
 +
 +/* This function is called during unwinding.  It is intended as a hook
 +   for a debugger to intercept exceptions.  CFA is the CFA of the
