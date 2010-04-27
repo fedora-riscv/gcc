@@ -1,0 +1,246 @@
+2010-04-26  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c/43893
+	* c-omp.c (c_finish_omp_for): Handle also EQ_EXPR.
+
+	* testsuite/libgomp.c/pr43893.c: New test.
+	* testsuite/libgomp.c++/pr43893.C: New test.
+
+--- gcc/c-omp.c.jj	2009-12-17 15:02:26.000000000 +0100
++++ gcc/c-omp.c	2010-04-26 18:58:07.000000000 +0200
+@@ -1,7 +1,7 @@
+ /* This file contains routines to construct GNU OpenMP constructs, 
+    called from parsing in the C and C++ front ends.
+ 
+-   Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
++   Copyright (C) 2005, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+    Contributed by Richard Henderson <rth@redhat.com>,
+ 		  Diego Novillo <dnovillo@redhat.com>.
+ 
+@@ -281,7 +281,8 @@ c_finish_omp_for (location_t locus, tree
+ 	      || TREE_CODE (cond) == LE_EXPR
+ 	      || TREE_CODE (cond) == GT_EXPR
+ 	      || TREE_CODE (cond) == GE_EXPR
+-	      || TREE_CODE (cond) == NE_EXPR)
++	      || TREE_CODE (cond) == NE_EXPR
++	      || TREE_CODE (cond) == EQ_EXPR)
+ 	    {
+ 	      tree op0 = TREE_OPERAND (cond, 0);
+ 	      tree op1 = TREE_OPERAND (cond, 1);
+@@ -326,18 +327,21 @@ c_finish_omp_for (location_t locus, tree
+ 		  cond_ok = true;
+ 		}
+ 
+-	      if (TREE_CODE (cond) == NE_EXPR)
++	      if (TREE_CODE (cond) == NE_EXPR
++		  || TREE_CODE (cond) == EQ_EXPR)
+ 		{
+ 		  if (!INTEGRAL_TYPE_P (TREE_TYPE (decl)))
+ 		    cond_ok = false;
+ 		  else if (operand_equal_p (TREE_OPERAND (cond, 1),
+ 					    TYPE_MIN_VALUE (TREE_TYPE (decl)),
+ 					    0))
+-		    TREE_SET_CODE (cond, GT_EXPR);
++		    TREE_SET_CODE (cond, TREE_CODE (cond) == NE_EXPR
++					 ? GT_EXPR : LE_EXPR);
+ 		  else if (operand_equal_p (TREE_OPERAND (cond, 1),
+ 					    TYPE_MAX_VALUE (TREE_TYPE (decl)),
+ 					    0))
+-		    TREE_SET_CODE (cond, LT_EXPR);
++		    TREE_SET_CODE (cond, TREE_CODE (cond) == NE_EXPR
++					 ? LT_EXPR : GE_EXPR);
+ 		  else
+ 		    cond_ok = false;
+ 		}
+--- libgomp/testsuite/libgomp.c/pr43893.c.jj	2010-04-26 19:17:15.000000000 +0200
++++ libgomp/testsuite/libgomp.c/pr43893.c	2010-04-26 19:17:07.000000000 +0200
+@@ -0,0 +1,61 @@
++/* PR c/43893 */
++/* { dg-do run } */
++
++extern void abort (void);
++
++int
++main ()
++{
++  int c;
++  unsigned int i;
++  int j;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 0; i < 1; i++)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 0; i <= 0; i++)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = - __INT_MAX__ - 1; j < - __INT_MAX__; j++)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = - __INT_MAX__ - 1; j <= - __INT_MAX__ - 1; j++)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 2U * __INT_MAX__ + 1; i > 2U * __INT_MAX__; i--)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 2U * __INT_MAX__ + 1; i >= 2U * __INT_MAX__ + 1; i--)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = __INT_MAX__; j > __INT_MAX__ - 1; j--)
++    c++;
++  if (c != 1)
++    abort ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = __INT_MAX__; j >= __INT_MAX__; j--)
++    c++;
++  if (c != 1)
++    abort ();
++  return 0;
++}
+--- libgomp/testsuite/libgomp.c++/pr43893.C.jj	2010-04-26 19:18:13.000000000 +0200
++++ libgomp/testsuite/libgomp.c++/pr43893.C	2010-04-26 19:25:33.000000000 +0200
+@@ -0,0 +1,125 @@
++// PR c/43893
++// { dg-do run }
++
++extern "C" void abort ();
++
++template <typename T, T M, T N>
++void
++f1 ()
++{
++  int c;
++  T i;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = M; i < N; i++)
++    c++;
++  if (c != 1)
++    abort ();
++}
++
++template <typename T, T M, T N>
++void
++f2 ()
++{
++  int c;
++  T i;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = M; i <= N; i++)
++    c++;
++  if (c != 1)
++    abort ();
++}
++
++template <typename T, T M, T N>
++void
++f3 ()
++{
++  int c;
++  T i;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = M; i > N; i--)
++    c++;
++  if (c != 1)
++    abort ();
++}
++
++template <typename T, T M, T N>
++void
++f4 ()
++{
++  int c;
++  T i;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = M; i >= N; i--)
++    c++;
++  if (c != 1)
++    abort ();
++}
++
++int
++main ()
++{
++  int c;
++  unsigned int i;
++  int j;
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 0; i < 1; i++)
++    c++;
++  if (c != 1)
++    abort ();
++  f1 <unsigned int, 0, 1> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 0; i <= 0; i++)
++    c++;
++  if (c != 1)
++    abort ();
++  f2 <unsigned int, 0, 0> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = - __INT_MAX__ - 1; j < - __INT_MAX__; j++)
++    c++;
++  if (c != 1)
++    abort ();
++  f1 <int, (- __INT_MAX__ - 1), (- __INT_MAX__)> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = - __INT_MAX__ - 1; j <= - __INT_MAX__ - 1; j++)
++    c++;
++  if (c != 1)
++    abort ();
++  f2 <int, (- __INT_MAX__ - 1), (- __INT_MAX__ - 1)> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 2U * __INT_MAX__ + 1; i > 2U * __INT_MAX__; i--)
++    c++;
++  if (c != 1)
++    abort ();
++  f3 <unsigned int, (2U * __INT_MAX__ + 1), (2U * __INT_MAX__)> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (i = 2U * __INT_MAX__ + 1; i >= 2U * __INT_MAX__ + 1; i--)
++    c++;
++  if (c != 1)
++    abort ();
++  f4 <unsigned int, (2U * __INT_MAX__ + 1), (2U * __INT_MAX__ + 1)> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = __INT_MAX__; j > __INT_MAX__ - 1; j--)
++    c++;
++  if (c != 1)
++    abort ();
++  f3 <int, __INT_MAX__, (__INT_MAX__ - 1)> ();
++  c = 0;
++#pragma omp parallel for reduction(+:c)
++  for (j = __INT_MAX__; j >= __INT_MAX__; j--)
++    c++;
++  if (c != 1)
++    abort ();
++  f4 <int, __INT_MAX__, __INT_MAX__> ();
++  return 0;
++}

@@ -1,9 +1,9 @@
-%global DATE 20100422
-%global SVNREV 158631
+%global DATE 20100427
+%global SVNREV 158796
 %global gcc_version 4.4.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 18
+%global gcc_release 19
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -176,6 +176,7 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-no-add-needed.patch
+Patch21: gcc44-pr43893.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -487,6 +488,7 @@ which are required to compile with the GNAT.
 %if 0%{?fedora} >= 13
 %patch20 -p0 -b .no-add-needed~
 %endif
+%patch21 -p0 -b .pr43893~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1876,6 +1878,17 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue Apr 27 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-19
+- Power7 backports (#584993, #585005)
+  - PRs tree-optimization/43544, target/41787, target/43154, middle-end/42431,
+	rtl-optimization/43413
+- add @GCC_4.5.0 symbols to libgcc_s
+  - PRs target/43383, other/25232
+- force DW_CFA_def_cfa instead of DW_CFA_def_cfa_{register,offset{,_sf}}
+  after DW_CFA_def_cfa_expression
+- make sure _Unwind_DebugHook uses standard calling convention
+- #pragma omp for fix (PR c/43893)
+
 * Thu Apr 22 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-18
 - update from gcc-4_4-branch
   - PRs fortran/43339, fortran/43836, libgcj/40860, libgomp/43569,
