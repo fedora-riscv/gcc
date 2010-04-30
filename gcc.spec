@@ -1,9 +1,9 @@
-%global DATE 20100427
-%global SVNREV 158796
-%global gcc_version 4.4.3
+%global DATE 20100430
+%global SVNREV 158946
+%global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 19
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -502,7 +502,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.4\.4/4.4.3/' gcc/BASE-VER
+sed -i -e 's/4\.4\.5/4.4.4/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 # Default to -gdwarf-3 rather than -gdwarf-2
@@ -1878,6 +1878,12 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri Apr 30 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-1
+- update from gcc-4_4-branch
+  - GCC 4.4.4 release
+- VTA backports
+  - PR target/43921
+
 * Tue Apr 27 2010 Jakub Jelinek <jakub@redhat.com> 4.4.3-19
 - Power7 backports (#584993, #585005)
   - PRs tree-optimization/43544, target/41787, target/43154, middle-end/42431,
