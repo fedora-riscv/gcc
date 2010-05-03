@@ -1,9 +1,9 @@
-%global DATE 20100430
-%global SVNREV 158946
+%global DATE 20100503
+%global SVNREV 159002
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -176,7 +176,6 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-no-add-needed.patch
-Patch21: gcc44-pr43893.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -488,7 +487,6 @@ which are required to compile with the GNAT.
 %if 0%{?fedora} >= 13
 %patch20 -p0 -b .no-add-needed~
 %endif
-%patch21 -p0 -b .pr43893~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1878,6 +1876,9 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Mon May  3 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-2
+- fix VTA ICE on subregs of @GOTPCREL symbols (#588154, PR debug/43972)
+
 * Fri Apr 30 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-1
 - update from gcc-4_4-branch
   - GCC 4.4.4 release
