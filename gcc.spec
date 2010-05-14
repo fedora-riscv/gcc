@@ -1,9 +1,9 @@
-%global DATE 20100503
-%global SVNREV 159002
+%global DATE 20100514
+%global SVNREV 159406
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -1876,6 +1876,21 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Fri May 14 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-3
+- update from gcc-4_4-branch
+  - PRs debug/43370, documentation/44016, fortran/44036, middle-end/43671,
+	middle-end/44085, target/43744
+- make comdat guards of STB_GNU_UNIQUE variables also STB_GNU_UNIQUE
+  (PR c++/44059)
+- VTA backports
+  - PRs debug/42278, debug/43950, debug/43983,debug/44104, debug/44136
+  - fix up .debug_macinfo (#479914)
+- asm goto fixes (PRs middle-end/44071, middle-end/42739)
+- fix up -march=native (PR target/44046)
+- C++ -Wunused-but-set-{variable,parameter} support, fixes for C support
+  (#538266, PRs c++/44062, c/43981)
+- -march=bdver1 and -mtune=bdver1 support
+
 * Mon May  3 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-2
 - fix VTA ICE on subregs of @GOTPCREL symbols (#588154, PR debug/43972)
 
