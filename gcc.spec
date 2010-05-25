@@ -1,9 +1,9 @@
-%global DATE 20100518
-%global SVNREV 159543
+%global DATE 20100525
+%global SVNREV 159836
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -44,7 +44,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.1
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions
@@ -165,7 +165,6 @@ Patch5: gcc44-ppc32-retaddr.patch
 Patch6: gcc44-pr33763.patch
 Patch7: gcc44-rh330771.patch
 Patch8: gcc44-rh341221.patch
-Patch9: gcc44-java-debug-iface-type.patch
 Patch10: gcc44-i386-libgomp.patch
 Patch11: gcc44-sparc-config-detection.patch
 Patch12: gcc44-libgomp-omp_h-multilib.patch
@@ -176,7 +175,7 @@ Patch17: gcc44-pr38757.patch
 Patch18: gcc44-libstdc++-docs.patch
 Patch19: gcc44-ppc64-aixdesc.patch
 Patch20: gcc44-no-add-needed.patch
-Patch21: gcc44-debug-sra-be.patch
+Patch21: gcc44-pr44199.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -471,7 +470,6 @@ which are required to compile with the GNAT.
 %patch6 -p0 -b .pr33763~
 %patch7 -p0 -b .rh330771~
 %patch8 -p0 -b .rh341221~
-%patch9 -p0 -b .java-debug-iface-type~
 %patch10 -p0 -b .i386-libgomp~
 %patch11 -p0 -b .sparc-config-detection~
 %patch12 -p0 -b .libgomp-omp_h-multilib~
@@ -488,7 +486,7 @@ which are required to compile with the GNAT.
 %if 0%{?fedora} >= 13
 %patch20 -p0 -b .no-add-needed~
 %endif
-%patch21 -p0 -b .debug-sra-be~
+%patch21 -p0 -b .pr44199~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -1878,6 +1876,14 @@ fi
 %doc rpm.doc/changelogs/libmudflap/ChangeLog*
 
 %changelog
+* Tue May 25 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-5
+- update from gcc-4_4-branch
+  - PRs bootstrap/43870, debug/44205, target/43733, target/44074,
+	target/44202, target/44245, tree-optimization/43845
+  - fix cv-qual issue with function types (#593750, PR c++/44193)
+- VTA backports
+  - PRs debug/41371, debug/42801, debug/43260, debug/43521
+
 * Tue May 18 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-4
 - update from gcc-4_4-branch
   - PR fortran/44135
