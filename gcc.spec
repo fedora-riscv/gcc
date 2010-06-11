@@ -1,9 +1,9 @@
-%global DATE 20100608
-%global SVNREV 160426
+%global DATE 20100611
+%global SVNREV 160596
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -178,6 +178,8 @@ Patch20: gcc44-no-add-needed.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
+Patch1002: fastjar-0.97-filename0.patch
+Patch1003: fastjar-CVE-2010-0831.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -519,6 +521,8 @@ tar xzf %{SOURCE4}
 
 %patch1000 -p0 -b .fastjar-0.97-segfault~
 %patch1001 -p0 -b .fastjar-0.97-len1~
+%patch1002 -p0 -b .fastjar-0.97-filename0~
+%patch1003 -p0 -b .fastjar-CVE-2010-0831~
 
 %if %{bootstrap_java}
 tar xjf %{SOURCE10}
@@ -1994,6 +1998,15 @@ fi
 %endif
 
 %changelog
+* Fri Jun 11 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-8
+- update from gcc-4_4-branch
+  - fix demangler (PR other/43838)
+- VTA backports
+  - further var-tracking speedup (#598310, PR debug/41371)
+- for typedefs in non-template classes adjust underlying type to
+  emit proper debug info (#601893)
+- fix up fastjar directory traversal bugs (CVE-2010-0831)
+
 * Tue Jun  8 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-7
 - update from gcc-4_4-branch
   - PRs c++/43555, fortran/42900, fortran/44360, libfortran/41169,

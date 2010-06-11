@@ -2,8 +2,8 @@
 
 	* jartool.c (read_entries): Properly zero-terminate filename.
 
---- fastjar/jartool.c	6 Sep 2009 22:16:00 -0000	1.59
-+++ fastjar/jartool.c	1 Mar 2010 15:38:43 -0000	1.60
+--- fastjar-0.97/jartool.c	6 Sep 2009 22:16:00 -0000	1.59
++++ fastjar-0.97/jartool.c	1 Mar 2010 15:38:43 -0000	1.60
 @@ -790,6 +790,7 @@ int read_entries (int fd)
  		   progname, jarfile);
  	  return 1;
