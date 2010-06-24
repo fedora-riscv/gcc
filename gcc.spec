@@ -1,9 +1,9 @@
-%global DATE 20100611
-%global SVNREV 160596
+%global DATE 20100624
+%global SVNREV 161335
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -164,22 +164,25 @@ Patch4: gcc44-java-nomulti.patch
 Patch5: gcc44-ppc32-retaddr.patch
 Patch6: gcc44-pr33763.patch
 Patch7: gcc44-rh330771.patch
-Patch8: gcc44-rh341221.patch
-Patch10: gcc44-i386-libgomp.patch
-Patch11: gcc44-sparc-config-detection.patch
-Patch12: gcc44-libgomp-omp_h-multilib.patch
-Patch13: gcc44-libtool-no-rpath.patch
-Patch14: gcc44-cloog-dl.patch
-Patch16: gcc44-unwind-debug-hook.patch
-Patch17: gcc44-pr38757.patch
-Patch18: gcc44-libstdc++-docs.patch
-Patch19: gcc44-ppc64-aixdesc.patch
-Patch20: gcc44-no-add-needed.patch
+Patch8: gcc44-i386-libgomp.patch
+Patch9: gcc44-sparc-config-detection.patch
+Patch10: gcc44-libgomp-omp_h-multilib.patch
+Patch11: gcc44-libtool-no-rpath.patch
+Patch12: gcc44-cloog-dl.patch
+Patch13: gcc44-unwind-debug-hook.patch
+Patch14: gcc44-pr38757.patch
+Patch15: gcc44-libstdc++-docs.patch
+Patch16: gcc44-ppc64-aixdesc.patch
+Patch17: gcc44-no-add-needed.patch
+Patch18: gcc44-pr44492.patch
+Patch19: gcc44-pr44542.patch
+Patch20: gcc44-pr44610.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
 Patch1002: fastjar-0.97-filename0.patch
 Patch1003: fastjar-CVE-2010-0831.patch
+Patch1004: fastjar-man.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -496,23 +499,25 @@ GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
 %patch5 -p0 -b .ppc32-retaddr~
 %patch6 -p0 -b .pr33763~
 %patch7 -p0 -b .rh330771~
-%patch8 -p0 -b .rh341221~
-%patch10 -p0 -b .i386-libgomp~
-%patch11 -p0 -b .sparc-config-detection~
-%patch12 -p0 -b .libgomp-omp_h-multilib~
-%patch13 -p0 -b .libtool-no-rpath~
+%patch8 -p0 -b .i386-libgomp~
+%patch9 -p0 -b .sparc-config-detection~
+%patch10 -p0 -b .libgomp-omp_h-multilib~
+%patch11 -p0 -b .libtool-no-rpath~
 %if %{build_cloog}
-%patch14 -p0 -b .cloog-dl~
+%patch12 -p0 -b .cloog-dl~
 %endif
-%patch16 -p0 -b .unwind-debug-hook~
-%patch17 -p0 -b .pr38757~
+%patch13 -p0 -b .unwind-debug-hook~
+%patch14 -p0 -b .pr38757~
 %if %{build_libstdcxx_docs}
-%patch18 -p0 -b .libstdc++-docs~
+%patch15 -p0 -b .libstdc++-docs~
 %endif
-%patch19 -p0 -b .ppc64-aixdesc~
+%patch16 -p0 -b .ppc64-aixdesc~
 %if 0%{?fedora} >= 13
-%patch20 -p0 -b .no-add-needed~
+%patch17 -p0 -b .no-add-needed~
 %endif
+%patch18 -p0 -b .pr44492~
+%patch19 -p0 -b .pr44542~
+%patch20 -p0 -b .pr44610~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -523,6 +528,7 @@ tar xzf %{SOURCE4}
 %patch1001 -p0 -b .fastjar-0.97-len1~
 %patch1002 -p0 -b .fastjar-0.97-filename0~
 %patch1003 -p0 -b .fastjar-CVE-2010-0831~
+%patch1004 -p0 -b .fastjar-man~
 
 %if %{bootstrap_java}
 tar xjf %{SOURCE10}
@@ -1929,7 +1935,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib64/adalib/libgnarl.a
 %endif
 %ifnarch sparcv9 sparc64 ppc ppc64
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/adalib
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/adalib
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/adalib/libgnat.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/adalib/libgnarl.a
 %endif
@@ -1998,6 +2004,25 @@ fi
 %endif
 
 %changelog
+* Thu Jun 24 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-9
+- update from gcc-4_4-branch
+  - PRs bootstrap/44426, bootstrap/44544, c++/44627, fortran/44536,
+	libgcj/44216, target/39690, target/43740, target/44261, target/44481,
+	target/44534, target/44615, testsuite/32843, testsuite/43739,
+	tree-optimization/44508
+- VTA backports
+  - PRs debug/43650, debug/44181, debug/44247
+- -Wunused-but-set-* ->*/.* fix (PR c++/44619)
+- undeprecate #ident and #sccs (#606069)
+%if 0%{?fedora} >= 14
+- fix up libgnat-static
+%endif
+- fixup dates in generated man pages even for fastjar and gcc/ man pages
+- don't realign stack on x86/x86-64 just because a DECL_ALIGN was set
+  too high by expansion code (#603924, PR target/44542)
+- don't allow side-effects in inline-asm memory operands unless
+  < or > is present in operand's constraint (#602359, PR middle-end/44492)
+
 * Fri Jun 11 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-8
 - update from gcc-4_4-branch
   - fix demangler (PR other/43838)
