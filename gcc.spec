@@ -1,9 +1,9 @@
-%global DATE 20100630
-%global SVNREV 161589
+%global DATE 20100707
+%global SVNREV 161902
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 11
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -175,6 +175,8 @@ Patch15: gcc44-libstdc++-docs.patch
 Patch16: gcc44-ppc64-aixdesc.patch
 Patch17: gcc44-no-add-needed.patch
 Patch18: gcc44-pr44542.patch
+Patch19: gcc44-rh610785.patch
+Patch20: gcc44-rh578382.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -514,6 +516,8 @@ GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
 %patch17 -p0 -b .no-add-needed~
 %endif
 %patch18 -p0 -b .pr44542~
+%patch19 -p0 -b .rh610785~
+%patch20 -p0 -b .rh578382~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2000,6 +2004,18 @@ fi
 %endif
 
 %changelog
+* Wed Jul  7 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-11
+- update from gcc-4_4-branch
+  - PRs target/44597, target/44705
+- VTA backports
+  - PR c++/44808
+  - avoid outputting invalid registers in debug info (#610455)
+- -Wunused-but-set-* vector assignment fix (PR c++/44780)
+- fix PowerPC address reloading for inline-asms (#608768, PR target/44707)
+- fix predictive commoning (#609488, PR tree-optimization/40421)
+- fix SRA not to do useless sign-extensions that confuses ivopts (#610785)
+- fix IPP handling in libgcj (#578382)
+
 * Wed Jun 30 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-10
 - update from gcc-4_4-branch
   - PRs fortran/43841, fortran/43843, tree-optimization/44683
