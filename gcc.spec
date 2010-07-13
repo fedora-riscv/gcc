@@ -1,9 +1,9 @@
-%global DATE 20100707
-%global SVNREV 161902
+%global DATE 20100713
+%global SVNREV 162154
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 11
+%global gcc_release 12
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -176,7 +176,6 @@ Patch16: gcc44-ppc64-aixdesc.patch
 Patch17: gcc44-no-add-needed.patch
 Patch18: gcc44-pr44542.patch
 Patch19: gcc44-rh610785.patch
-Patch20: gcc44-rh578382.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -517,7 +516,6 @@ GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
 %endif
 %patch18 -p0 -b .pr44542~
 %patch19 -p0 -b .rh610785~
-%patch20 -p0 -b .rh578382~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2004,6 +2002,13 @@ fi
 %endif
 
 %changelog
+* Tue Jul 13 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-12
+- update from gcc-4_4-branch
+  - PRs fortran/44582, fortran/44773, fortran/44847, pch/14940, target/33743
+- fix inline-asm check for auto-inc-dec operands (PR testsuite/44701)
+- use DW_OP_const[48]u instead of DW_OP_addr for DW_OP_GNU_push_tls_address
+  operand
+
 * Wed Jul  7 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-11
 - update from gcc-4_4-branch
   - PRs target/44597, target/44705
