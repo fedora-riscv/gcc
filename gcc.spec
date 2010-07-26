@@ -1,9 +1,9 @@
-%global DATE 20100713
-%global SVNREV 162154
+%global DATE 20100726
+%global SVNREV 162526
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 12
+%global gcc_release 13
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -176,6 +176,7 @@ Patch16: gcc44-ppc64-aixdesc.patch
 Patch17: gcc44-no-add-needed.patch
 Patch18: gcc44-pr44542.patch
 Patch19: gcc44-rh610785.patch
+Patch20: gcc44-rh533181.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -516,6 +517,7 @@ GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
 %endif
 %patch18 -p0 -b .pr44542~
 %patch19 -p0 -b .rh610785~
+%patch20 -p0 -b .rh533181~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2002,6 +2004,15 @@ fi
 %endif
 
 %changelog
+* Mon Jul 26 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-13
+- update from gcc-4_4-branch
+  - PRs fortran/45019, target/42869, target/44942, testsuite/38946
+- VTA backports
+  - PRs debug/45015, bootstrap/45028
+  - var-tracking improvements (#616050, PR debug/45003, PR debug/45006)
+- fix fortran SELECT CASE handling with CHARACTER type (PR fortran/40206)
+- small OpenMP debug info improvements (#533181)
+
 * Tue Jul 13 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-12
 - update from gcc-4_4-branch
   - PRs fortran/44582, fortran/44773, fortran/44847, pch/14940, target/33743
