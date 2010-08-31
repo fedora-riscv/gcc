@@ -3,7 +3,7 @@
 %global gcc_version 4.4.4
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 13
+%global gcc_release 14
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -17,11 +17,7 @@
 %global build_ada 0
 %endif
 %global build_java 1
-%ifarch %{sparc}
-%global build_cloog 0
-%else
 %global build_cloog 1
-%endif
 %global build_libstdcxx_docs 1
 # If you don't have already a usable gcc-java and libgcj for your arch,
 # do on some arch which has it rpmbuild -bc --with java_tar gcc41.spec
@@ -2004,6 +2000,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 31 2010 Dennis Gilmore <dennis@ausil.us> 4.4.4-14
+- enable cloog on sparc arches
+
 * Mon Jul 26 2010 Jakub Jelinek <jakub@redhat.com> 4.4.4-13
 - update from gcc-4_4-branch
   - PRs fortran/45019, target/42869, target/44942, testsuite/38946
