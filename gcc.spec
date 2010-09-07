@@ -1,9 +1,9 @@
-%global DATE 20100812
-%global SVNREV 163197
+%global DATE 20100907
+%global SVNREV 163943
 %global gcc_version 4.5.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -1952,6 +1952,17 @@ fi
 %endif
 
 %changelog
+* Tue Sep  7 2010 Jakub Jelinek <jakub@redhat.com> 4.5.1-3
+- update from gcc-4_5-branch
+  - PRs c++/44991, c++/45315, debug/45500, fortran/45019, fortran/45186,
+	fortran/45344, fortran/45489, fortran/45530, libstdc++/45283,
+	lto/45496, middle-end/44632, middle-end/45292, middle-end/45423,
+	middle-end/45458, middle-end/45484, rtl-optimization/44858,
+	rtl-optimization/45353, rtl-optimization/45400, target/41484,
+	target/45070, target/45296, target/45327, tree-optimization/45241,
+	tree-optimization/45260, tree-optimization/45393
+  - fix TYPENAME_TYPE handling (#620095, PRs c++/45200, c++/45293, c++/45558)
+
 * Tue Aug 31 2010 Dennis Gilmore <dennis@ausil.us> 4.5.1-2
 - enable cloog on sparc arches
 
