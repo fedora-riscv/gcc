@@ -1,9 +1,9 @@
-%global DATE 20100907
-%global SVNREV 163943
+%global DATE 20100924
+%global SVNREV 164601
 %global gcc_version 4.5.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -1952,6 +1952,24 @@ fi
 %endif
 
 %changelog
+* Fri Sep 24 2010 Jakub Jelinek <jakub@redhat.com> 4.5.1-4
+- update from gcc-4_5-branch
+  - PRs bootstrap/43847, debug/43628, fortran/45081, fortran/45595,
+	java/44095, libfortran/45532, libstdc++/45398, middle-end/40386,
+	middle-end/44554, middle-end/44763, middle-end/45312,
+	middle-end/45567, middle-end/45678, middle-end/45704, other/45443,
+	rtl-optimization/41085, rtl-optimization/41087,
+	rtl-optimization/42775, rtl-optimization/44919,
+	rtl-optimization/45051, rtl-optimization/45593,
+	rtl-optimization/45728, target/35664, target/36502, target/40959,
+	target/42313, target/44651, target/45694, target/45726,
+	tree-optimization/45623, tree-optimization/45709
+  - fix ICE in dwarf2out_finish (#632847, PR debug/45660)
+  - fix combiner (#634757, PR rtl-optimization/45695)
+- yet another -Wunused-but-set* fix for C++ consts in
+  templates (PR c++/45588)
+- emit slightly more compact .eh_frame
+
 * Tue Sep  7 2010 Jakub Jelinek <jakub@redhat.com> 4.5.1-3
 - update from gcc-4_5-branch
   - PRs c++/44991, c++/45315, debug/45500, fortran/45019, fortran/45186,
