@@ -176,9 +176,8 @@ Patch14: gcc44-pr38757.patch
 Patch15: gcc44-libstdc++-docs.patch
 Patch16: gcc44-ppc64-aixdesc.patch
 Patch17: gcc44-no-add-needed.patch
-Patch18: gcc44-pr44542.patch
-Patch19: gcc44-rh610785.patch
-Patch20: gcc44-rh533181.patch
+Patch18: gcc44-rh610785.patch
+Patch19: gcc44-rh533181.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -589,9 +588,8 @@ GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
 %if 0%{?fedora} >= 13
 %patch17 -p0 -b .no-add-needed~
 %endif
-%patch18 -p0 -b .pr44542~
-%patch19 -p0 -b .rh610785~
-%patch20 -p0 -b .rh533181~
+%patch18 -p0 -b .rh610785~
+%patch19 -p0 -b .rh533181~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
