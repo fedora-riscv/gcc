@@ -1,9 +1,9 @@
-%global DATE 20100924
-%global SVNREV 164601
+%global DATE 20101112
+%global SVNREV 166681
 %global gcc_version 4.5.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -499,6 +499,9 @@ tar xjf %{SOURCE10}
 
 sed -i -e 's/4\.5\.2/4.5.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
+%if 0%{?fedora} <= 14
+sed -i -e 's/#define EMIT_IMPLICIT_PTR 1/#define EMIT_IMPLICIT_PTR 0/' gcc/cfgexpand.c
+%endif
 
 # Default to -gdwarf-3 rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(3)/' gcc/common.opt
@@ -1952,6 +1955,35 @@ fi
 %endif
 
 %changelog
+* Fri Nov 12 2010 Jakub Jelinek <jakub@redhat.com> 4.5.1-5
+- update from gcc-4_5-branch
+  - PRs bootstrap/44455, bootstrap/44621, c++/45894, c++/45983, c++/46024,
+	c++/46160, c/44772, c/45969, debug/42487, debug/44832, debug/45656,
+	debug/45939, fortran/42169, fortran/45748, fortran/46007,
+	fortran/46140, fortran/46152, java/43839, libffi/45677,
+	libfortran/45710, libgfortran/46010, libgfortran/46373,
+	libstdc++/45403, libstdc++/45711, libstdc++/45924, libstdc++/45999,
+	middle-end/43690, middle-end/44569, middle-end/45569,
+	middle-end/45869, middle-end/46019, middle-end/46419,
+	rtl-opt/46226, rtl-optimization/43358, rtl-optimization/44691,
+	rtl-optimization/46237, target/42070, target/43715, target/43764,
+	target/44452, target/45820, target/45843, target/45946, target/46098,
+	target/46153, target/46419, tree-optimization/45314,
+	tree-optimization/45752, tree-optimization/45854,
+	tree-optimization/45902, tree-optimization/45982,
+	tree-optimization/46099, tree-optimization/46107,
+	tree-optimization/46165, tree-optimization/46167,
+	tree-optimization/46177, tree-optimization/46355
+- -Wunused-but-set* fix for computed goto (PR c/46015)
+- fix -Wunused-but-set* for ObjC and ObjC++
+- VTA backports
+  - PRs bootstrap/43994, bootstrap/45630, debug/43478, debug/44023,
+	debug/46171, debug/46252, debug/46255, rtl-optimization/45162,
+	tree-optimization/46066
+%if 0%{?fedora} > 14
+- DW_OP_GNU_implicit_pointer support
+%endif
+
 * Fri Sep 24 2010 Jakub Jelinek <jakub@redhat.com> 4.5.1-4
 - update from gcc-4_5-branch
   - PRs bootstrap/43847, debug/43628, fortran/45081, fortran/45595,
