@@ -1,8 +1,8 @@
-%global DATE 20101001
-%global SVNREV 164888
+%global DATE 20101113
+%global SVNREV 166696
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %if 0%{?fedora} >= 13 || 0%{?rhel} >= 6
@@ -2173,6 +2173,21 @@ fi
 %endif
 
 %changelog
+* Sat Nov 13 2010 Jakub Jelinek <jakub@redhat.com> 4.4.5-2
+- update from gcc-4_4-branch
+  - PRs bootstrap/44621, c++/18451, c++/40738, c++/46024, fortran/33595,
+	fortran/42169, fortran/46140, libfortran/45710, libgfortran/46010,
+	libgfortran/46373, middle-end/43690, middle-end/44569,
+	middle-end/46019, middle-end/46419, target/45820, target/45946,
+	target/46419, testsuite/40858, testsuite/45543,
+	tree-optimization/46107
+- fix asm goto handling (PR rtl-opt/46226)
+- -Wunused-but-set* fix for computed goto (PR c/46015)
+- fix -Wunused-but-set* for ObjC and ObjC++
+- VTA backports
+  - PRs debug/45656, debug/45939, debug/46252, debug/46255,
+	tree-optimization/46066, tree-optimization/46099
+
 * Fri Oct  1 2010 Jakub Jelinek <jakub@redhat.com> 4.4.5-1
 - update from gcc-4_4-branch
   - GCC 4.4.5 release
