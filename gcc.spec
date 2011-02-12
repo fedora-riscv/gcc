@@ -1,9 +1,9 @@
-%global DATE 20110205
-%global SVNREV 169849
+%global DATE 20110212
+%global SVNREV 170087
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.6
+%global gcc_release 0.7
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -45,7 +45,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -167,7 +167,7 @@ Patch18: gcc46-unwind-debughook-sdt.patch
 Patch19: gcc46-ppl-0.10.patch
 Patch20: gcc46-Woverlength-string.patch
 Patch21: gcc46-Woverlength-string-asm.patch
-Patch22: gcc46-pr47610.patch
+Patch22: gcc46-pr47620.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -601,7 +601,7 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch19 -p0 -b .ppl-0.10~
 %patch20 -p0 -b .Woverlength-string~
 %patch21 -p0 -b .Woverlength-string-asm~
-%patch22 -p0 -b .pr47610~
+%patch22 -p0 -b .pr47620~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2337,8 +2337,30 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
-* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 4.6.0-0.6.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+* Sat Feb 12 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.7
+- update from trunk
+  - PRs binutils/12283, c++/47511, debug/42631, debug/47684, driver/47678,
+	fortran/42434, fortran/45290, fortran/45586, fortran/47352,
+	fortran/47463, fortran/47550, fortran/47574, fortran/47583,
+	fortran/47592, fortran/47637, libffi/46661, libfortran/47571,
+	libgfortran/47567, libstdc++/43863, libstdc++/47433,
+	libstdc++/47628, libstdc++/47668, lto/47225, lto/47241,
+	middle-end/45505, middle-end/47610, middle-end/47639,
+	middle-end/47646, target/42333, target/44606, target/45701,
+	target/46481, target/46610, target/46997, target/47032,
+	target/47324, target/47534, target/47548, target/47558,
+	target/47629, target/47636, target/47665, target/47683,
+	testsuite/47400, testsuite/47622, tree-optimization/42893,
+	tree-optimization/46834, tree-optimization/46994,
+	tree-optimization/46995, tree-optimization/47420,
+	tree-optimization/47615, tree-optimization/47621,
+	tree-optimization/47632, tree-optimization/47641,
+	tree-optimization/47664, tree-optimization/47707
+  - fix postreload on auto inc/decrement instructions (#675787,
+    PR rtl-optimization/47614)
+  - fix a hang in VRP (#676473, PR tree-optimization/47677)
+  - fix STL headers with -fno-operator-names (#676910, PR libstdc++/47662)
+- fix scheduling of debug insns (#675711, PR debug/47620)
 
 * Sat Feb  5 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.6
 - update from trunk
