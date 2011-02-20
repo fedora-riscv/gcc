@@ -1,9 +1,9 @@
-%global DATE 20110212
-%global SVNREV 170087
+%global DATE 20110220
+%global SVNREV 170335
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.7
+%global gcc_release 0.8
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -167,7 +167,6 @@ Patch18: gcc46-unwind-debughook-sdt.patch
 Patch19: gcc46-ppl-0.10.patch
 Patch20: gcc46-Woverlength-string.patch
 Patch21: gcc46-Woverlength-string-asm.patch
-Patch22: gcc46-pr47620.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -601,7 +600,6 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch19 -p0 -b .ppl-0.10~
 %patch20 -p0 -b .Woverlength-string~
 %patch21 -p0 -b .Woverlength-string-asm~
-%patch22 -p0 -b .pr47620~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2337,6 +2335,26 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Sun Feb 20 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.8
+- update from trunk
+  - PRs ada/41929, bootstrap/47736, bootstrap/47807, c++/46807,
+	c++/47172, c++/47208, c++/47326, c++/47482, c++/47503,
+	c++/47704, c++/47783, c++/47795, c/47809, debug/47630,
+	debug/47780, driver/45731, driver/47390, driver/47787,
+	fortran/47348, fortran/47349, fortran/47569, fortran/47633,
+	fortran/47642, fortran/47648, fortran/47716, fortran/47728,
+	fortran/47730, fortran/47745, fortran/47750, fortran/47767,
+	fortran/47768, fortran/47775, fortran/47789, libfortran/47757,
+	libgfortran/47667, libgomp/47731, libgomp/47758, libgomp/47804,
+	libjava/47484, libstdc++/47709, libstdc++/47724, libstdc++/47773,
+	libstdc++/47776, lto/47647, lto/47798, middle-end/47581,
+	middle-end/47725, middle-end/47788, pch/14940,
+	rtl-optimization/46178, target/43653, target/45808, target/47696,
+	target/47755, target/47792, tree-optimization/46494,
+	tree-optimization/46620, tree-optimization/47737,
+	tree-optimization/47738, tree-optimization/47743
+  - fix i?86 shift + plus peephole2 (#678530, PR target/47800)
+
 * Sat Feb 12 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.7
 - update from trunk
   - PRs binutils/12283, c++/47511, debug/42631, debug/47684, driver/47678,
