@@ -1,9 +1,9 @@
-%global DATE 20110220
-%global SVNREV 170335
+%global DATE 20110223
+%global SVNREV 170435
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.8
+%global gcc_release 0.9
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -112,7 +112,7 @@ BuildRequires: ppl >= 0.10, ppl-devel >= 0.10, cloog-ppl >= 0.15, cloog-ppl-deve
 %endif
 %if %{build_libstdcxx_docs}
 BuildRequires: doxygen >= 1.7.1
-BuildRequires: graphviz
+BuildRequires: graphviz, urw-fonts
 %endif
 Requires: cpp = %{version}-%{release}
 # Need .eh_frame ld optimizations
@@ -1073,6 +1073,9 @@ if [ "%{_lib}" != "lib" ]; then
   sed '/^libdir/s/lib$/%{_lib}/' %{buildroot}%{_prefix}/lib/pkgconfig/libgcj-*.pc \
     > %{buildroot}%{_prefix}/%{_lib}/pkgconfig/`basename %{buildroot}%{_prefix}/lib/pkgconfig/libgcj-*.pc`
 fi
+
+rm -f %{buildroot}%{_prefix}/share/gcc-%{gcc_version}/python/aotcompile*
+rm -f %{buildroot}%{_prefix}/share/gcc-%{gcc_version}/python/classfile*
 %endif
 
 mkdir -p %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}
@@ -2335,6 +2338,21 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Feb 22 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.9
+- update from trunk
+  - PRs bootstrap/47827, c++/44118, c++/46394, c++/46472, c++/46831,
+	c++/47199, c++/47207, c++/47242, c++/47666, c++/47703, c++/47833,
+	doc/47848, fortran/41359, fortran/44945, fortran/45077,
+	fortran/45743, fortran/46818, fortran/47797, libfortran/47694,
+	libfortran/47830, libgomp/47854, lto/47820, lto/47822,
+	objc++/47711, objc/47784, rtl-optimization/46002,
+	rtl-optimization/47763, target/47822, target/47840,
+	tree-optimization/47835
+  - fix handling of ObjC pointer to struct with flexible array member
+    in interfaces (#678928, PR objc/47832)
+- temporarily BuildRequire urw-fonts until graphviz is fixed (#677114)
+- don't ship aotcompile.py* and classfile.py* in libstdc++ (#678982)
+
 * Sun Feb 20 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.8
 - update from trunk
   - PRs ada/41929, bootstrap/47736, bootstrap/47807, c++/46807,
