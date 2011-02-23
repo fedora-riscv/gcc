@@ -1,9 +1,9 @@
 %global DATE 20110223
-%global SVNREV 170435
+%global SVNREV 170444
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.9
+%global gcc_release 0.10
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -1074,8 +1074,6 @@ if [ "%{_lib}" != "lib" ]; then
     > %{buildroot}%{_prefix}/%{_lib}/pkgconfig/`basename %{buildroot}%{_prefix}/lib/pkgconfig/libgcj-*.pc`
 fi
 
-rm -f %{buildroot}%{_prefix}/share/gcc-%{gcc_version}/python/aotcompile*
-rm -f %{buildroot}%{_prefix}/share/gcc-%{gcc_version}/python/classfile*
 %endif
 
 mkdir -p %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}
@@ -1807,7 +1805,8 @@ fi
 %dir %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/
 %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc*gdb.py*
 %dir %{_prefix}/share/gcc-%{gcc_version}
-%{_prefix}/share/gcc-%{gcc_version}/python
+%dir %{_prefix}/share/gcc-%{gcc_version}/python
+%{_prefix}/share/gcc-%{gcc_version}/python/libstdcxx
 
 %files -n libstdc++-devel
 %defattr(-,root,root,-)
@@ -2338,6 +2337,11 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Feb 22 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.10
+- update from trunk
+  - PRs c++/46868, tree-optimization/47838, tree-optimization/47849
+- don't ship aotcompile.py* and classfile.py* in libstdc++ (#678982)
+
 * Wed Feb 22 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.9
 - update from trunk
   - PRs bootstrap/47827, c++/44118, c++/46394, c++/46472, c++/46831,
@@ -2351,7 +2355,6 @@ fi
   - fix handling of ObjC pointer to struct with flexible array member
     in interfaces (#678928, PR objc/47832)
 - temporarily BuildRequire urw-fonts until graphviz is fixed (#677114)
-- don't ship aotcompile.py* and classfile.py* in libstdc++ (#678982)
 
 * Sun Feb 20 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.8
 - update from trunk
