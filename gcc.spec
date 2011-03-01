@@ -1,9 +1,9 @@
-%global DATE 20110223
-%global SVNREV 170444
+%global DATE 20110301
+%global SVNREV 170590
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.10
+%global gcc_release 0.11
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -143,7 +143,7 @@ Obsoletes: gcc-gnat < %{version}-%{release}
 Obsoletes: libgnat < %{version}-%{release}
 %endif
 %if %{build_cloog}
-Requires: cloog-ppl >= 0.15
+#Requires: cloog-ppl >= 0.15
 %endif
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
@@ -167,6 +167,7 @@ Patch18: gcc46-unwind-debughook-sdt.patch
 Patch19: gcc46-ppl-0.10.patch
 Patch20: gcc46-Woverlength-string.patch
 Patch21: gcc46-Woverlength-string-asm.patch
+Patch22: gcc46-pr47858.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -600,6 +601,7 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch19 -p0 -b .ppl-0.10~
 %patch20 -p0 -b .Woverlength-string~
 %patch21 -p0 -b .Woverlength-string-asm~
+%patch22 -p0 -b .pr47858~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2337,6 +2339,21 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Mar  1 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.11
+- update from trunk
+  - PRs c++/46466, c++/47873, c++/47897, c++/47906, debug/28047,
+	fortran/40850, fortran/47839, fortran/47846, fortran/47872,
+	fortran/47878, fortran/47886, fortran/47894, libfortran/45165,
+	libfortran/47802, libgfortran/47778, libgfortran/47933,
+	libobjc/47922, libstdc++/42622, libstdc++/47921, lto/46911,
+	lto/47924, middle-end/46790, middle-end/47903, target/42240,
+	target/45261, target/46898, testsuite/47801, tree-optimization/45470
+  - fix stack slot padding reusal (#679924, PR middle-end/47893)
+  - fix ICE on DECL_PARM_INDEX in cp_tree_equal (#680603, PR c++/47904)
+- disable IPA-SRA at -O2/-Os (#668489, PR debug/47858)
+- temporarily disable cloog-ppl Requires, so that ppl and cloog-ppl can
+  be bumped
+
 * Wed Feb 22 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.10
 - update from trunk
   - PRs c++/46868, tree-optimization/47838, tree-optimization/47849
