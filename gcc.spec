@@ -1,9 +1,9 @@
-%global DATE 20110301
-%global SVNREV 170590
+%global DATE 20110304
+%global SVNREV 170670
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.11
+%global gcc_release 0.12
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -108,7 +108,12 @@ BuildRequires: gcc-gnat >= 3.1, libgnat >= 3.1
 BuildRequires: libunwind >= 0.98
 %endif
 %if %{build_cloog}
-BuildRequires: ppl >= 0.10, ppl-devel >= 0.10, cloog-ppl >= 0.15, cloog-ppl-devel >= 0.15
+%if 0%{?fedora} >= 15
+BuildRequires: ppl >= 0.11.2, ppl-devel >= 0.11.2
+%else
+BuildRequires: ppl >= 0.10, ppl-devel >= 0.10
+%endif
+BuildRequires: cloog-ppl >= 0.15, cloog-ppl-devel >= 0.15
 %endif
 %if %{build_libstdcxx_docs}
 BuildRequires: doxygen >= 1.7.1
@@ -143,7 +148,7 @@ Obsoletes: gcc-gnat < %{version}-%{release}
 Obsoletes: libgnat < %{version}-%{release}
 %endif
 %if %{build_cloog}
-#Requires: cloog-ppl >= 0.15
+Requires: cloog-ppl >= 0.15
 %endif
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
@@ -598,7 +603,9 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %endif
 %patch17 -p0 -b .no-add-needed~
 %patch18 -p0 -b .unwind-debughook-sdt~
+%if 0%{?fedora} < 15
 %patch19 -p0 -b .ppl-0.10~
+%endif
 %patch20 -p0 -b .Woverlength-string~
 %patch21 -p0 -b .Woverlength-string-asm~
 %patch22 -p0 -b .pr47858~
@@ -2339,6 +2346,13 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Mar  4 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.12
+- update from trunk
+  - PRs c++/46159, c++/46282, c++/47200, c++/47774, c++/47851, c++/47950,
+	c++/47974, c/47963, libstdc++/47913, middle-end/47283,
+	rtl-optimization/47925, target/47935, tree-optimization/47890
+- rebuilt against ppl 0.11.2, reenable cloog-ppl Requires
+
 * Tue Mar  1 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.11
 - update from trunk
   - PRs c++/46466, c++/47873, c++/47897, c++/47906, debug/28047,
