@@ -1,9 +1,9 @@
-%global DATE 20110304
-%global SVNREV 170670
+%global DATE 20110315
+%global SVNREV 171001
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.12
+%global gcc_release 0.13
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -168,11 +168,8 @@ Patch12: gcc46-cloog-dl.patch
 Patch14: gcc46-pr38757.patch
 Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
-Patch18: gcc46-unwind-debughook-sdt.patch
-Patch19: gcc46-ppl-0.10.patch
-Patch20: gcc46-Woverlength-string.patch
-Patch21: gcc46-Woverlength-string-asm.patch
-Patch22: gcc46-pr47858.patch
+Patch18: gcc46-ppl-0.10.patch
+Patch19: gcc46-pr47858.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -602,13 +599,10 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch15 -p0 -b .libstdc++-docs~
 %endif
 %patch17 -p0 -b .no-add-needed~
-%patch18 -p0 -b .unwind-debughook-sdt~
 %if 0%{?fedora} < 15
-%patch19 -p0 -b .ppl-0.10~
+%patch18 -p0 -b .ppl-0.10~
 %endif
-%patch20 -p0 -b .Woverlength-string~
-%patch21 -p0 -b .Woverlength-string-asm~
-%patch22 -p0 -b .pr47858~
+%patch19 -p0 -b .pr47858~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2346,6 +2340,24 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Mar 15 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.13
+- update from trunk and 4.6 branch
+  - PRs bootstrap/48000, bootstrap/48102, c++/44629, c++/45651, c++/46220,
+	c++/46803, c++/47125, c++/47144, c++/47198, c++/47488, c++/47705,
+	c++/47808, c++/47957, c++/47971, c++/48003, c++/48008, c++/48015,
+	c++/48029, c++/48035, c++/48069, c/47786, debug/47881, debug/48043,
+	fortran/47552, fortran/47850, fortran/48054, fortran/48059,
+	libfortran/48066, libgfortran/48047, libstdc++/48038, libstdc++/48114,
+	lto/47497, lto/48073, lto/48086, middle-end/47968, middle-end/47975,
+	middle-end/48044, middle-end/48098, rtl-optimization/47866,
+	rtl-optimization/47899, target/45413, target/47719, target/47862,
+	target/47986, target/48032, target/48053, testsuite/47954,
+	tree-optimization/47127, tree-optimization/47278,
+	tree-optimization/47714, tree-optimization/47967,
+	tree-optimization/48022, tree-optimization/48063,
+	tree-optimization/48067
+  - fix var-tracking ICE on s390x (#682410, PR debug/47991)
+
 * Fri Mar  4 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.12
 - update from trunk
   - PRs c++/46159, c++/46282, c++/47200, c++/47774, c++/47851, c++/47950,
