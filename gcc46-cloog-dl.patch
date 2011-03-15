@@ -382,9 +382,9 @@
  #endif /* GRAPHITE_CLOOG_COMPAT_H  */
 --- gcc/graphite.c.jj	2011-01-03 12:53:05.194056513 +0100
 +++ gcc/graphite.c	2011-01-04 16:18:32.385007767 +0100
-@@ -54,6 +54,35 @@ along with GCC; see the file COPYING3.  
- #include "graphite-clast-to-gimple.h"
- #include "graphite-sese-to-poly.h"
+@@ -56,6 +56,35 @@ along with GCC; see the file COPYING3.  
+ 
+ CloogState *cloog_state;
  
 +__typeof (cloog_pointers__) cloog_pointers__;
 +
@@ -418,7 +418,7 @@
  /* Print global statistics to FILE.  */
  
  static void
-@@ -199,6 +228,12 @@ graphite_initialize (void)
+@@ -201,6 +230,12 @@ graphite_initialize (void)
        return false;
      }
  
