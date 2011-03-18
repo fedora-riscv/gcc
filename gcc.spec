@@ -1,9 +1,9 @@
-%global DATE 20110315
-%global SVNREV 171001
+%global DATE 20110318
+%global SVNREV 171160
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.13
+%global gcc_release 0.14
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -117,7 +117,7 @@ BuildRequires: cloog-ppl >= 0.15, cloog-ppl-devel >= 0.15
 %endif
 %if %{build_libstdcxx_docs}
 BuildRequires: doxygen >= 1.7.1
-BuildRequires: graphviz, urw-fonts
+BuildRequires: graphviz
 %endif
 Requires: cpp = %{version}-%{release}
 # Need .eh_frame ld optimizations
@@ -2340,8 +2340,15 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Mar 18 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.14
+- update from the 4.6 branch
+  - PRs bootstrap/48161, c++/48113, c++/48115, c++/48132, debug/47510,
+	debug/48176, libstdc++/48123, middle-end/47405, middle-end/48165,
+	target/46778, target/46788, target/48171
+- update libstdc++ pretty printers from trunk
+
 * Tue Mar 15 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.13
-- update from trunk and 4.6 branch
+- update from trunk and the 4.6 branch
   - PRs bootstrap/48000, bootstrap/48102, c++/44629, c++/45651, c++/46220,
 	c++/46803, c++/47125, c++/47144, c++/47198, c++/47488, c++/47705,
 	c++/47808, c++/47957, c++/47971, c++/48003, c++/48008, c++/48015,
