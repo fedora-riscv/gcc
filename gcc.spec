@@ -1,9 +1,9 @@
-%global DATE 20110318
-%global SVNREV 171160
+%global DATE 20110321
+%global SVNREV 171264
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.14
+%global gcc_release 0.15
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2340,6 +2340,11 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon Mar 21 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.15
+- update from the 4.6 branch
+  - PRs bootstrap/45381, bootstrap/48135
+- fix s390 ICE during address delegitimization (PR target/48213, #689266)
+
 * Fri Mar 18 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.14
 - update from the 4.6 branch
   - PRs bootstrap/48161, c++/48113, c++/48115, c++/48132, debug/47510,

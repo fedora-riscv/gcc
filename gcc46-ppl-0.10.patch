@@ -49,39 +49,39 @@ gcc/
  #endif
 --- configure.ac	(revision 169207)
 +++ configure.ac	(revision 169206)
-@@ -1668,9 +1668,9 @@ ENABLE_PPL_CHECK=yes)
- if test "x$with_ppl" != "xno" -a "${ENABLE_PPL_CHECK}" = "yes"; then
-   saved_CFLAGS="$CFLAGS"
-   CFLAGS="$CFLAGS $pplinc $gmpinc"
--  AC_MSG_CHECKING([for version 0.11 (or later revision) of PPL])
-+  AC_MSG_CHECKING([for version 0.10 (or later revision) of PPL])
-   AC_TRY_COMPILE([#include "ppl_c.h"],[
--  #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
-+  #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 10
-   choke me
-   #endif
-   ], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); ppllibs= ; pplinc= ; with_ppl=no ])
+@@ -1688,9 +1688,9 @@ if test "x$with_ppl" != xno; then
+   if test "$enable_ppl_version_check" != no; then
+     saved_CFLAGS="$CFLAGS"
+     CFLAGS="$CFLAGS $pplinc $gmpinc"
+-    AC_MSG_CHECKING([for version 0.11 (revision 0 or later) of PPL])
++    AC_MSG_CHECKING([for version 0.10 (revision 0 or later) of PPL])
+     AC_TRY_COMPILE([#include "ppl_c.h"],[
+-    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
++    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 10
+     choke me
+     #endif
+     ], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no]); ppllibs= ; pplinc= ; with_ppl=no ])
 --- configure	(revision 169207)
 +++ configure	(revision 169206)
-@@ -5716,8 +5716,8 @@ fi
- if test "x$with_ppl" != "xno" -a "${ENABLE_PPL_CHECK}" = "yes"; then
-   saved_CFLAGS="$CFLAGS"
-   CFLAGS="$CFLAGS $pplinc $gmpinc"
--  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version 0.11 (or later revision) of PPL" >&5
--$as_echo_n "checking for version 0.11 (or later revision) of PPL... " >&6; }
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version 0.10 (or later revision) of PPL" >&5
-+$as_echo_n "checking for version 0.10 (or later revision) of PPL... " >&6; }
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+@@ -5775,8 +5775,8 @@ fi
+   if test "$enable_ppl_version_check" != no; then
+     saved_CFLAGS="$CFLAGS"
+     CFLAGS="$CFLAGS $pplinc $gmpinc"
+-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version 0.11 (revision 0 or later) of PPL" >&5
+-$as_echo_n "checking for version 0.11 (revision 0 or later) of PPL... " >&6; }
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version 0.10 (revision 0 or later) of PPL" >&5
++$as_echo_n "checking for version 0.10 (revision 0 or later) of PPL... " >&6; }
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include "ppl_c.h"
-@@ -5725,7 +5725,7 @@ int
+@@ -5784,7 +5784,7 @@ int
  main ()
  {
  
--  #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
-+  #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 10
-   choke me
-   #endif
+-    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
++    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 10
+     choke me
+     #endif
  
 --- gcc/testsuite/gcc.dg/graphite/interchange-11.c.jj	2011-01-28 09:38:11.000000000 +0100
 +++ gcc/testsuite/gcc.dg/graphite/interchange-11.c	2011-01-28 11:06:56.461429848 +0100
