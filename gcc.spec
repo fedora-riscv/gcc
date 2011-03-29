@@ -1,9 +1,9 @@
-%global DATE 20110321
-%global SVNREV 171264
+%global DATE 20110329
+%global SVNREV 171652
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.15
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -619,7 +619,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.6\.0/4.6.0/' gcc/BASE-VER
+sed -i -e 's/4\.6\.1/4.6.0/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 # Default to -gdwarf-3 rather than -gdwarf-2
@@ -1395,7 +1395,6 @@ rm -f %{buildroot}%{_prefix}/%{_lib}/{libffi*,libiberty.a}
 rm -f $FULLEPATH/install-tools/{mkheaders,fixincl}
 rm -f %{buildroot}%{_prefix}/lib/{32,64}/libiberty.a
 rm -f %{buildroot}%{_prefix}/%{_lib}/libssp*
-rm -f %{buildroot}%{_prefix}/bin/gnative2ascii
 rm -f %{buildroot}%{_prefix}/bin/gappletviewer || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gcc-%{version} || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gfortran || :
@@ -1998,6 +1997,7 @@ fi
 %{_prefix}/bin/gij
 %{_prefix}/bin/gjar
 %{_prefix}/bin/fastjar
+%{_prefix}/bin/gnative2ascii
 %{_prefix}/bin/grepjar
 %{_prefix}/bin/grmic
 %{_prefix}/bin/grmid
@@ -2014,6 +2014,7 @@ fi
 %{_mandir}/man1/gjarsigner.1*
 %{_mandir}/man1/jv-convert.1*
 %{_mandir}/man1/gij.1*
+%{_mandir}/man1/gnative2ascii.1*
 %{_mandir}/man1/grmic.1*
 %{_mandir}/man1/grmiregistry.1*
 %{_mandir}/man1/gcj-dbtool.1*
@@ -2086,7 +2087,8 @@ fi
 %if %{build_ada}
 %files gnat
 %defattr(-,root,root,-)
-%{_prefix}/bin/gnat*
+%{_prefix}/bin/gnat
+%{_prefix}/bin/gnat[^i]*
 %{_infodir}/gnat*
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
@@ -2340,6 +2342,17 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Mar 29 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-1
+- update from the 4.6 branch
+  - GCC 4.6.0 release
+  - PRs c/42544, c/48197, debug/48204, middle-end/48031,
+	middle-end/48134, middle-end/48269, other/48179, other/48221,
+	other/48234, rtl-optimization/48156, target/47553,
+	target/48237, testsuite/48251, tree-optimization/48228
+  - improve RTL DSE speed with large number of stores (#684900,
+    PR rtl-optimization/48141)
+- add gnative2ascii binary and man page to libgcj
+
 * Mon Mar 21 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-0.15
 - update from the 4.6 branch
   - PRs bootstrap/45381, bootstrap/48135
