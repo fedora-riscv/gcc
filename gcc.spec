@@ -1,9 +1,9 @@
-%global DATE 20110329
-%global SVNREV 171652
+%global DATE 20110331
+%global SVNREV 171772
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2342,6 +2342,14 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Mar 31 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-2
+- update from the 4.6 branch
+  - PRs c++/47504, c++/47570, c++/47999, c++/48166, c++/48212, c++/48265,
+	c++/48281, c++/48289, c++/48296, c++/48313, c++/48319, c++/48369,
+	debug/48041, debug/48253, preprocessor/48248, target/48349
+- add -fno-debug-types-section switch
+- don't emit .debug_abbrev section if it is empty and unused
+
 * Tue Mar 29 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-1
 - update from the 4.6 branch
   - GCC 4.6.0 release
