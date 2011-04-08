@@ -1,9 +1,9 @@
-%global DATE 20110331
-%global SVNREV 171772
+%global DATE 20110408
+%global SVNREV 172168
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2342,6 +2342,15 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Apr  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-3
+- update from the 4.6 branch
+  - PRs bootstrap/48431, c++/48280, debug/48343, debug/48466, fortran/48117,
+	fortran/48291, libstdc++/48398, middle-end/48335,
+	rtl-optimization/48143, rtl-optimization/48144, target/16292,
+	target/48142
+  - don't ICE because of empty partitions during LTO (#688767, PR lto/48246)
+- don't emit DW_AT_*_pc for CUs without any code
+
 * Thu Mar 31 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-2
 - update from the 4.6 branch
   - PRs c++/47504, c++/47570, c++/47999, c++/48166, c++/48212, c++/48265,
