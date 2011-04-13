@@ -1,9 +1,9 @@
-%global DATE 20110408
-%global SVNREV 172168
+%global DATE 20110413
+%global SVNREV 172383
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2342,6 +2342,16 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Apr 13 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-4
+- update from the 4.6 branch
+  - PRs c++/48450, c++/48452, c++/48468, c++/48500, c++/48523, c++/48528,
+	c++/48534, c++/48570, c++/48574, c/48517, libstdc++/48465,
+	libstdc++/48541, libstdc++/48566, target/47829, target/48090,
+	testsuite/48506, tree-optimization/48195, tree-optimization/48377
+  - fix combiner with -g (#695019, PR rtl-optimization/48549)
+  - fix OpenMP atomic __float128 handling on i?86 (#696129,
+    PR middle-end/48591)
+
 * Fri Apr  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-3
 - update from the 4.6 branch
   - PRs bootstrap/48431, c++/48280, debug/48343, debug/48466, fortran/48117,
