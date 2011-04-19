@@ -1,9 +1,9 @@
-%global DATE 20110413
-%global SVNREV 172383
+%global DATE 20110419
+%global SVNREV 172724
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2342,6 +2342,16 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Apr 19 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-5
+- update from the 4.6 branch
+  - PRs c++/48537, c++/48632, fortran/48360, fortran/48456,
+	libfortran/47571, libstdc++/48476, libstdc++/48631,
+	libstdc++/48635, lto/48538, middle-end/46364, middle-end/48661,
+	preprocessor/48248, target/48366, target/48605, target/48614,
+	target/48678, testsuite/48675, tree-optimization/48616
+  - fix calling functor or non-pointer-to-member through
+    overloaded pointer-to-member operator (#695567, PR c++/48594)
+
 * Wed Apr 13 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-4
 - update from the 4.6 branch
   - PRs c++/48450, c++/48452, c++/48468, c++/48500, c++/48523, c++/48528,
