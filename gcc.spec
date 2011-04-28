@@ -1,9 +1,9 @@
-%global DATE 20110419
-%global SVNREV 172724
+%global DATE 20110428
+%global SVNREV 173071
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2342,6 +2342,16 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Apr 28 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-6
+- update from the 4.6 branch
+  - PRs c++/42687, c++/46304, c++/48046, c++/48657, c++/48707, c++/48726,
+	c/48685, c/48716, c/48742, debug/48768, fortran/47976,
+	fortran/48588, libstdc++/48521, lto/48148, lto/48492,
+	middle-end/48695, other/48748, preprocessor/48740, target/48288,
+	target/48708, target/48723, tree-optimization/48611,
+	tree-optimization/48717, tree-optimization/48731,
+	tree-optimization/48734
+
 * Tue Apr 19 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-5
 - update from the 4.6 branch
   - PRs c++/48537, c++/48632, fortran/48360, fortran/48456,
