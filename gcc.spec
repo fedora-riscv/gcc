@@ -1,9 +1,9 @@
-%global DATE 20110428
-%global SVNREV 173071
+%global DATE 20110509
+%global SVNREV 173563
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -170,6 +170,8 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
+Patch20: gcc46-pr48574.patch
+Patch21: gcc46-pr48837.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -603,6 +605,8 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
+%patch20 -p0 -b .pr48574~
+%patch21 -p0 -b .pr48837~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2342,6 +2346,19 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon May  9 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-7
+- update from the 4.6 branch
+  - PRs ada/48844, c++/40975, c++/48089, c++/48446, c++/48656, c++/48749,
+	c++/48838, c++/48909, c++/48911, fortran/48112, fortran/48279,
+	fortran/48462, fortran/48720, fortran/48746, fortran/48788,
+	fortran/48800, fortran/48810, fortran/48894, libgfortran/48030,
+	libstdc++/48750, libstdc++/48760, lto/48846, middle-end/48597,
+	preprocessor/48192, target/48226, target/48252, target/48262,
+	target/48774, target/48900, tree-optimization/48809
+- fix ICE with references in templates (PR c++/48574)
+- disable tail call optimization if tail recursion needs accumulators
+  (PR PR tree-optimization/48837)
+
 * Thu Apr 28 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-6
 - update from the 4.6 branch
   - PRs c++/42687, c++/46304, c++/48046, c++/48657, c++/48707, c++/48726,
