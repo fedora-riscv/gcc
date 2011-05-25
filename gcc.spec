@@ -1,9 +1,9 @@
-%global DATE 20110509
-%global SVNREV 173563
+%global DATE 20110525
+%global SVNREV 174173
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -170,8 +170,6 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-pr48574.patch
-Patch21: gcc46-pr48837.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -605,8 +603,6 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .pr48574~
-%patch21 -p0 -b .pr48837~
 
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
@@ -2346,6 +2342,23 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed May 25 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-8
+- update from the 4.6 branch
+  - PRs bootstrap/49086, c++/47263, c++/47336, c++/47544, c++/48522,
+	c++/48617, c++/48647, c++/48736, c++/48745, c++/48780, c++/48859,
+	c++/48869, c++/48873, c++/48884, c++/48945, c++/48948, c++/49042,
+	c++/49043, c++/49066, c++/49082, c++/49105, c++/49136, c/49120,
+	debug/48159, debug/49032, fortran/48889, libstdc++/49058, lto/48207,
+	lto/48703, lto/49123, middle-end/48973, middle-end/49029,
+	preprocessor/48677, target/48986, target/49002, target/49104,
+	target/49128, target/49133, tree-optimization/48172,
+	tree-optimization/48794, tree-optimization/48822,
+	tree-optimization/48975, tree-optimization/49000,
+	tree-optimization/49018, tree-optimization/49039,
+	tree-optimization/49073, tree-optimization/49079
+  - ppc V2DImode ABI fix (#705764, PR target/48857)
+  - fix ppc var-tracking ICE (#703888, PR debug/48967)
+
 * Mon May  9 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-7
 - update from the 4.6 branch
   - PRs ada/48844, c++/40975, c++/48089, c++/48446, c++/48656, c++/48749,
