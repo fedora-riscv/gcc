@@ -1,9 +1,9 @@
-%global DATE 20110525
-%global SVNREV 174173
+%global DATE 20110530
+%global SVNREV 174441
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -25,9 +25,9 @@
 %global build_cloog 1
 %global build_libstdcxx_docs 1
 # If you don't have already a usable gcc-java and libgcj for your arch,
-# do on some arch which has it rpmbuild -bc --with java_tar gcc41.spec
+# do on some arch which has it rpmbuild -bc --with java_tar gcc.spec
 # which creates libjava-classes-%{version}-%{release}.tar.bz2
-# With this then on the new arch do rpmbuild -ba -v --with java_bootstrap gcc41.spec
+# With this then on the new arch do rpmbuild -ba -v --with java_bootstrap gcc.spec
 %global bootstrap_java %{?_with_java_bootstrap:%{build_java}}%{!?_with_java_bootstrap:0}
 %global build_java_tar %{?_with_java_tar:%{build_java}}%{!?_with_java_tar:0}
 %ifarch s390x
@@ -55,7 +55,6 @@ Group: Development/Languages
 # svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_6-branch@%{SVNREV} gcc-%{version}-%{DATE}
 # tar cf - gcc-%{version}-%{DATE} | bzip2 -9 > gcc-%{version}-%{DATE}.tar.bz2
 Source0: gcc-%{version}-%{DATE}.tar.bz2
-Source1: libgcc_post_upgrade.c
 %global fastjar_ver 0.97
 Source4: http://download.savannah.nongnu.org/releases/fastjar/fastjar-%{fastjar_ver}.tar.gz
 URL: http://gcc.gnu.org
@@ -579,6 +578,43 @@ This package contains header files and other support files
 for compiling GCC plugins.  The GCC plugin ABI is currently
 not stable, so plugins must be rebuilt any time GCC is updated.
 
+%if 0%{?_enable_debug_packages}
+%define debug_package %{nil}
+%global __debug_package 1
+%global __debug_install_post \
+   %{_rpmconfigdir}/find-debuginfo.sh %{?_missing_build_ids_terminate_build:--strict-build-id} %{?_find_debuginfo_opts} "%{_builddir}/gcc-%{version}-%{DATE}"\
+    %{_builddir}/gcc-%{version}-%{DATE}/split-debuginfo.sh\
+%{nil}
+
+%package debuginfo
+Summary: Debug information for package %{name}
+Group: Development/Debug
+AutoReqProv: 0
+Requires: gcc-base-debuginfo = %{version}-%{release}
+
+%description debuginfo
+This package provides debug information for package %{name}.
+Debug information is useful when developing applications that use this
+package or when debugging this package.
+
+%files debuginfo -f debugfiles.list
+%defattr(-,root,root)
+
+%package base-debuginfo
+Summary: Debug information for libraries from package %{name}
+Group: Development/Debug
+AutoReqProv: 0
+
+%description base-debuginfo
+This package provides debug information for libgcc_s, libgomp and
+libstdc++ libraries from package %{name}.
+Debug information is useful when developing applications that use this
+package or when debugging this package.
+
+%files base-debuginfo -f debugfiles-base.list
+%defattr(-,root,root)
+%endif
+
 %prep
 %setup -q -n gcc-%{version}-%{DATE}
 %patch0 -p0 -b .hack~
@@ -604,6 +640,53 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 %endif
 %patch19 -p0 -b .pr47858~
 
+%if 0%{?_enable_debug_packages}
+cat > split-debuginfo.sh <<\EOF
+#!/bin/sh
+BUILDDIR="%{_builddir}/gcc-%{version}-%{DATE}"
+if [ -f "${BUILDDIR}"/debugfiles.list \
+     -a -f "${BUILDDIR}"/debuglinks.list ]; then
+  > "${BUILDDIR}"/debugsources-base.list
+  > "${BUILDDIR}"/debugfiles-base.list
+  cd "${RPM_BUILD_ROOT}"
+  for f in `find usr/lib/debug -name \*.debug \
+	    | egrep 'lib[0-9]*/lib(gcc|gomp|stdc)'`; do
+    echo "/$f" >> "${BUILDDIR}"/debugfiles-base.list
+    if [ -f "$f" -a ! -L "$f" ]; then
+      cp -a "$f" "${BUILDDIR}"/test.debug
+      /usr/lib/rpm/debugedit -b "${RPM_BUILD_DIR}" -d /usr/src/debug \
+			     -l "${BUILDDIR}"/debugsources-base.list \
+			     "${BUILDDIR}"/test.debug
+      rm "${BUILDDIR}"/test.debug
+    fi
+  done
+  for f in `find usr/lib/debug/.build-id -type l`; do
+    ls -l "$f" | egrep -q -- '->.*lib[0-9]*/lib(gcc|gomp|stdc)' \
+      && echo "/$f" >> "${BUILDDIR}"/debugfiles-base.list
+  done
+  grep -v -f "${BUILDDIR}"/debugfiles-base.list \
+    "${BUILDDIR}"/debugfiles.list > "${BUILDDIR}"/debugfiles.list.new
+  mv -f "${BUILDDIR}"/debugfiles.list.new "${BUILDDIR}"/debugfiles.list
+  for f in `LC_ALL=C sort -z -u "${BUILDDIR}"/debugsources-base.list \
+	    | grep -E -v -z '(<internal>|<built-in>)$' \
+	    | xargs --no-run-if-empty -n 1 -0 echo \
+	    | sed 's,^,usr/src/debug/,'`; do
+    if [ -f "$f" ]; then
+      echo "/$f" >> "${BUILDDIR}"/debugfiles-base.list
+      echo "%%exclude /$f" >> "${BUILDDIR}"/debugfiles.list
+    fi
+  done
+  mv "${BUILDDIR}"/debugfiles-base.list{,.old}
+  echo "%%dir /usr/lib/debug" > "${BUILDDIR}"/debugfiles-base.list
+  awk 'BEGIN{FS="/"}(NF>4&&$NF){d="%%dir /"$2"/"$3"/"$4;for(i=5;i<NF;i++){d=d"/"$i;if(!v[d]){v[d]=1;print d}}}' \
+    "${BUILDDIR}"/debugfiles-base.list.old >> "${BUILDDIR}"/debugfiles-base.list
+  cat "${BUILDDIR}"/debugfiles-base.list.old >> "${BUILDDIR}"/debugfiles-base.list
+  rm "${BUILDDIR}"/debugfiles-base.list.old
+fi
+EOF
+chmod 755 split-debuginfo.sh
+%endif
+
 # This testcase doesn't compile.
 rm libjava/testsuite/libjava.lang/PR35020*
 
@@ -622,9 +705,18 @@ tar xjf %{SOURCE10}
 sed -i -e 's/4\.6\.1/4.6.0/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
+%if 0%{fedora} >= 16
+# Default to -gdwarf-4 -fno-debug-types-section rather than -gdwarf-2
+sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(4)/' gcc/common.opt
+sed -i '/flag_debug_types_section/s/Init(1)/Init(0)/' gcc/common.opt
+sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\14./' gcc/doc/invoke.texi
+%else
 # Default to -gdwarf-3 rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(3)/' gcc/common.opt
 sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\13./' gcc/doc/invoke.texi
+sed -i 's/#define[[:blank:]]*EMIT_ENTRY_VALUE[[:blank:]].*$/#define EMIT_ENTRY_VALUE 0/' gcc/{cfgexpand,var-tracking,dwarf2out}.c
+sed -i 's/#define[[:blank:]]*EMIT_TYPED_DWARF_STACK[[:blank:]].*$/#define EMIT_TYPED_DWARF_STACK 0/' gcc/dwarf2out.c
+%endif
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
 
@@ -1381,10 +1473,6 @@ exec gcc $fl ${1+"$@"}
 EOF
 chmod 755 %{buildroot}%{_prefix}/bin/c?9
 
-mkdir -p %{buildroot}%{_prefix}/sbin
-gcc -static -Os %{SOURCE1} -o %{buildroot}%{_prefix}/sbin/libgcc_post_upgrade
-strip %{buildroot}%{_prefix}/sbin/libgcc_post_upgrade
-
 cd ..
 %find_lang %{name}
 %find_lang cpplib
@@ -1529,7 +1617,25 @@ fi
 # Because glibc Prereq's libgcc and /sbin/ldconfig
 # comes from glibc, it might not exist yet when
 # libgcc is installed
-%post -n libgcc -p %{_prefix}/sbin/libgcc_post_upgrade
+%post -n libgcc -p <lua>
+if posix.access ("/sbin/ldconfig", "x") then
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec ("/sbin/ldconfig")
+  elseif pid ~= -1 then
+    posix.wait (pid)
+  end
+end
+
+%postun -n libgcc -p <lua>
+if posix.access ("/sbin/ldconfig", "x") then
+  local pid = posix.fork ()
+  if pid == 0 then
+    posix.exec ("/sbin/ldconfig")
+  elseif pid ~= -1 then
+    posix.wait (pid)
+  end
+end
 
 %post -n libstdc++ -p /sbin/ldconfig
 
@@ -1761,7 +1867,6 @@ fi
 %defattr(-,root,root,-)
 /%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
 /%{_lib}/libgcc_s.so.1
-%{_prefix}/sbin/libgcc_post_upgrade
 %doc gcc/COPYING.LIB
 
 %files c++
@@ -2342,6 +2447,30 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon May 30 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-9
+- update from the 4.6 branch
+  - PRs c++/44311, c++/44994, c++/45080, c++/45401, c++/45418, c++/45698,
+	c++/46005, c++/46245, c++/46696, c++/47049, c++/47184, c++/47277,
+	c++/48284, c++/48292, c++/48424, c++/48935, c++/49156, c++/49165,
+	c++/49176, c++/49223, fortran/48955, libobjc/48177, libstdc++/49141,
+	target/43700, target/43995, target/44643, target/45263,
+	tree-optimization/44897, tree-optimization/49161,
+	tree-optimization/49217, tree-optimization/49218
+%if 0%{fedora} >= 16
+- default to -gdwarf-4 -fno-debug-types-section instead of -gdwarf-3
+- backport DW_OP_GNU_entry_value support
+  (PRs rtl-optimization/48826, debug/48902, bootstrap/48148,
+   debug/48203, bootstrap/48168, debug/48023, debug/48178,
+   debug/48163, debug/48160, bootstrap/48153, middle-end/48152,
+   bootstrap/48148, debug/45882)
+- backport DW_OP_GNU_{{const,regval,deref}_type,convert,reinterpret}
+  support (PRs debug/48928, debug/48853)
+%endif
+- split off debuginfo for libgcc_s, libstdc++ and libgomp into
+  gcc-base-debuginfo subpackage (#706973)
+- run ldconfig in libgcc %%postun, drop libcc_post_upgrade,
+  instead write the script in <lua> (#705832)
+
 * Wed May 25 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-8
 - update from the 4.6 branch
   - PRs bootstrap/49086, c++/47263, c++/47336, c++/47544, c++/48522,
