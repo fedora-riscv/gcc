@@ -1,9 +1,9 @@
-%global DATE 20110530
-%global SVNREV 174441
+%global DATE 20110603
+%global SVNREV 174601
 %global gcc_version 4.6.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 9
+%global gcc_release 10
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2447,6 +2447,15 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Jun  3 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-10
+- update from the 4.6 branch
+  - PRs fortran/45786, fortran/49265, middle-end/48953, middle-end/48985,
+	tree-optimization/49093
+- backport some debuginfo improvements
+  - PRs debug/47919, debug/47994, debug/49250
+- decrease C++ FE memory usage on code with heavy overloading
+  (#651098, PR c++/48481)
+
 * Mon May 30 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-9
 - update from the 4.6 branch
   - PRs c++/44311, c++/44994, c++/45080, c++/45401, c++/45418, c++/45698,
