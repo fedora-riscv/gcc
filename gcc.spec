@@ -1,9 +1,9 @@
-%global DATE 20110603
-%global SVNREV 174601
-%global gcc_version 4.6.0
+%global DATE 20110627
+%global SVNREV 175553
+%global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -657,7 +657,7 @@ if [ -f "${BUILDDIR}"/debugfiles.list \
       /usr/lib/rpm/debugedit -b "${RPM_BUILD_DIR}" -d /usr/src/debug \
 			     -l "${BUILDDIR}"/debugsources-base.list \
 			     "${BUILDDIR}"/test.debug
-      rm "${BUILDDIR}"/test.debug
+      rm -f "${BUILDDIR}"/test.debug
     fi
   done
   for f in `find usr/lib/debug/.build-id -type l`; do
@@ -676,12 +676,12 @@ if [ -f "${BUILDDIR}"/debugfiles.list \
       echo "%%exclude /$f" >> "${BUILDDIR}"/debugfiles.list
     fi
   done
-  mv "${BUILDDIR}"/debugfiles-base.list{,.old}
+  mv -f "${BUILDDIR}"/debugfiles-base.list{,.old}
   echo "%%dir /usr/lib/debug" > "${BUILDDIR}"/debugfiles-base.list
   awk 'BEGIN{FS="/"}(NF>4&&$NF){d="%%dir /"$2"/"$3"/"$4;for(i=5;i<NF;i++){d=d"/"$i;if(!v[d]){v[d]=1;print d}}}' \
     "${BUILDDIR}"/debugfiles-base.list.old >> "${BUILDDIR}"/debugfiles-base.list
   cat "${BUILDDIR}"/debugfiles-base.list.old >> "${BUILDDIR}"/debugfiles-base.list
-  rm "${BUILDDIR}"/debugfiles-base.list.old
+  rm -f "${BUILDDIR}"/debugfiles-base.list.old
 fi
 EOF
 chmod 755 split-debuginfo.sh
@@ -702,7 +702,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.6\.1/4.6.0/' gcc/BASE-VER
+sed -i -e 's/4\.6\.2/4.6.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{fedora} >= 16
@@ -2447,6 +2447,34 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon Jun 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-1
+- update from the 4.6 branch
+  - GCC 4.6.1 release
+  - PRs c++/33840, c++/49117, c++/49134, c++/49229, c++/49251, c++/49264,
+	c++/49276, c++/49290, c++/49298, c++/49369, c++/49482, c++/49507,
+	debug/47590, debug/48459, fortran/47601, fortran/48699,
+	fortran/49074, fortran/49103, fortran/49112, fortran/49268,
+	fortran/49324, fortran/49417, gcov-profile/49299, middle-end/49191,
+	rtl-optimization/48542, rtl-optimization/49235, target/44618,
+	target/48454, target/49186, target/49238, target/49307, target/49411,
+	target/49461, testsuite/49432, tree-optimization/48613,
+	tree-optimization/48702, tree-optimization/49038,
+	tree-optimization/49115, tree-optimization/49243,
+	tree-optimization/49419
+  - fix GCSE (#712480, PR rtl-optimization/49390)
+- use rm -f and mv -f in split-debuginfo.sh (#716664)
+- backport some debuginfo improvements and bugfixes
+%if 0%{fedora} >= 16
+  - improve debug info for IPA-SRA through DW_OP_GNU_parameter_ref
+    (PR debug/47858)
+  - emit DW_OP_GNU_convert <0> as convert to untyped
+%endif
+  - emit .debug_loc empty ranges for parameters that are
+    modified even before first insn in a function (PR debug/49382)
+  - fix debug ICE on s390x (PR debug/49544)
+  - VTA ICE fix (PR middle-end/49308)
+- balance work in #pragma omp for schedule(static) better (PR libgomp/49490)
+
 * Fri Jun  3 2011 Jakub Jelinek <jakub@redhat.com> 4.6.0-10
 - update from the 4.6 branch
   - PRs fortran/45786, fortran/49265, middle-end/48953, middle-end/48985,
