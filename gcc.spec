@@ -1,9 +1,9 @@
-%global DATE 20110627
-%global SVNREV 175553
+%global DATE 20110708
+%global SVNREV 176029
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2447,6 +2447,27 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Jul  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-2
+- update from the 4.6 branch
+  - PRs ada/49511, bootstrap/23656, bootstrap/49247, c++/48157, c/48825,
+	c++/49418, c++/49440, c++/49528, c++/49598, c/49644, debug/49262,
+	debug/49522, fortran/49466, fortran/49479, fortran/49623,
+	libffi/46660, libfortran/49296, middle-end/49640, other/47733,
+	regression/47836, rtl-optimization/49014, rtl-optimization/49472,
+	rtl-optimization/49619, target/34734, target/47997, target/48273,
+	target/49089, target/49335, target/49660, testsuite/49643,
+	tree-optimization/38752, tree-optimization/49516,
+	tree-optimization/49539, tree-optimization/49572,
+	tree-optimization/49615, tree-optimization/49618
+  - decrease compiler memory and time requirements on Fortran DATA
+    with many times repeated initializers (#716721, PR fortran/49540)
+- backport some debuginfo improvements and fixes
+  - PRs debug/49364, debug/49602
+  - fix typed DWARF stack ICE (#717240, PR49567)
+- backport __builtin_assume_aligned support (#713586)
+- backport further C++ FE improvements for heavy overloading use
+  (#651098, PR c++/48481)
+
 * Mon Jun 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-1
 - update from the 4.6 branch
   - GCC 4.6.1 release
