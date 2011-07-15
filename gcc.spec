@@ -1,9 +1,9 @@
-%global DATE 20110708
-%global SVNREV 176029
+%global DATE 20110715
+%global SVNREV 176311
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -714,7 +714,7 @@ sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\14./' gcc/doc
 # Default to -gdwarf-3 rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(3)/' gcc/common.opt
 sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\13./' gcc/doc/invoke.texi
-sed -i 's/#define[[:blank:]]*EMIT_ENTRY_VALUE[[:blank:]].*$/#define EMIT_ENTRY_VALUE 0/' gcc/{cfgexpand,var-tracking,dwarf2out}.c
+sed -i 's/#define[[:blank:]]*EMIT_ENTRY_VALUE[[:blank:]].*$/#define EMIT_ENTRY_VALUE 0/' gcc/{var-tracking,dwarf2out}.c
 sed -i 's/#define[[:blank:]]*EMIT_TYPED_DWARF_STACK[[:blank:]].*$/#define EMIT_TYPED_DWARF_STACK 0/' gcc/dwarf2out.c
 %endif
 
@@ -2447,6 +2447,19 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Jul 15 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-3
+- update from the 4.6 branch
+  - PRs ada/46350, ada/48711, c++/49672, fortran/48926, fortran/49562,
+	fortran/49690, fortran/49698, target/39633, target/46779,
+	target/49487, target/49541, target/49621, tree-opt/49309,
+	tree-optimization/49094, tree-optimization/49651
+- backport -march=bdver2 and -mtune=bdver2 support
+%if 0%{fedora} < 16
+- use ENTRY_VALUE RTLs internally to improve generated debug info,
+  just make sure to remove it from possible options before emitting
+  var-tracking notes
+%endif
+
 * Fri Jul  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-2
 - update from the 4.6 branch
   - PRs ada/49511, bootstrap/23656, bootstrap/49247, c++/48157, c/48825,
