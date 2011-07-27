@@ -1,9 +1,9 @@
-%global DATE 20110715
-%global SVNREV 176311
+%global DATE 20110727
+%global SVNREV 176825
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -169,6 +169,8 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
+Patch20: gcc46-pr49846.patch
+Patch21: gcc46-pr49866.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -572,6 +574,7 @@ This package contains static Go libraries.
 Summary: Support for compiling GCC plugins
 Group: Development/Languages
 Requires: gcc = %{version}-%{release}
+Requires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 
 %description plugin-devel
 This package contains header files and other support files
@@ -639,6 +642,8 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
+%patch20 -p0 -b .pr49846~
+%patch21 -p0 -b .pr49866~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -716,6 +721,7 @@ sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(3)/' gcc/common.opt
 sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\13./' gcc/doc/invoke.texi
 sed -i 's/#define[[:blank:]]*EMIT_ENTRY_VALUE[[:blank:]].*$/#define EMIT_ENTRY_VALUE 0/' gcc/{var-tracking,dwarf2out}.c
 sed -i 's/#define[[:blank:]]*EMIT_TYPED_DWARF_STACK[[:blank:]].*$/#define EMIT_TYPED_DWARF_STACK 0/' gcc/dwarf2out.c
+sed -i 's/#define[[:blank:]]*EMIT_DEBUG_MACRO[[:blank:]].*$/#define EMIT_DEBUG_MACRO 0/' gcc/dwarf2out.c
 %endif
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
@@ -2447,6 +2453,23 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Jul 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-4
+- update from the 4.6 branch
+  - PRs ada/49819, c++/49785, debug/47393, fortran/49648, fortran/49708,
+	middle-end/49675, middle-end/49732, target/39386, target/49600,
+	target/49723, target/49746, testsuite/49753, tree-opt/49671,
+	tree-optimization/45819, tree-optimization/49309,
+	tree-optimization/49725, tree-optimization/49768
+- require gmp-devel, mpfr-devel and libmpc-devel in gcc-plugin-devel
+  (#725569)
+- backport -grecord-gcc-switches (#507759, PR other/32998)
+%if 0%{fedora} >= 16
+- more compact debug macro info for -g3 - .debug_macro section
+- improve call site debug info for some floating point parameters
+  passed on the stack (PR debug/49846)
+%endif
+- fix -mcmodel=large call constraints (PR target/49866, #725516)
+
 * Fri Jul 15 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-3
 - update from the 4.6 branch
   - PRs ada/46350, ada/48711, c++/49672, fortran/48926, fortran/49562,
