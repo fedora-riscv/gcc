@@ -1,9 +1,9 @@
-%global DATE 20110727
-%global SVNREV 176825
+%global DATE 20110731
+%global SVNREV 176973
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -169,8 +169,6 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-pr49846.patch
-Patch21: gcc46-pr49866.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -642,8 +640,6 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .pr49846~
-%patch21 -p0 -b .pr49866~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2453,6 +2449,13 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Sun Jul 31 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-5
+- update from the 4.6 branch
+  - PRs debug/49871, fortran/48876, fortran/49791, middle-end/49897,
+	middle-end/49898, rtl-optimization/49799, target/47364
+- don't attempt to size optimize -gdwarf-2 DW_AT_data_member_location
+  from DW_OP_plus_uconst form
+
 * Wed Jul 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-4
 - update from the 4.6 branch
   - PRs ada/49819, c++/49785, debug/47393, fortran/49648, fortran/49708,
