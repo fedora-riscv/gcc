@@ -1,9 +1,9 @@
-%global DATE 20110731
-%global SVNREV 176973
+%global DATE 20110802
+%global SVNREV 177210
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -710,6 +710,7 @@ echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 # Default to -gdwarf-4 -fno-debug-types-section rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(4)/' gcc/common.opt
 sed -i '/flag_debug_types_section/s/Init(1)/Init(0)/' gcc/common.opt
+sed -i '/dwarf_record_gcc_switches/s/Init(0)/Init(1)/' gcc/common.opt
 sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\14./' gcc/doc/invoke.texi
 %else
 # Default to -gdwarf-3 rather than -gdwarf-2
@@ -2449,6 +2450,15 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Aug  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-6
+- update from the 4.6 branch
+  - PRs c++/49260, c++/49924, libstdc++/49925, target/47908, target/49920
+  - fix libquadmath on i686 (#726909)
+- OpenMP 3.1 support (PR fortran/42041, PR fortran/46752)
+%if 0%{fedora} >= 16
+- make -grecord-gcc-switches the default
+%endif
+
 * Sun Jul 31 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-5
 - update from the 4.6 branch
   - PRs debug/49871, fortran/48876, fortran/49791, middle-end/49897,
