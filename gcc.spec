@@ -1,9 +1,9 @@
-%global DATE 20110731
-%global SVNREV 176973
+%global DATE 20110804
+%global SVNREV 177406
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -710,6 +710,7 @@ echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 # Default to -gdwarf-4 -fno-debug-types-section rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(4)/' gcc/common.opt
 sed -i '/flag_debug_types_section/s/Init(1)/Init(0)/' gcc/common.opt
+sed -i '/dwarf_record_gcc_switches/s/Init(0)/Init(1)/' gcc/common.opt
 sed -i 's/\(may be either 2, 3 or 4; the default version is \)2\./\14./' gcc/doc/invoke.texi
 %else
 # Default to -gdwarf-3 rather than -gdwarf-2
@@ -1852,7 +1853,7 @@ fi
 %endif
 %dir %{_prefix}/libexec/getconf
 %{_prefix}/libexec/getconf/default
-%doc gcc/README* rpm.doc/changelogs/gcc/ChangeLog* gcc/COPYING*
+%doc gcc/README* rpm.doc/changelogs/gcc/ChangeLog* gcc/COPYING* COPYING.RUNTIME
 
 %files -n cpp -f cpplib.lang
 %defattr(-,root,root,-)
@@ -1869,7 +1870,7 @@ fi
 %defattr(-,root,root,-)
 /%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
 /%{_lib}/libgcc_s.so.1
-%doc gcc/COPYING.LIB
+%doc gcc/COPYING* COPYING.RUNTIME
 
 %files c++
 %defattr(-,root,root,-)
@@ -2449,6 +2450,25 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Aug  4 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-7
+- update from the 4.6 branch
+  - PRs c++/43886, c++/49593, c++/49803, fortran/49885,
+	tree-optimization/49948
+- add self_spec support to specs
+- add COPYING.RUNTIME to gcc and libgcc docs (#727809)
+- SPARC entry_value fixes (PRs target/48220, debug/49815)
+- fix up c-family headers in gcc-plugin-devel (#728011, PRs plugins/45348,
+  plugins/46577, plugins/48425)
+
+* Tue Aug  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-6
+- update from the 4.6 branch
+  - PRs c++/49260, c++/49924, libstdc++/49925, target/47908, target/49920
+  - fix libquadmath on i686 (#726909)
+- OpenMP 3.1 support (PR fortran/42041, PR fortran/46752)
+%if 0%{fedora} >= 16
+- make -grecord-gcc-switches the default
+%endif
+
 * Sun Jul 31 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-5
 - update from the 4.6 branch
   - PRs debug/49871, fortran/48876, fortran/49791, middle-end/49897,
