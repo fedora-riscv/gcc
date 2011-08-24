@@ -1,9 +1,9 @@
-%global DATE 20110804
-%global SVNREV 177406
+%global DATE 20110824
+%global SVNREV 178027
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -169,6 +169,8 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
+Patch20: gcc46-pr48722.patch
+Patch21: gcc46-rh713800.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -640,6 +642,8 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
+%patch20 -p0 -b .pr48722~
+%patch21 -p0 -b .rh713800~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2450,6 +2454,20 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Aug 24 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-8
+- update from the 4.6 branch
+  - PRs c++/46862, c++/48993, c++/49669, c++/49921, c++/49988, c++/50024,
+	c++/50054, c++/50086, fortran/49792, fortran/50050, fortran/50109,
+	fortran/50129, fortran/50130, middle-end/49923, target/50001,
+	target/50092, tree-optimization/48739
+- build EH_SPEC_BLOCK with the same location as current function
+  to help gcov (#732802, PR c++/50055)
+- support used attribute on template class methods and static data
+  members for forced instantiation (#722587)
+- fix up location copying in the vectorizer (PR tree-optimization/50133)
+- unshare CALL_INSN_FUNCTION_USAGE (PR middle-end/48722)
+- fix up gthr*.h for -E -C (#713800)
+
 * Thu Aug  4 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-7
 - update from the 4.6 branch
   - PRs c++/43886, c++/49593, c++/49803, fortran/49885,
