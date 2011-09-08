@@ -1,9 +1,9 @@
-%global DATE 20110824
-%global SVNREV 178027
+%global DATE 20110908
+%global SVNREV 178678
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -107,7 +107,7 @@ BuildRequires: gcc-gnat >= 3.1, libgnat >= 3.1
 BuildRequires: libunwind >= 0.98
 %endif
 %if %{build_cloog}
-%if 0%{?fedora} >= 15
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 BuildRequires: ppl >= 0.11.2, ppl-devel >= 0.11.2
 %else
 BuildRequires: ppl >= 0.10, ppl-devel >= 0.10
@@ -169,8 +169,7 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-pr48722.patch
-Patch21: gcc46-rh713800.patch
+Patch20: gcc46-pr50299.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -638,12 +637,11 @@ package or when debugging this package.
 %patch15 -p0 -b .libstdc++-docs~
 %endif
 %patch17 -p0 -b .no-add-needed~
-%if 0%{?fedora} < 15
+%if 0%{?fedora} < 15 || 0%{?rhel} < 7
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .pr48722~
-%patch21 -p0 -b .rh713800~
+%patch20 -p0 -b .pr50299~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -710,7 +708,7 @@ tar xjf %{SOURCE10}
 sed -i -e 's/4\.6\.2/4.6.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
-%if 0%{fedora} >= 16
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 # Default to -gdwarf-4 -fno-debug-types-section rather than -gdwarf-2
 sed -i '/UInteger Var(dwarf_version)/s/Init(2)/Init(4)/' gcc/common.opt
 sed -i '/flag_debug_types_section/s/Init(1)/Init(0)/' gcc/common.opt
@@ -1148,6 +1146,14 @@ echo '/* GNU ld script
    the static library, so try that secondarily.  */
 OUTPUT_FORMAT(elf32-powerpc)
 GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/32/libgcc_s.so
+%endif
+%ifarch %{arm}
+rm -f $FULLPATH/libgcc_s.so
+echo '/* GNU ld script
+   Use the shared library, but some functions are only in
+   the static library, so try that secondarily.  */
+OUTPUT_FORMAT(elf32-littlearm)
+GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/libgcc_s.so
 %endif
 
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.spec $FULLPATH/
@@ -2454,6 +2460,20 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Sep  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-9
+- update from the 4.6 branch
+  - PRs c++/49267, c++/50089, c++/50157, c++/50207, c++/50220, c++/50224,
+	c++/50234, c++/50255, c++/50309, c/50179, fortran/50163,
+	libffi/49594, libfortran/50192, libstdc++/50268, middle-end/50116,
+	middle-end/50266, target/50090, target/50202, target/50289,
+	target/50310, tree-optimization/50178
+- debug info related backports from the trunk
+  - PRs debug/50191, debug/50215
+- fix call site debug info on big endian targets (PR debug/50299)
+- put libgcc.a into libgcc_s.so linker script also on arm (#733549)
+- use %%{?fedora} instead of %%{fedora}, handle 0%%{?rhel} >= 7 like
+  0%%{?fedora} >= 16
+
 * Wed Aug 24 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-8
 - update from the 4.6 branch
   - PRs c++/46862, c++/48993, c++/49669, c++/49921, c++/49988, c++/50024,
@@ -2483,7 +2503,7 @@ fi
   - PRs c++/49260, c++/49924, libstdc++/49925, target/47908, target/49920
   - fix libquadmath on i686 (#726909)
 - OpenMP 3.1 support (PR fortran/42041, PR fortran/46752)
-%if 0%{fedora} >= 16
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 - make -grecord-gcc-switches the default
 %endif
 
@@ -2504,7 +2524,7 @@ fi
 - require gmp-devel, mpfr-devel and libmpc-devel in gcc-plugin-devel
   (#725569)
 - backport -grecord-gcc-switches (#507759, PR other/32998)
-%if 0%{fedora} >= 16
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 - more compact debug macro info for -g3 - .debug_macro section
 - improve call site debug info for some floating point parameters
   passed on the stack (PR debug/49846)
@@ -2518,7 +2538,7 @@ fi
 	target/49487, target/49541, target/49621, tree-opt/49309,
 	tree-optimization/49094, tree-optimization/49651
 - backport -march=bdver2 and -mtune=bdver2 support
-%if 0%{fedora} < 16
+%if 0%{?fedora} < 16 || 0%{?rhel} >= 7
 - use ENTRY_VALUE RTLs internally to improve generated debug info,
   just make sure to remove it from possible options before emitting
   var-tracking notes
@@ -2562,7 +2582,7 @@ fi
   - fix GCSE (#712480, PR rtl-optimization/49390)
 - use rm -f and mv -f in split-debuginfo.sh (#716664)
 - backport some debuginfo improvements and bugfixes
-%if 0%{fedora} >= 16
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   - improve debug info for IPA-SRA through DW_OP_GNU_parameter_ref
     (PR debug/47858)
   - emit DW_OP_GNU_convert <0> as convert to untyped
@@ -2591,7 +2611,7 @@ fi
 	target/43700, target/43995, target/44643, target/45263,
 	tree-optimization/44897, tree-optimization/49161,
 	tree-optimization/49217, tree-optimization/49218
-%if 0%{fedora} >= 16
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 - default to -gdwarf-4 -fno-debug-types-section instead of -gdwarf-3
 - backport DW_OP_GNU_entry_value support
   (PRs rtl-optimization/48826, debug/48902, bootstrap/48148,
