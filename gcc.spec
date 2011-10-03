@@ -169,7 +169,6 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-pr50299.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -641,7 +640,6 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .pr50299~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2470,8 +2468,6 @@ fi
 	tree-optimization/49911, tree-optimization/50162,
 	tree-optimization/50412, tree-optimization/50413,
 	tree-optimization/50472
-- fix up DW_TAG_GNU_call_site_parameter DW_AT_location, especially
-  on big endian (PR debug/50299)
 - recognize IVs with REFERENCE_TYPE in simple_iv similarly to
   IVs with POINTER_TYPE (#528578)
 - return larger types for odd-sized precision in Fortran type_for_size
