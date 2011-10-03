@@ -1,9 +1,9 @@
-%global DATE 20110908
-%global SVNREV 178678
+%global DATE 20111002
+%global SVNREV 179463
 %global gcc_version 4.6.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 9
+%global gcc_release 10
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2460,6 +2460,23 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon Oct  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-10
+- update from the 4.6 branch
+  - PRs c++/20039, c++/40831, c++/42844, c++/46105, c++/48320, c++/50424,
+	c++/50442, c++/50491, c++/50508, inline-asm/50571, libstdc++/49559,
+	libstdc++/50509, libstdc++/50510, libstdc++/50529, middle-end/49886,
+	target/50091, target/50341, target/50464, testsuite/50487,
+	tree-optimization/49518, tree-optimization/49628,
+	tree-optimization/49911, tree-optimization/50162,
+	tree-optimization/50412, tree-optimization/50413,
+	tree-optimization/50472
+- fix up DW_TAG_GNU_call_site_parameter DW_AT_location, especially
+  on big endian (PR debug/50299)
+- recognize IVs with REFERENCE_TYPE in simple_iv similarly to
+  IVs with POINTER_TYPE (#528578)
+- return larger types for odd-sized precision in Fortran type_for_size
+  langhook if possible
+
 * Thu Sep  8 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-9
 - update from the 4.6 branch
   - PRs c++/49267, c++/50089, c++/50157, c++/50207, c++/50220, c++/50224,
