@@ -45,7 +45,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.1
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2460,6 +2460,9 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon Oct 10 2011 Peter Schiffer <pschiffe@redhat.com> 4.6.1-10.fc17.1
+- rebuild with new gmp
+
 * Mon Oct  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-10
 - update from the 4.6 branch
   - PRs c++/20039, c++/40831, c++/42844, c++/46105, c++/48320, c++/50424,
