@@ -1,9 +1,9 @@
-%global DATE 20111002
-%global SVNREV 179463
-%global gcc_version 4.6.1
+%global DATE 20111027
+%global SVNREV 180561
+%global gcc_version 4.6.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -45,7 +45,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -169,7 +169,6 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-godump.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -641,7 +640,6 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .godump~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -705,7 +703,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.6\.2/4.6.1/' gcc/BASE-VER
+sed -i -e 's/4\.6\.3/4.6.2/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -908,6 +906,10 @@ CC="$CC" CFLAGS="$OPT_FLAGS" CXXFLAGS="`echo $OPT_FLAGS | sed 's/ -Wall / /g'`" 
 %endif
 %ifarch s390 s390x
 	--with-arch=z9-109 --with-tune=z10 --enable-decimal-float \
+%endif
+%ifarch armv7hl
+	--with-cpu=cortex-a8 --with-tune=cortex-a8 --with-arch=armv7-a \
+	--with-float=hard --with-fpu=vfpv3-d16 --with-abi=aapcs-linux \
 %endif
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform}
@@ -1533,6 +1535,9 @@ touch %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db
 
 rm -f %{buildroot}%{mandir}/man3/ffi*
 
+# Help plugins find out nvra.
+echo gcc-%{version}-%{release}.%{arch} > $FULLPATH/rpmver
+
 %check
 cd obj-%{gcc_target_platform}
 
@@ -1753,6 +1758,7 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/lto1
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/lto-wrapper
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/liblto_plugin.so*
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/rpmver
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/stddef.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/stdarg.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/stdfix.h
@@ -2460,8 +2466,23 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
-* Mon Oct 10 2011 Peter Schiffer <pschiffe@redhat.com> 4.6.1-10.fc17.1
-- rebuild with new gmp
+* Thu Oct 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.2-1
+- update from the 4.6 branch
+  - GCC 4.6.2 release
+  - PRs c++/44473, c++/49216, c++/49855, c++/49896, c++/50531, c++/50611,
+	c++/50618, c++/50787, c++/50793, c/50565, debug/50816, fortran/47023,
+	fortran/48706, fortran/50016, fortran/50273, fortran/50570,
+	fortran/50585, fortran/50625, fortran/50659, fortran/50718,
+	libobjc/49883, libobjc/50002, libstdc++/48698, middle-end/49801,
+	middle-end/50326, middle-end/50386, obj-c++/48275, objc-++/48275,
+	target/49049, target/49824, target/49965, target/49967, target/50106,
+	target/50350, target/50652, target/50737, target/50788, target/50820,
+	tree-optimization/49279, tree-optimization/50189,
+	tree-optimization/50700, tree-optimization/50712,
+	tree-optimization/50723
+- add armv7hl configury options (#746843)
+- add `gcc -print-file-name=rpmver` file with gcc NVRA for plugins
+  (#744922)
 
 * Mon Oct  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-10
 - update from the 4.6 branch
