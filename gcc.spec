@@ -169,6 +169,7 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
+Patch20: gcc46-libjava-prims-ctype.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -640,6 +641,7 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
+%patch20 -p0 -b .libjava-prims-ctype~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2483,6 +2485,7 @@ fi
 - add armv7hl configury options (#746843)
 - add `gcc -print-file-name=rpmver` file with gcc NVRA for plugins
   (#744922)
+- fix build against current glibc, ctype.h changes broke libjava compilation
 
 * Mon Oct  2 2011 Jakub Jelinek <jakub@redhat.com> 4.6.1-10
 - update from the 4.6 branch
