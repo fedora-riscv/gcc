@@ -169,7 +169,6 @@ Patch15: gcc46-libstdc++-docs.patch
 Patch17: gcc46-no-add-needed.patch
 Patch18: gcc46-ppl-0.10.patch
 Patch19: gcc46-pr47858.patch
-Patch20: gcc46-libjava-prims-ctype.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -641,7 +640,6 @@ package or when debugging this package.
 %patch18 -p0 -b .ppl-0.10~
 %endif
 %patch19 -p0 -b .pr47858~
-%patch20 -p0 -b .libjava-prims-ctype~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
