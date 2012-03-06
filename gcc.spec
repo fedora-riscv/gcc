@@ -1,9 +1,9 @@
 %global DATE 20120306
-%global SVNREV 184984
+%global SVNREV 185003
 %global gcc_version 4.6.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2466,6 +2466,11 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Mar  6 2012 Jakub Jelinek <jakub@redhat.com> 4.6.3-2
+- backport PLUGIN_FINISH_DECL event support
+- adjust 22_locale/num_put/put/char/9780-2.cc testcase for recent
+  locale data changes in glibc
+
 * Tue Mar  6 2012 Jakub Jelinek <jakub@redhat.com> 4.6.3-1
 - update from the 4.6 branch
   - GCC 4.6.3 release
