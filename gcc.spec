@@ -1,6 +1,6 @@
-%global DATE 20111027
-%global SVNREV 180561
-%global gcc_version 4.6.2
+%global DATE 20120306
+%global SVNREV 184984
+%global gcc_version 4.6.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
 %global gcc_release 1
@@ -705,7 +705,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.6\.3/4.6.2/' gcc/BASE-VER
+sed -i -e 's/4\.6\.4/4.6.3/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -1538,7 +1538,7 @@ touch %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db
 rm -f %{buildroot}%{mandir}/man3/ffi*
 
 # Help plugins find out nvra.
-echo gcc-%{version}-%{release}.%{arch} > $FULLPATH/rpmver
+echo gcc-%{version}-%{release}.%{_arch} > $FULLPATH/rpmver
 
 %check
 cd obj-%{gcc_target_platform}
@@ -2468,6 +2468,61 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Mar  6 2012 Jakub Jelinek <jakub@redhat.com> 4.6.3-1
+- update from the 4.6 branch
+  - GCC 4.6.3 release
+  - PRs ada/46192, boehm-gc/48514, boehm-gc/52179, bootstrap/49907,
+	bootstrap/50888, bootstrap/51686, bootstrap/51969, c++/50608,
+	c++/50870, c++/50901, c++/51150, c++/51161, c++/51248, c++/51265,
+	c++/51331, c++/51344, c++/51406, c++/51416, c++/51669, c++/51854,
+	c++/51868, c++/52247, c/51339, c/51360, c/52181, c/52290, debug/48190,
+	debug/49951, debug/51410, debug/51517, debug/51695, debug/51950,
+	debug/52260, driver/48306, fortran/47545, fortran/49050,
+	fortran/50408, fortran/50684, fortran/50923, fortran/51075,
+	fortran/51218, fortran/51310, fortran/51338, fortran/51435,
+	fortran/51448, fortran/51502, fortran/51550, fortran/51800,
+	fortran/51904, fortran/51913, fortran/51948, fortran/51966,
+	fortran/52012, fortran/52022, fortran/52093, fortran/52151,
+	fortran/52335, fortran/52386, libjava/48512, libmudflap/40778,
+	libstdc++/50862, libstdc++/50880, libstdc++/51083, libstdc++/51133,
+	libstdc++/51142, libstdc++/51540, libstdc++/51626, libstdc++/51711,
+	libstdc++/51795, libstdc++/52300, libstdc++/52309, libstdc++/52317,
+	lto/41159, middle-end/44777, middle-end/45678, middle-end/48071,
+	middle-end/48660, middle-end/50074, middle-end/51077,
+	middle-end/51323, middle-end/51510, middle-end/51768,
+	middle-end/51994, middle-end/52074, middle-end/52140,
+	middle-end/52230, rtl-opt/37451, rtl-opt/37782,
+	rtl-optimization/38644, rtl-optimization/47918,
+	rtl-optimization/48721, rtl-optimization/49720,
+	rtl-optimization/50396, rtl-optimization/51187,
+	rtl-optimization/51374, rtl-optimization/51469,
+	rtl-optimization/51767, rtl-optimization/51821,
+	rtl-optimization/52060, rtl-optimization/52139, target/30282,
+	target/40068, target/45233, target/48108, target/48743,
+	target/49641, target/49992, target/50313, target/50493,
+	target/50678, target/50691, target/50875, target/50906,
+	target/50945, target/50979, target/51002, target/51106,
+	target/51287, target/51345, target/51393, target/51408,
+	target/51623, target/51643, target/51756, target/51835,
+	target/51921, target/51934, target/52006, target/52107,
+	target/52129, target/52199, target/52205, target/52238,
+	target/52294, target/52330, target/52408, target/52425,
+	testsuite/51511, testsuite/52296, tree-optimization/46886,
+	tree-optimization/49536, tree-optimization/49642,
+	tree-optimization/50031, tree-optimization/50078,
+	tree-optimization/50569, tree-optimization/50622,
+	tree-optimization/50969, tree-optimization/51042,
+	tree-optimization/51070, tree-optimization/51118,
+	tree-optimization/51315, tree-optimization/51466,
+	tree-optimization/51485, tree-optimization/51583,
+	tree-optimization/51624, tree-optimization/51759,
+	tree-optimization/52286
+- don't look for lto plugin/lto-wrapper if -E/-S/-c or in cpp (#787345)
+- debuginfo related backports from trunk (PRs pch/51722, debug/52165,
+  debug/52132)
+- fix up ccp from optimizing away non-pure/const builtin passthrough calls
+  with constant first argument (PR tree-optimization/51683)
+
 * Thu Oct 27 2011 Jakub Jelinek <jakub@redhat.com> 4.6.2-1
 - update from the 4.6 branch
   - GCC 4.6.2 release
