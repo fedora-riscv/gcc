@@ -1,8 +1,8 @@
 --- libada/Makefile.in.jj	2009-01-14 12:07:35.000000000 +0100
 +++ libada/Makefile.in	2009-01-15 14:25:33.000000000 +0100
-@@ -69,18 +69,40 @@ version := $(shell cat $(srcdir)/../gcc/
- libsubdir := $(libdir)/gcc/$(target_noncanonical)/$(version)$(MULTISUBDIR)
+@@ -72,18 +72,40 @@ libsubdir := $(libdir)/gcc/$(target_nonc
  ADA_RTS_DIR=$(GCC_DIR)/ada/rts$(subst /,_,$(MULTISUBDIR))
+ ADA_RTS_SUBDIR=./rts$(subst /,_,$(MULTISUBDIR))
  
 +DEFAULTMULTIFLAGS :=
 +ifeq ($(MULTISUBDIR),)
@@ -45,7 +45,7 @@
          "TARGET_LIBGCC2_CFLAGS=$(TARGET_LIBGCC2_CFLAGS)" \
          "THREAD_KIND=$(THREAD_KIND)" \
          "TRACE=$(TRACE)" \
-@@ -91,7 +113,7 @@ LIBADA_FLAGS_TO_PASS = \
+@@ -94,7 +116,7 @@ LIBADA_FLAGS_TO_PASS = \
          "exeext=.exeext.should.not.be.used " \
  	'CC=the.host.compiler.should.not.be.needed' \
  	"GCC_FOR_TARGET=$(CC)" \
@@ -53,7 +53,7 @@
 +        "CFLAGS=$(strip $(CFLAGS) $(DEFAULTMULTIFLAGS) $(WARN_CFLAGS))"
  
  # Rules to build gnatlib.
- .PHONY: gnatlib gnatlib-plain gnatlib-sjlj gnatlib-zcx gnatlib-shared oscons
+ .PHONY: gnatlib gnatlib-plain gnatlib-sjlj gnatlib-zcx gnatlib-shared osconstool
 --- gcc/ada/sem_util.adb	(revision 161677)
 +++ gcc/ada/sem_util.adb	(working copy)
 @@ -2246,7 +2246,11 @@
