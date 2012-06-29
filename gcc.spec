@@ -1,9 +1,9 @@
-%global DATE 20120604
-%global SVNREV 188193
-%global gcc_version 4.7.0
+%global DATE 20120629
+%global SVNREV 189066
+%global gcc_version 4.7.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -738,7 +738,7 @@ tar xzf %{SOURCE4}
 tar xjf %{SOURCE10}
 %endif
 
-sed -i -e 's/4\.7\.1/4.7.0/' gcc/BASE-VER
+sed -i -e 's/4\.7\.2/4.7.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -2641,6 +2641,19 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Jun 29 2012 Jakub Jelinek <jakub@redhat.com> 4.7.1-1
+- update from the 4.7 branch
+  - GCC 4.7.1 release
+  - PRs ada/53592, c++/51214, c++/52637, c++/52841, c++/52988, c++/53202,
+	c++/53305, c++/53498, c++/53524, c++/53594, c++/53599, c++/53602,
+	c++/53616, c++/53651, c++/53752, debug/53682, fortran/50619,
+	fortran/53597, fortran/53685, fortran/53691, gcov-profile/53744,
+	libgomp/52993, libstdc++/53270, libstdc++/53678, middle-end/53470,
+	middle-end/53580, middle-end/53790, preprocessor/37215,
+	rtl-optimization/53589, rtl-optimization/53700, target/52908,
+	target/53559, target/53595, target/53621, target/53759,
+	tree-optimization/52558
+
 * Mon Jun  4 2012 Jakub Jelinek <jakub@redhat.com> 4.7.0-7
 - update from the 4.7 branch
   - PRs ada/53517, c++/52725, c++/52905, c++/52973, c++/53137, c++/53220,
