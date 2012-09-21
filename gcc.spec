@@ -1,9 +1,9 @@
-%global DATE 20120920
-%global SVNREV 191572
+%global DATE 20120921
+%global SVNREV 191607
 %global gcc_version 4.7.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global multilib_64_archs sparc64 ppc64 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc ppc64 alpha
@@ -2663,6 +2663,10 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Sep 21 2012 Jakub Jelinek <jakub@redhat.com> 4.7.2-2
+- update from the 4.7 branch
+  - PRs c/54103, c/54552, libstdc++/54102, middle-end/54638, other/43620
+
 * Thu Sep 20 2012 Jakub Jelinek <jakub@redhat.com> 4.7.2-1
 - update from the 4.7 branch
   - GCC 4.7.2 release
