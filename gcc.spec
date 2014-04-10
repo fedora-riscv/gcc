@@ -1,9 +1,9 @@
-%global DATE 20140120
-%global SVNREV 206854
+%global DATE 20140409
+%global SVNREV 209240
 %global gcc_version 4.8.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 15
+%global gcc_release 17
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -204,9 +204,7 @@ Patch14: gcc48-pr56493.patch
 Patch15: gcc48-color-auto.patch
 Patch16: gcc48-pr28865.patch
 Patch17: gcc48-libgo-p224.patch
-Patch18: gcc48-pr60137.patch
-Patch19: gcc48-pr60010.patch
-Patch20: gcc48-pr60046.patch
+Patch18: gcc48-pr60010.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -769,9 +767,7 @@ package or when debugging this package.
 %patch16 -p0 -b .pr28865~
 %patch17 -p0 -b .libgo-p224~
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
-%patch18 -p0 -b .pr60137~
-%patch19 -p0 -b .pr60010~
-%patch20 -p0 -b .pr60046~
+%patch18 -p0 -b .pr60010~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -3044,12 +3040,60 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Apr  9 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-17
+- update from the 4.8 branch
+  - PRs ada/51483, ada/60703, c/37743, c/59891, c/60101, c++/37140, c++/41174,
+	c++/54652, c++/55800, c++/57043, c++/57524, c++/57899, c++/58466,
+	c++/58504, c++/58606, c++/58632, c++/58639, c++/58672, c++/58812,
+	c++/58814, c++/58835, c++/58837, c++/58845, c++/58873, c++/58965,
+	c++/59097, c++/59224, c++/59646, c++/59989, c++/60108, c++/60146,
+	c++/60182, c++/60187, c++/60216, c++/60219, c++/60248, debug/59776,
+	fortran/49397, fortran/52370, fortran/55907, fortran/57033,
+	fortran/58007, fortran/58803, fortran/59395, fortran/59414,
+	fortran/59599, fortran/59700, fortran/59906, fortran/60231,
+	fortran/60283, fortran/60341, fortran/60450, fortran/60522,
+	fortran/60543, fortran/60576, fortran/60677, ipa/55260, ipa/60026,
+	ipa/60419, ipa/60640, libfortran/38199, libfortran/58324,
+	libfortran/59700, libfortran/59764, libfortran/59771,
+	libfortran/59774, libfortran/59836, libfortran/60128, libgcc/60166,
+	libgcj/55637, libstdc++/59215, libstdc++/59392, libstdc++/59548,
+	libstdc++/59680, libstdc++/59738, libstdc++/60564, libstdc++/60658,
+	middle-end/57499, middle-end/58809, middle-end/60004,
+	middle-end/60221, middle-end/60291, objc/56870, other/56653,
+	preprocessor/56824, preprocessor/58844, preprocessor/60400,
+	rtl-optimization/56356, rtl-optimization/57422,
+	rtl-optimization/57425, rtl-optimization/57569,
+	rtl-optimization/57637, rtl-optimization/60116,
+	rtl-optimization/60452, rtl-optimization/60601,
+	rtl-optimization/60700, target/43546, target/48094, target/54083,
+	target/54407, target/55426, target/56843, target/57052, target/57935,
+	target/57949, target/58675, target/58710, target/59054, target/59379,
+	target/59396, target/59462, target/59718, target/59777, target/59844,
+	target/59880, target/59909, target/59929, target/60017, target/60032,
+	target/60039, target/60062, target/60151, target/60193, target/60203,
+	target/60207, target/60486, target/60568, target/60735,
+	tree-optimization/56490, tree-optimization/59903,
+	tree-optimization/60115, tree-optimization/60183,
+	tree-optimization/60276, tree-optimization/60382,
+	tree-optimization/60429, tree-optimization/60454,
+	tree-optimization/60485
+  - powerpc64 little endian support
+
+* Mon Mar  3 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-16
+- fix up compare_exchange_* in libatomic too (PR c++/60272)
+
 * Thu Feb 20 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-15
 - fix exception spec instantiation ICE (#1067398, PR c++/60046)
 - fix pch on aarch64 (#1058991, PR pch/60010)
 - configure with --enable-gnu-indirect-function on architectures
   and distros that support it and don't support it by default
   yet (#1067245)
+- fix vector permutation handling on i?86/x86_64 (PR target/57896)
+- fix __atomic_compare_exchange_* not to store into *expected
+  on success (PR c++/60272)
+- fix -march=native on VMs where saving/restoring of YMM state
+  is not supported, yet CPU supports f16c (PR driver/60233)
+- add ref7.C testcase (PR c++/60274)
 
 * Wed Feb 19 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-14
 - remove libgo P.224 elliptic curve (#1066539)
