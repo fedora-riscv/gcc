@@ -27,7 +27,7 @@
 %else
 %global build_libquadmath 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7
 %global build_libasan 1
 %else
 %global build_libasan 0
