@@ -17,7 +17,7 @@
 %else
 %global build_java 1
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 s390 s390x %{arm}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm}
 %global build_go 1
 %else
 %global build_go 0
@@ -27,7 +27,7 @@
 %else
 %global build_libquadmath 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7
 %global build_libasan 1
 %else
 %global build_libasan 0
@@ -37,19 +37,19 @@
 %else
 %global build_libtsan 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 s390 s390x %{arm}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm}
 %global build_libatomic 1
 %else
 %global build_libatomic 0
 %endif
-%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64p7 s390 s390x
+%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x
 %global build_libitm 1
 %else
 %global build_libitm 0
 %endif
 %global build_cloog 1
 %global build_libstdcxx_docs 1
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 s390 s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64
 %global attr_ifunc 1
 %else
 %global attr_ifunc 0
@@ -129,7 +129,7 @@ BuildRequires: gcc-java, libgcj
 BuildRequires: glibc-devel >= 2.4.90-13
 BuildRequires: elfutils-devel >= 0.147
 BuildRequires: elfutils-libelf-devel >= 0.147
-%ifarch ppc ppc64 ppc64p7 s390 s390x sparc sparcv9 alpha
+%ifarch ppc ppc64 ppc64le ppc64p7 s390 s390x sparc sparcv9 alpha
 # Make sure glibc supports TFmode long double
 BuildRequires: glibc >= 2.3.90-35
 %endif
@@ -166,7 +166,7 @@ Requires: binutils >= 2.20.51.0.2-12
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 Requires: glibc-devel >= 2.2.90-12
-%ifarch ppc ppc64 ppc64p7 s390 s390x sparc sparcv9 alpha
+%ifarch ppc ppc64 ppc64le ppc64p7 s390 s390x sparc sparcv9 alpha
 # Make sure glibc supports TFmode long double
 Requires: glibc >= 2.3.90-35
 %endif
@@ -212,8 +212,12 @@ Patch1002: fastjar-0.97-filename0.patch
 Patch1003: fastjar-CVE-2010-0831.patch
 Patch1004: fastjar-man.patch
 Patch1005: fastjar-0.97-aarch64-config.patch
+Patch1006: fastjar-0.97-ppc64le-config.patch
 
 Patch1100: isl-%{isl_version}-aarch64-config.patch
+Patch1101: isl-%{isl_version}-ppc64le-config.patch
+
+Patch1200: cloog-%{cloog_version}-ppc64le-config.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -827,12 +831,16 @@ tar xzf %{SOURCE4}
 %patch1003 -p0 -b .fastjar-CVE-2010-0831~
 %patch1004 -p0 -b .fastjar-man~
 %patch1005 -p0 -b .fastjar-0.97-aarch64-config~
+%patch1006 -p0 -b .fastjar-0.97-ppc64le-config~
 
 %if %{bootstrap_java}
 tar xjf %{SOURCE10}
 %endif
 
-%patch1100 -p0 -b .isl-aarch64~
+%patch1100 -p0 -b .isl-aarch64-config~
+%patch1101 -p0 -b .isl-ppc64le-config~
+
+%patch1200 -p0 -b .cloog-ppc64le-config~
 
 sed -i -e 's/4\.8\.3/4.8.2/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
@@ -997,7 +1005,7 @@ EOF
 chmod +x gcc64
 CC=`pwd`/gcc64
 %endif
-%ifarch ppc64 ppc64p7
+%ifarch ppc64 ppc64le ppc64p7
 if gcc -m64 -xc -S /dev/null -o - > /dev/null 2>&1; then
   cat > gcc64 <<"EOF"
 #!/bin/sh
@@ -1058,11 +1066,14 @@ CC="$CC" CFLAGS="$OPT_FLAGS" \
 %ifarch %{arm}
 	--disable-sjlj-exceptions \
 %endif
-%ifarch ppc ppc64 ppc64p7
+%ifarch ppc ppc64 ppc64le ppc64p7
 	--enable-secureplt \
 %endif
-%ifarch sparc sparcv9 sparc64 ppc ppc64 ppc64p7 s390 s390x alpha
+%ifarch sparc sparcv9 sparc64 ppc ppc64 ppc64le ppc64p7 s390 s390x alpha
 	--with-long-double-128 \
+%endif
+%ifarch ppc64le
+	--disable-multilib \
 %endif
 %ifarch sparc
 	--disable-linux-futex \
@@ -1073,7 +1084,7 @@ CC="$CC" CFLAGS="$OPT_FLAGS" \
 %ifarch sparc sparcv9
 	--host=%{gcc_target_platform} --build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=v7
 %endif
-%ifarch ppc ppc64 ppc64p7
+%ifarch ppc ppc64 ppc64le ppc64p7
 %if 0%{?rhel} >= 7
 	--with-cpu-32=power7 --with-tune-32=power7 --with-cpu-64=power7 --with-tune-64=power7 \
 %endif
@@ -2192,7 +2203,7 @@ fi
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/ia64intrin.h
 %endif
-%ifarch ppc ppc64 ppc64p7
+%ifarch ppc ppc64 ppc64le ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/ppc-asm.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/altivec.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/spe.h
@@ -3040,7 +3051,7 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
-* Wed Apr  9 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-17
+* Fri Apr 11 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-17
 - update from the 4.8 branch
   - PRs ada/51483, ada/60703, c/37743, c/59891, c/60101, c++/37140, c++/41174,
 	c++/54652, c++/55800, c++/57043, c++/57524, c++/57899, c++/58466,
@@ -3078,6 +3089,7 @@ fi
 	tree-optimization/60429, tree-optimization/60454,
 	tree-optimization/60485
   - powerpc64 little endian support
+- enable ppc64le in the spec file
 
 * Mon Mar  3 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-16
 - fix up compare_exchange_* in libatomic too (PR c++/60272)
