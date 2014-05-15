@@ -1,9 +1,9 @@
-%global DATE 20140409
-%global SVNREV 209240
+%global DATE 20140515
+%global SVNREV 210462
 %global gcc_version 4.8.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 17
+%global gcc_release 18
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -3051,6 +3051,23 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu May 15 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-18
+- update from the 4.8 branch
+  - PRs c++/60367, c++/60628, c++/60689, c++/60708, c++/60713, debug/60603,
+	driver/61106, libfortran/56919, libfortran/60810, libstdc++/60497,
+	libstdc++/60594, libstdc++/61117, middle-end/36282, middle-end/55022,
+	middle-end/60635, middle-end/60729, middle-end/60750,
+	middle-end/60849, middle-end/60895, rtl-optimization/60769,
+	target/57589, target/58595, target/59952, target/60516, target/60609,
+	target/60672, target/60693, target/60839, target/60909, target/60941,
+	target/60991, target/61026, target/61055, tree-optimization/57864,
+	tree-optimization/59817, tree-optimization/60453,
+	tree-optimization/60502, tree-optimization/60740,
+	tree-optimization/60766, tree-optimization/60836,
+	tree-optimization/60903, tree-optimization/60930,
+	tree-optimization/60960
+- backport OpenMP 4.0 support to libgomp (library only; PR libgomp/58691)
+
 * Fri Apr 11 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-17
 - update from the 4.8 branch
   - PRs ada/51483, ada/60703, c/37743, c/59891, c/60101, c++/37140, c++/41174,
