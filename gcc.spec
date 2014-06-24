@@ -1,9 +1,9 @@
-%global DATE 20140515
-%global SVNREV 210462
-%global gcc_version 4.8.2
+%global DATE 20140624
+%global SVNREV 211949
+%global gcc_version 4.8.3
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 18
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -842,7 +842,7 @@ tar xjf %{SOURCE10}
 
 %patch1200 -p0 -b .cloog-ppc64le-config~
 
-sed -i -e 's/4\.8\.3/4.8.2/' gcc/BASE-VER
+sed -i -e 's/4\.8\.4/4.8.3/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -3051,6 +3051,17 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Jun 24 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-1
+- update from the 4.8 branch
+  - GCC 4.8.3 release
+  - PRs c++/60605, c++/60731, c++/61134, fortran/45187, ipa/61393,
+	libfortran/61187, libfortran/61310, libstdc++/60734, libstdc++/60966,
+	rtl-optimization/60866, rtl-optimization/60901, rtl-optimization/61094,
+	rtl-optimization/61446, target/61044, target/61193, target/61202,
+	target/61208, target/61231, target/61239, target/61249, target/61300,
+	target/61415, target/61423, target/61431, target/61443, target/61483,
+	target/61545, target/61570, tree-optimization/61383
+
 * Thu May 15 2014 Jakub Jelinek <jakub@redhat.com> 4.8.2-18
 - update from the 4.8 branch
   - PRs c++/60367, c++/60628, c++/60689, c++/60708, c++/60713, debug/60603,
