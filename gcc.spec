@@ -3,7 +3,7 @@
 %global gcc_version 4.9.0
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 14
+%global gcc_release 15
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -2193,7 +2193,9 @@ fi
 %endif
 %dir %{_prefix}/libexec/getconf
 %{_prefix}/libexec/getconf/default
-%doc gcc/README* rpm.doc/changelogs/gcc/ChangeLog* gcc/COPYING* COPYING.RUNTIME
+%doc gcc/README* rpm.doc/changelogs/gcc/ChangeLog* 
+%{!?_licensedir:%global license %%doc}
+%license gcc/COPYING* COPYING.RUNTIME
 
 %files -n cpp -f cpplib.lang
 %defattr(-,root,root,-)
@@ -2210,7 +2212,8 @@ fi
 %defattr(-,root,root,-)
 /%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
 /%{_lib}/libgcc_s.so.1
-%doc gcc/COPYING* COPYING.RUNTIME
+%{!?_licensedir:%global license %%doc}
+%license gcc/COPYING* COPYING.RUNTIME
 
 %files c++
 %defattr(-,root,root,-)
@@ -2494,7 +2497,8 @@ fi
 %defattr(-,root,root,-)
 %{_prefix}/%{_lib}/libquadmath.so.0*
 %{_infodir}/libquadmath.info*
-%doc rpm.doc/libquadmath/COPYING*
+%{!?_licensedir:%global license %%doc}
+%license rpm.doc/libquadmath/COPYING*
 
 %files -n libquadmath-devel
 %defattr(-,root,root,-)
@@ -2609,7 +2613,9 @@ fi
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libasan.a
 %endif
-%doc rpm.doc/changelogs/libsanitizer/ChangeLog* libsanitizer/LICENSE.TXT
+%doc rpm.doc/changelogs/libsanitizer/ChangeLog*
+%{!?_licensedir:%global license %%doc}
+%license libsanitizer/LICENSE.TXT
 %endif
 
 %if %{build_libubsan}
@@ -2633,7 +2639,9 @@ fi
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libubsan.a
 %endif
-%doc rpm.doc/changelogs/libsanitizer/ChangeLog* libsanitizer/LICENSE.TXT
+%doc rpm.doc/changelogs/libsanitizer/ChangeLog*
+%{!?_licensedir:%global license %%doc}
+%license libsanitizer/LICENSE.TXT
 %endif
 
 %if %{build_libtsan}
@@ -2647,7 +2655,9 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libtsan.a
-%doc rpm.doc/changelogs/libsanitizer/ChangeLog* libsanitizer/LICENSE.TXT
+%doc rpm.doc/changelogs/libsanitizer/ChangeLog*
+%{!?_licensedir:%global license %%doc}
+%license libsanitizer/LICENSE.TXT
 %endif
 
 %if %{build_liblsan}
@@ -2661,7 +2671,9 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/liblsan.a
-%doc rpm.doc/changelogs/libsanitizer/ChangeLog* libsanitizer/LICENSE.TXT
+%doc rpm.doc/changelogs/libsanitizer/ChangeLog*
+%{!?_licensedir:%global license %%doc}
+%license libsanitizer/LICENSE.TXT
 %endif
 
 %if %{build_libcilkrts}
@@ -2784,6 +2796,9 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Sat Jul 12 2014 Tom Callaway <spot@fedoraproject.org> 4.9.0-15
+- fix license handling
+
 * Wed Jul  2 2014 Jakub Jelinek <jakub@redhat.com> 4.9.0-14
 - update from the 4.9 branch
   - OpenMP 4.0 Fortran support
