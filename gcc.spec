@@ -1,9 +1,9 @@
-%global DATE 20140702
-%global SVNREV 212237
-%global gcc_version 4.9.0
+%global DATE 20140717
+%global SVNREV 212747
+%global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 15
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -52,7 +52,7 @@
 %else
 %global build_libatomic 0
 %endif
-%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x
+%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x aarch64
 %global build_libitm 1
 %else
 %global build_libitm 0
@@ -86,7 +86,7 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_7-branch@%{SVNREV} gcc-%{version}-%{DATE}
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_9-branch@%{SVNREV} gcc-%{version}-%{DATE}
 # tar cf - gcc-%{version}-%{DATE} | bzip2 -9 > gcc-%{version}-%{DATE}.tar.bz2
 Source0: gcc-%{version}-%{DATE}.tar.bz2
 %global isl_version 0.12.2
@@ -196,7 +196,8 @@ Patch12: gcc49-no-add-needed.patch
 Patch14: gcc49-pr56493.patch
 Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
-Patch17: gcc49-pr61673.patch
+Patch17: gcc49-aarch64-async-unw-tables.patch
+Patch18: gcc49-aarch64-GNU_STACK.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -723,7 +724,8 @@ package or when debugging this package.
 %endif
 %patch16 -p0 -b .libgo-p224~
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
-%patch17 -p0 -b .pr61673~
+%patch17 -p0 -b .aarch64-async-unw-tables~
+%patch18 -p0 -b .aarch64-GNU_STACK~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -774,7 +776,7 @@ chmod 755 split-debuginfo.sh
 
 %patch1100 -p0 -b .cloog-ppc64le-config~
 
-sed -i -e 's/4\.9\.1/4.9.0/' gcc/BASE-VER
+sed -i -e 's/4\.9\.2/4.9.1/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -2796,6 +2798,23 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Jul 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-2
+- update from the 4.9 branch
+  - PRs c-family/61741, rtl-optimization/61801, target/61737,
+	tree-optimization/61779
+
+* Wed Jul 16 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-1
+- update from the 4.9 branch
+  - GCC 4.9.1 release
+  - PRs c++/58155, c++/58636, c++/61661, fortran/41936, fortran/58883,
+	fortran/61459, libgfortran/61640, middle-end/53590,
+	middle-end/61654, target/59843, target/61062, target/61544,
+	tree-optimization/61680, tree-optimization/61681,
+	tree-optimization/61684, tree-optimization/61725
+- enable libitm on aarch64
+- emit .note.GNU-stack on aarch64 (#1119885)
+- small -fsanitize=bounds fix from the trunk
+
 * Sat Jul 12 2014 Tom Callaway <spot@fedoraproject.org> 4.9.0-15
 - fix license handling
 

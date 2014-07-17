@@ -1,0 +1,13 @@
+2014-05-15  Kyle McMartin  <kmcmarti@redhat.com>
+
+	* config/aarch64/aarch64-linux.h (TARGET_ASM_FILE_END): Define.
+
+--- gcc/config/aarch64/aarch64-linux.h
++++ gcc/config/aarch64/aarch64-linux.h
+@@ -44,4 +44,6 @@
+     }						\
+   while (0)
+ 
++#define TARGET_ASM_FILE_END file_end_indicate_exec_stack
++
+ #endif  /* GCC_AARCH64_LINUX_H */
