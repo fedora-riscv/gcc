@@ -79,7 +79,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.1
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -198,6 +198,9 @@ Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-GNU_STACK.patch
+
+# backport from trunk
+Patch100: gcc49-rh1117799.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -726,6 +729,7 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-GNU_STACK~
+%patch100 -p1 -b .rh1117799~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2798,6 +2802,9 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Jul 24 2014 Dan Horák <dan[at]danny.cz> 4.9.1-2.1
+- update from trunk with fix for #1117799
+
 * Thu Jul 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-2
 - update from the 4.9 branch
   - PRs c-family/61741, rtl-optimization/61801, target/61737,
