@@ -1,9 +1,9 @@
-%global DATE 20140717
-%global SVNREV 212747
+%global DATE 20140801
+%global SVNREV 213428
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -79,7 +79,7 @@
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -197,10 +197,7 @@ Patch14: gcc49-pr56493.patch
 Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
-Patch18: gcc49-aarch64-GNU_STACK.patch
-
-# backport from trunk
-Patch100: gcc49-rh1117799.patch
+Patch18: gcc49-rh1117799.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -728,8 +725,7 @@ package or when debugging this package.
 %patch16 -p0 -b .libgo-p224~
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
-%patch18 -p0 -b .aarch64-GNU_STACK~
-%patch100 -p1 -b .rh1117799~
+%patch18 -p0 -b .rh1117799~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2802,8 +2798,16 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Aug  1 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-3
+- update from the 4.9 branch
+  - PRs fortran/61780, libobjc/61920, libstdc++/60037, target/47230,
+	target/61656, target/61662, target/61794, target/61844,
+	target/61855, tree-optimization/61964
+  - fix libgfortran overflows on allocation (CVE-2014-5044)
+- backport -fsanitize=alignment support from the trunk
+
 * Thu Jul 24 2014 Dan Horák <dan[at]danny.cz> 4.9.1-2.1
-- update from trunk with fix for #1117799
+- fix a LRA inheritance bug (#1117799)
 
 * Thu Jul 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-2
 - update from the 4.9 branch

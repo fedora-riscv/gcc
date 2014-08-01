@@ -1,21 +1,10 @@
-commit ef76edc2e27e49e7e148894948c8dda394b796c1
-Author: vmakarov <vmakarov@138bc75d-0d04-0410-961f-82ee72b054a4>
-Date:   Fri Jul 11 17:19:53 2014 +0000
+2014-07-11  Vladimir Makarov  <vmakarov@redhat.com>
+    
+	* lra-constraints.c (remove_inheritance_pseudos): Process
+	destination pseudo too.
 
-    2014-07-11  Vladimir Makarov  <vmakarov@redhat.com>
-    
-    	* lra-constraints.c (remove_inheritance_pseudos): Process
-    	destination pseudo too.
-    
-    
-    
-    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@212464 138bc75d-0d04-0410-961f-82ee72b054a4
-
- 	* gcov-tool.c (gcov_output_files): Fix build error introduced in
-diff --git a/gcc/lra-constraints.c b/gcc/lra-constraints.c
-index baed7e7..a43f8dc 100644
---- a/gcc/lra-constraints.c
-+++ b/gcc/lra-constraints.c
+--- gcc/lra-constraints.c
++++ gcc/lra-constraints.c
 @@ -5697,6 +5697,20 @@ remove_inheritance_pseudos (bitmap remove_pseudos)
  			SUBREG_REG (SET_SRC (set)) = SET_SRC (prev_set);
  		      else
