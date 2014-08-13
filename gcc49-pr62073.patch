@@ -1,0 +1,63 @@
+2014-08-12  Felix Yang  <fei.yang0953@gmail.com>
+
+	PR tree-optimization/62073
+	* tree-vect-loop.c (vect_is_simple_reduction_1): Check that DEF1 has
+	a basic block.
+
+	* gcc.dg/vect/pr62073.c: New test.
+
+--- gcc/tree-vect-loop.c	(revision 213900)
++++ gcc/tree-vect-loop.c	(revision 213901)
+@@ -2321,7 +2321,8 @@ vect_is_simple_reduction_1 (loop_vec_inf
+         }
+ 
+       def1 = SSA_NAME_DEF_STMT (op1);
+-      if (flow_bb_inside_loop_p (loop, gimple_bb (def_stmt))
++      if (gimple_bb (def1)
++	  && flow_bb_inside_loop_p (loop, gimple_bb (def_stmt))
+           && loop->inner
+           && flow_bb_inside_loop_p (loop->inner, gimple_bb (def1))
+           && is_gimple_assign (def1))
+--- gcc/testsuite/gcc.dg/vect/pr62073.c	(revision 0)
++++ gcc/testsuite/gcc.dg/vect/pr62073.c	(revision 213901)
+@@ -0,0 +1,40 @@
++/* { dg-do compile } */
++/* { dg-additional-options "-O1" } */
++
++struct S0
++{
++  int f7;
++};
++struct S0 g_50;
++int g_70;
++int g_76;
++
++int foo (long long p_56, int * p_57)
++{
++  int *l_77;
++  int l_101;
++
++  for (; g_70;)
++    {
++      int **l_78 = &l_77;
++      if (g_50.f7)
++	continue;
++      *l_78 = 0;
++    }
++  for (g_76 = 1; g_76 >= 0; g_76--)
++    {
++      int *l_90;
++      for (l_101 = 4; l_101 >= 0; l_101--)
++	if (l_101)
++	  *l_90 = 0;
++	else
++	  {
++	    int **l_113 = &l_77;
++	    *l_113 = p_57;
++	  }
++    }
++
++  return *l_77;
++}
++
++/* { dg-final { cleanup-tree-dump "vect" } } */

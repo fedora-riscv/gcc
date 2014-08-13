@@ -3,7 +3,7 @@
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,6 +200,8 @@ Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
 Patch19: gcc49-pr62098.patch
 Patch20: gcc49-pr62103.patch
+Patch21: gcc49-pr62025.patch
+Patch22: gcc49-pr62073.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -730,6 +732,8 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch18 -p0 -b .aarch64-unwind-opt~
 %patch19 -p0 -b .pr62098~
 %patch20 -p0 -b .pr62103~
+%patch21 -p0 -b .pr62025~
+%patch22 -p0 -b .pr62073~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2802,6 +2806,10 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Aug 14 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-7
+- fix up scheduler deps handling fix (PR target/62025)
+- vectorization fix (PR tree-optimization/62073)
+
 * Wed Aug 13 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-6
 - update from the 4.9 branch
   - PRs c++/58714, c++/60872, c++/61959, c++/61994, fortran/61999,
