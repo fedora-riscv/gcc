@@ -1,9 +1,9 @@
-%global DATE 20140813
-%global SVNREV 213898
+%global DATE 20140815
+%global SVNREV 214009
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -105,7 +105,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Need binutils which support %gnu_unique_object >= 2.19.51.0.14
 # Need binutils which support .cfi_sections >= 2.19.51.0.14-33
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
-BuildRequires: binutils >= 2.20.51.0.2-12
+# Need binutils which support -plugin
+BuildRequires: binutils >= 2.24
 # While gcc doesn't include statically linked binaries, during testing
 # -static is used several times.
 BuildRequires: glibc-static
@@ -156,7 +157,8 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support %gnu_unique_object
 # Need binutils that support .cfi_sections
 # Need binutils that support --no-add-needed
-Requires: binutils >= 2.20.51.0.2-12
+# Need binutils that support -plugin
+Requires: binutils >= 2.24
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 Requires: glibc-devel >= 2.2.90-12
@@ -199,9 +201,8 @@ Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
 Patch19: gcc49-pr62098.patch
-Patch20: gcc49-pr62103.patch
-Patch21: gcc49-pr62025.patch
-Patch22: gcc49-pr62073.patch
+Patch20: gcc49-pr62025.patch
+Patch21: gcc49-pr62131.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -731,9 +732,8 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
 %patch19 -p0 -b .pr62098~
-%patch20 -p0 -b .pr62103~
-%patch21 -p0 -b .pr62025~
-%patch22 -p0 -b .pr62073~
+%patch20 -p0 -b .pr62025~
+%patch21 -p0 -b .pr62131~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2806,6 +2806,14 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Aug 15 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-8
+- update from the 4.9 branch
+  - PRs fortran/62076, fortran/62107, lto/62032, middle-end/62092,
+	target/61713
+- allow elements/components of allocatables in !$omp atomic
+  (PR fortran/62131)
+- require/build require >= 2.24 binutils
+
 * Thu Aug 14 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-7
 - fix up scheduler deps handling fix (PR target/62025)
 - vectorization fix (PR tree-optimization/62073)
