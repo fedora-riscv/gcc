@@ -1,13 +1,12 @@
-%global DATE 20140624
-%global SVNREV 211949
-%global gcc_version 4.8.3
+%global DATE 20140910
+%global SVNREV 215112
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
-%ifarch %{ix86} x86_64 ia64 ppc ppc64 ppc64p7 alpha
+%ifarch %{ix86} x86_64 ia64 ppc ppc64 ppc64p7 alpha aarch64
 %global build_ada 1
 %else
 %global build_ada 0
@@ -42,7 +41,7 @@
 %else
 %global build_libatomic 0
 %endif
-%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x
+%ifarch %{ix86} x86_64 %{arm} alpha ppc ppc64 ppc64le ppc64p7 s390 s390x aarch64
 %global build_libitm 1
 %else
 %global build_libitm 0
@@ -74,15 +73,23 @@
 %endif
 Summary: Various compilers (C, C++, Objective-C, Java, ...)
 Name: gcc
-Version: %{gcc_version}
+%if 0%{?rhel} == 7
+%global gcc_version 4.8.2
+%else
+%global gcc_version 4.8.3
+%endif
+Version: 4.8.3
 Release: %{gcc_release}%{?dist}
+%if "%{version}" != "%{gcc_version}"
+%define gcc_provides %{gcc_version}-16%{?dist}
+%endif
 # libgcc, libgfortran, libmudflap, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_7-branch@%{SVNREV} gcc-%{version}-%{DATE}
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-4_8-branch@%{SVNREV} gcc-%{version}-%{DATE}
 # tar cf - gcc-%{version}-%{DATE} | bzip2 -9 > gcc-%{version}-%{DATE}.tar.bz2
 Source0: gcc-%{version}-%{DATE}.tar.bz2
 %global isl_version 0.11.1
@@ -185,6 +192,9 @@ Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 AutoReq: true
 Provides: bundled(libiberty)
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc = %{gcc_provides}
+%endif
 
 Patch0: gcc48-hack.patch
 Patch1: gcc48-java-nomulti.patch
@@ -205,6 +215,9 @@ Patch15: gcc48-color-auto.patch
 Patch16: gcc48-pr28865.patch
 Patch17: gcc48-libgo-p224.patch
 Patch18: gcc48-pr60010.patch
+Patch19: gcc48-aarch64-ada.patch
+Patch20: gcc48-aarch64-async-unw-tables.patch
+Patch21: gcc48-aarch64-unwind-opt.patch
 
 Patch1000: fastjar-0.97-segfault.patch
 Patch1001: fastjar-0.97-len1.patch
@@ -242,6 +255,9 @@ You'll need this package in order to compile C code.
 Summary: GCC version 4.8 shared support library
 Group: System Environment/Libraries
 Autoreq: false
+%if "%{version}" != "%{gcc_version}"
+Provides: libgcc = %{gcc_provides}
+%endif
 
 %description -n libgcc
 This package contains GCC shared support library which is needed
@@ -254,6 +270,9 @@ Requires: gcc = %{version}-%{release}
 Requires: libstdc++ = %{version}-%{release}
 Requires: libstdc++-devel = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-c++ = %{gcc_provides}
+%endif
 
 %description c++
 This package adds C++ support to the GNU Compiler Collection.
@@ -265,6 +284,9 @@ Summary: GNU Standard C++ Library
 Group: System Environment/Libraries
 Autoreq: true
 Requires: glibc >= 2.10.90-7
+%if "%{version}" != "%{gcc_version}"
+Provides: libstdc++ = %{gcc_provides}
+%endif
 
 %description -n libstdc++
 The libstdc++ package contains a rewritten standard compliant GCC Standard
@@ -275,6 +297,9 @@ Summary: Header files and libraries for C++ development
 Group: Development/Libraries
 Requires: libstdc++%{?_isa} = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libstdc++-devel = %{gcc_provides}
+%endif
 
 %description -n libstdc++-devel
 This is the GNU implementation of the standard C++ libraries.  This
@@ -286,6 +311,9 @@ Summary: Static libraries for the GNU standard C++ library
 Group: Development/Libraries
 Requires: libstdc++-devel = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libstdc++-static = %{gcc_provides}
+%endif
 
 %description -n libstdc++-static
 Static libraries for the GNU standard C++ library.
@@ -294,6 +322,9 @@ Static libraries for the GNU standard C++ library.
 Summary: Documentation for the GNU standard C++ library
 Group: Development/Libraries
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libstdc++-docs = %{gcc_provides}
+%endif
 
 %description -n libstdc++-docs
 Manual, doxygen generated API information and Frequently Asked Questions
@@ -305,6 +336,9 @@ Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libobjc = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-objc = %{gcc_provides}
+%endif
 
 %description objc
 gcc-objc provides Objective-C support for the GCC.
@@ -316,6 +350,9 @@ Summary: Objective-C++ support for GCC
 Group: Development/Languages
 Requires: gcc-c++ = %{version}-%{release}, gcc-objc = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-objc++ = %{gcc_provides}
+%endif
 
 %description objc++
 gcc-objc++ package provides Objective-C++ support for the GCC.
@@ -324,6 +361,9 @@ gcc-objc++ package provides Objective-C++ support for the GCC.
 Summary: Objective-C runtime
 Group: System Environment/Libraries
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libobjc = %{gcc_provides}
+%endif
 
 %description -n libobjc
 This package contains Objective-C shared library which is needed to run
@@ -342,6 +382,9 @@ BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-gfortran = %{gcc_provides}
+%endif
 
 %description gfortran
 The gcc-gfortran package provides support for compiling Fortran
@@ -353,6 +396,9 @@ Group: System Environment/Libraries
 Autoreq: true
 %if %{build_libquadmath}
 Requires: libquadmath = %{version}-%{release}
+%endif
+%if "%{version}" != "%{gcc_version}"
+Provides: libgfortran = %{gcc_provides}
 %endif
 
 %description -n libgfortran
@@ -367,6 +413,9 @@ Requires: gcc = %{version}-%{release}
 %if %{build_libquadmath}
 Requires: libquadmath-static = %{version}-%{release}
 %endif
+%if "%{version}" != "%{gcc_version}"
+Provides: libgfortran-static = %{gcc_provides}
+%endif
 
 %description -n libgfortran-static
 This package contains static Fortran libraries.
@@ -376,6 +425,9 @@ Summary: GCC OpenMP v3.0 shared support library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libgomp = %{gcc_provides}
+%endif
 
 %description -n libgomp
 This package contains GCC shared support library which is needed
@@ -384,6 +436,9 @@ for OpenMP v3.0 support.
 %package -n libmudflap
 Summary: GCC mudflap shared support library
 Group: System Environment/Libraries
+%if "%{version}" != "%{gcc_version}"
+Provides: libmudflap = %{gcc_provides}
+%endif
 
 %description -n libmudflap
 This package contains GCC shared support library which is needed
@@ -394,6 +449,9 @@ Summary: GCC mudflap support
 Group: Development/Libraries
 Requires: libmudflap = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libmudflap-devel = %{gcc_provides}
+%endif
 
 %description -n libmudflap-devel
 This package contains headers for building mudflap-instrumented programs.
@@ -406,6 +464,9 @@ also add -fmudflapth and -lmudflapth.
 Summary: Static libraries for mudflap support
 Group: Development/Libraries
 Requires: libmudflap-devel = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libmudflap-static = %{gcc_provides}
+%endif
 
 %description -n libmudflap-static
 This package contains static libraries for building mudflap-instrumented
@@ -416,6 +477,9 @@ Summary: GCC __float128 shared support library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libquadmath = %{gcc_provides}
+%endif
 
 %description -n libquadmath
 This package contains GCC shared support library which is needed
@@ -426,6 +490,9 @@ Summary: GCC __float128 support
 Group: Development/Libraries
 Requires: libquadmath = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libquadmath-devel = %{gcc_provides}
+%endif
 
 %description -n libquadmath-devel
 This package contains headers for building Fortran programs using
@@ -435,6 +502,9 @@ REAL*16 and programs using __float128 math.
 Summary: Static libraries for __float128 support
 Group: Development/Libraries
 Requires: libquadmath-devel = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libquadmath-static = %{gcc_provides}
+%endif
 
 %description -n libquadmath-static
 This package contains static libraries for building Fortran programs
@@ -445,6 +515,9 @@ Summary: The GNU Transactional Memory library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libitm = %{gcc_provides}
+%endif
 
 %description -n libitm
 This package contains the GNU Transactional Memory library
@@ -455,6 +528,9 @@ Summary: The GNU Transactional Memory support
 Group: Development/Libraries
 Requires: libitm = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libitm-devel = %{gcc_provides}
+%endif
 
 %description -n libitm-devel
 This package contains headers and support files for the
@@ -464,6 +540,9 @@ GNU Transactional Memory library.
 Summary: The GNU Transactional Memory static library
 Group: Development/Libraries
 Requires: libitm-devel = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libitm-static = %{gcc_provides}
+%endif
 
 %description -n libitm-static
 This package contains GNU Transactional Memory static libraries.
@@ -473,6 +552,9 @@ Summary: The GNU Atomic library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libatomic = %{gcc_provides}
+%endif
 
 %description -n libatomic
 This package contains the GNU Atomic library
@@ -483,6 +565,9 @@ by hardware.
 Summary: The GNU Atomic static library
 Group: Development/Libraries
 Requires: libatomic = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libatomic-static = %{gcc_provides}
+%endif
 
 %description -n libatomic-static
 This package contains GNU Atomic static libraries.
@@ -492,6 +577,9 @@ Summary: The Address Sanitizer runtime library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libasan = %{gcc_provides}
+%endif
 
 %description -n libasan
 This package contains the Address Sanitizer library
@@ -501,6 +589,9 @@ which is used for -fsanitize=address instrumented programs.
 Summary: The Address Sanitizer static library
 Group: Development/Libraries
 Requires: libasan = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libasan-static = %{gcc_provides}
+%endif
 
 %description -n libasan-static
 This package contains Address Sanitizer static runtime library.
@@ -510,6 +601,9 @@ Summary: The Thread Sanitizer runtime library
 Group: System Environment/Libraries
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%if "%{version}" != "%{gcc_version}"
+Provides: libtsan = %{gcc_provides}
+%endif
 
 %description -n libtsan
 This package contains the Thread Sanitizer library
@@ -519,6 +613,9 @@ which is used for -fsanitize=thread instrumented programs.
 Summary: The Thread Sanitizer static library
 Group: Development/Libraries
 Requires: libtsan = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libtsan-static = %{gcc_provides}
+%endif
 
 %description -n libtsan-static
 This package contains Thread Sanitizer static runtime library.
@@ -533,6 +630,9 @@ Requires: /usr/share/java/eclipse-ecj.jar
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-java = %{gcc_provides}
+%endif
 
 %description java
 This package adds support for compiling Java(tm) programs and
@@ -556,6 +656,9 @@ BuildRequires: libXtst-devel
 BuildRequires: libXt-devel
 %endif
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgcj = %{gcc_provides}
+%endif
 
 %description -n libgcj
 The Java(tm) runtime library. You will need this package to run your Java
@@ -569,6 +672,9 @@ Requires: zlib-devel%{?_isa}
 Requires: /bin/awk
 Autoreq: false
 Autoprov: false
+%if "%{version}" != "%{gcc_version}"
+Provides: libgcj-devel = %{gcc_provides}
+%endif
 
 %description -n libgcj-devel
 The Java(tm) static libraries and C header files. You will need this
@@ -579,6 +685,9 @@ Summary: Java library sources from GCC4 preview
 Group: System Environment/Libraries
 Requires: libgcj = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgcj-src = %{gcc_provides}
+%endif
 
 %description -n libgcj-src
 The Java(tm) runtime library sources for use in Eclipse.
@@ -591,6 +700,9 @@ Provides: /lib/cpp
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: cpp = %{gcc_provides}
+%endif
 
 %description -n cpp
 Cpp is the GNU C-Compatible Compiler Preprocessor.
@@ -622,6 +734,9 @@ Requires: libgnat = %{version}-%{release}, libgnat-devel = %{version}-%{release}
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-gnat = %{gcc_provides}
+%endif
 
 %description gnat
 GNAT is a GNU Ada 95 front-end to GCC. This package includes development tools,
@@ -631,6 +746,9 @@ the documents and Ada 95 compiler.
 Summary: GNU Ada 95 runtime shared libraries
 Group: System Environment/Libraries
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgnat = %{gcc_provides}
+%endif
 
 %description -n libgnat
 GNAT is a GNU Ada 95 front-end to GCC. This package includes shared libraries,
@@ -640,6 +758,9 @@ which are required to run programs compiled with the GNAT.
 Summary: GNU Ada 95 libraries
 Group: Development/Languages
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgnat-devel = %{gcc_provides}
+%endif
 
 %description -n libgnat-devel
 GNAT is a GNU Ada 95 front-end to GCC. This package includes libraries,
@@ -650,6 +771,9 @@ Summary: GNU Ada 95 static libraries
 Group: Development/Languages
 Requires: libgnat-devel = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgnat-static = %{gcc_provides}
+%endif
 
 %description -n libgnat-static
 GNAT is a GNU Ada 95 front-end to GCC. This package includes static libraries.
@@ -663,6 +787,9 @@ Requires: libgo-devel = %{version}-%{release}
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-go = %{gcc_provides}
+%endif
 
 %description go
 The gcc-go package provides support for compiling Go programs
@@ -672,6 +799,9 @@ with the GNU Compiler Collection.
 Summary: Go runtime
 Group: System Environment/Libraries
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgo = %{gcc_provides}
+%endif
 
 %description -n libgo
 This package contains Go shared library which is needed to run
@@ -682,6 +812,9 @@ Summary: Go development libraries
 Group: Development/Languages
 Requires: libgo = %{version}-%{release}
 Autoreq: true
+%if "%{version}" != "%{gcc_version}"
+Provides: libgo-devel = %{gcc_provides}
+%endif
 
 %description -n libgo-devel
 This package includes libraries and support files for compiling
@@ -692,6 +825,9 @@ Summary: Static Go libraries
 Group: Development/Libraries
 Requires: libgo = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
+%if "%{version}" != "%{gcc_version}"
+Provides: libgo-static = %{gcc_provides}
+%endif
 
 %description -n libgo-static
 This package contains static Go libraries.
@@ -701,6 +837,9 @@ Summary: Support for compiling GCC plugins
 Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
+%if "%{version}" != "%{gcc_version}"
+Provides: gcc-plugin-devel = %{gcc_provides}
+%endif
 
 %description plugin-devel
 This package contains header files and other support files
@@ -772,6 +911,11 @@ package or when debugging this package.
 %patch17 -p0 -b .libgo-p224~
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch18 -p0 -b .pr60010~
+%ifarch aarch64
+%patch19 -p0 -b .aarch64-ada~
+%endif
+%patch20 -p0 -b .aarch64-async-unw-tables~
+%patch21 -p0 -b .aarch64-unwind-opt~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -1084,7 +1228,10 @@ CC="$CC" CFLAGS="$OPT_FLAGS" \
 %ifarch sparc sparcv9
 	--host=%{gcc_target_platform} --build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=v7
 %endif
-%ifarch ppc ppc64 ppc64le ppc64p7
+%ifarch ppc64le
+       --with-cpu-64=power7 --with-tune-64=power8 \
+%endif
+%ifarch ppc ppc64 ppc64p7
 %if 0%{?rhel} >= 7
 	--with-cpu-32=power7 --with-tune-32=power7 --with-cpu-64=power7 --with-tune-64=power7 \
 %endif
@@ -1243,8 +1390,8 @@ make DESTDIR=%{buildroot} -C %{gcc_target_platform}/libjava install-src.zip
 chmod 644 %{buildroot}%{_infodir}/gnat*
 %endif
 
-FULLPATH=%{buildroot}%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
-FULLEPATH=%{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+FULLPATH=%{buildroot}%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+FULLEPATH=%{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
 
 %if %{build_cloog}
 cp -a cloog-install/lib/libcloog-isl.so.4 $FULLPATH/
@@ -1262,7 +1409,7 @@ ln -sf gcc %{buildroot}%{_prefix}/bin/gnatgcc
 cxxconfig="`find %{gcc_target_platform}/libstdc++-v3/include -name c++config.h`"
 for i in `find %{gcc_target_platform}/[36]*/libstdc++-v3/include -name c++config.h 2>/dev/null`; do
   if ! diff -up $cxxconfig $i; then
-    cat > %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/c++config.h <<EOF
+    cat > %{buildroot}%{_prefix}/include/c++/%{version}/%{gcc_target_platform}/bits/c++config.h <<EOF
 #ifndef _CPP_CPPCONFIG_WRAPPER
 #define _CPP_CPPCONFIG_WRAPPER 1
 #include <bits/wordsize.h>
@@ -1285,7 +1432,7 @@ EOF
   fi
 done
 
-for f in `find %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/ -name c++config.h`; do
+for f in `find %{buildroot}%{_prefix}/include/c++/%{version}/%{gcc_target_platform}/ -name c++config.h`; do
   for i in 1 2 4 8; do
     sed -i -e 's/#define _GLIBCXX_ATOMIC_BUILTINS_'$i' 1/#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_'$i'\
 &\
@@ -1302,7 +1449,7 @@ done
 # 4) it is huge
 # People can always precompile on their own whatever they want, but
 # shipping this for everybody is unnecessary.
-rm -rf %{buildroot}%{_prefix}/include/c++/%{gcc_version}/%{gcc_target_platform}/bits/*.h.gch
+rm -rf %{buildroot}%{_prefix}/include/c++/%{version}/%{gcc_target_platform}/bits/*.h.gch
 
 %if %{build_libstdcxx_docs}
 libstdcxx_doc_builddir=%{gcc_target_platform}/libstdc++-v3/doc/doxygen
@@ -1355,9 +1502,9 @@ mv %{buildroot}%{_prefix}/%{_lib}/libitm.spec $FULLPATH/
 %endif
 
 mkdir -p %{buildroot}/%{_lib}
-mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
-chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
-ln -sf libgcc_s-%{gcc_version}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{version}-%{DATE}.so.1
+chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{version}-%{DATE}.so.1
+ln -sf libgcc_s-%{version}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
 ln -sf /%{_lib}/libgcc_s.so.1 $FULLPATH/libgcc_s.so
 %ifarch sparcv9 ppc
 ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
@@ -1423,7 +1570,7 @@ mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++*gdb.py* \
       %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/
 pushd ../libstdc++-v3/python
 for i in `find . -name \*.py`; do
-  touch -r $i %{buildroot}%{_prefix}/share/gcc-%{gcc_version}/python/$i
+  touch -r $i %{buildroot}%{_prefix}/share/gcc-%{version}/python/$i
 done
 touch -r hook.in %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc++*gdb.py
 popd
@@ -1732,33 +1879,33 @@ ln -sf lib64/adalib adalib
 %endif
 %else
 %ifarch %{multilib_64_archs}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libgfortran.a 32/libgfortran.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libstdc++.a 32/libstdc++.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libsupc++.a 32/libsupc++.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libmudflap.a 32/libmudflap.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libmudflapth.a 32/libmudflapth.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libgfortran.a 32/libgfortran.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libstdc++.a 32/libstdc++.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libsupc++.a 32/libsupc++.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libmudflap.a 32/libmudflap.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libmudflapth.a 32/libmudflapth.a
 %if %{build_libquadmath}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libquadmath.a 32/libquadmath.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libquadmath.a 32/libquadmath.a
 %endif
 %if %{build_libitm}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libitm.a 32/libitm.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libitm.a 32/libitm.a
 %endif
 %if %{build_libatomic}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libatomic.a 32/libatomic.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libatomic.a 32/libatomic.a
 %endif
 %if %{build_libasan}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libasan.a 32/libasan.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libasan.a 32/libasan.a
 %endif
 %if %{build_go}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libgo.a 32/libgo.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libgobegin.a 32/libgobegin.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libgo.a 32/libgo.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libgobegin.a 32/libgobegin.a
 %endif
 %if %{build_java}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/libgcj_bc.so 32/libgcj_bc.so
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/libgcj_bc.so 32/libgcj_bc.so
 %endif
 %if %{build_ada}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/adainclude 32/adainclude
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_version}/adalib 32/adalib
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/adainclude 32/adainclude
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{version}/adalib 32/adalib
 %endif
 %endif
 %endif
@@ -1835,6 +1982,31 @@ exec gcc $fl ${1+"$@"}
 EOF
 chmod 755 %{buildroot}%{_prefix}/bin/c?9
 
+%if "%{version}" != "%{gcc_version}"
+mv -f $RPM_BUILD_ROOT%{_prefix}/libexec/gcc/%{gcc_target_platform}/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+mv -f $RPM_BUILD_ROOT%{_prefix}/lib/gcc/%{gcc_target_platform}/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+mv -f $RPM_BUILD_ROOT%{_prefix}/include/c++/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/include/c++/%{version}
+mv -f $RPM_BUILD_ROOT%{_prefix}/share/gcc-{%{version},%{gcc_version}}
+ln -sf gcc-%{gcc_version} $RPM_BUILD_ROOT%{_prefix}/share/gcc-%{version}
+%if %{build_java}
+mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-{%{version},%{gcc_version}}
+ln -sf gcj-%{gcc_version} $RPM_BUILD_ROOT%{_prefix}/%{_lib}/gcj-%{version}
+mv -f $RPM_BUILD_ROOT%{_prefix}/share/java/libgcj-{%{version},%{gcc_version}}.jar
+ln -sf libgcj-%{gcc_version}.jar $RPM_BUILD_ROOT%{_prefix}/share/java/libgcj-%{version}.jar
+mv -f $RPM_BUILD_ROOT%{_prefix}/share/java/libgcj-tools-{%{version},%{gcc_version}}.jar
+ln -sf libgcj-tools-%{gcc_version}.jar $RPM_BUILD_ROOT%{_prefix}/share/java/libgcj-tools-%{version}.jar
+mv -f $RPM_BUILD_ROOT%{_prefix}/share/java/src-{%{version},%{gcc_version}}.zip
+ln -sf src-%{gcc_version}.zip $RPM_BUILD_ROOT%{_prefix}/share/java/src-%{version}.zip
+%endif
+%if %{build_go}
+mv -f $RPM_BUILD_ROOT%{_prefix}/%{_lib}/go/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/%{_lib}/go/%{version}
+%endif
+%endif
+
 cd ..
 %find_lang %{name}
 %find_lang cpplib
@@ -1860,6 +2032,10 @@ rm -f %{buildroot}%{_prefix}/lib/lib*.so*
 rm -f %{buildroot}%{_prefix}/lib/lib*.a
 rm -f %{buildroot}/lib/libgcc_s*.so*
 %if %{build_go}
+%if "%{version}" != "%{gcc_version}"
+mv -f $RPM_BUILD_ROOT%{_prefix}/lib/go/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/lib/go/%{version}
+%endif
 rm -rf %{buildroot}%{_prefix}/lib/go/%{gcc_version}/%{gcc_target_platform}
 %ifnarch sparc64 ppc64 ppc64p7
 ln -sf %{multilib_32_arch}-%{_vendor}-%{_target_os} %{buildroot}%{_prefix}/lib/go/%{gcc_version}/%{gcc_target_platform}
@@ -1871,6 +2047,10 @@ rm -f %{buildroot}%{_prefix}/lib64/lib*.so*
 rm -f %{buildroot}%{_prefix}/lib64/lib*.a
 rm -f %{buildroot}/lib64/libgcc_s*.so*
 %if %{build_go}
+%if "%{version}" != "%{gcc_version}"
+mv -f $RPM_BUILD_ROOT%{_prefix}/lib64/go/{%{version},%{gcc_version}}
+ln -sf %{gcc_version} $RPM_BUILD_ROOT%{_prefix}/lib64/go/%{version}
+%endif
 rm -rf %{buildroot}%{_prefix}/lib64/go/%{gcc_version}/%{gcc_target_platform}
 %endif
 %endif
@@ -1878,11 +2058,11 @@ rm -rf %{buildroot}%{_prefix}/lib64/go/%{gcc_version}/%{gcc_target_platform}
 
 %if %{build_java}
 mkdir -p %{buildroot}%{_prefix}/share/java/gcj-endorsed \
-	 %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
+	 %{buildroot}%{_prefix}/%{_lib}/gcj-%{gcc_version}/classmap.db.d
 chmod 755 %{buildroot}%{_prefix}/share/java/gcj-endorsed \
-	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{version} \
-	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
-touch %{buildroot}%{_prefix}/%{_lib}/gcj-%{version}/classmap.db
+	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{gcc_version} \
+	  %{buildroot}%{_prefix}/%{_lib}/gcj-%{gcc_version}/classmap.db.d
+touch %{buildroot}%{_prefix}/%{_lib}/gcj-%{gcc_version}/classmap.db
 %endif
 
 rm -f %{buildroot}%{mandir}/man3/ffi*
@@ -2138,10 +2318,16 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/lto1
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/lto-wrapper
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/liblto_plugin.so*
@@ -2359,11 +2545,14 @@ fi
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1
 
 %files -n libgcc
 %defattr(-,root,root,-)
-/%{_lib}/libgcc_s-%{gcc_version}-%{DATE}.so.1
+/%{_lib}/libgcc_s-%{version}-%{DATE}.so.1
 /%{_lib}/libgcc_s.so.1
 %doc gcc/COPYING* COPYING.RUNTIME
 
@@ -2376,9 +2565,15 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1plus
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
@@ -2411,18 +2606,27 @@ fi
 %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc*gdb.py*
 %dir %{_prefix}/share/gcc-%{gcc_version}
 %dir %{_prefix}/share/gcc-%{gcc_version}/python
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/share/gcc-%{version}
+%endif
 %{_prefix}/share/gcc-%{gcc_version}/python/libstdcxx
 
 %files -n libstdc++-devel
 %defattr(-,root,root,-)
 %dir %{_prefix}/include/c++
 %dir %{_prefix}/include/c++/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/include/c++/%{version}
+%endif
 %{_prefix}/include/c++/%{gcc_version}/[^gjos]*
 %{_prefix}/include/c++/%{gcc_version}/os*
 %{_prefix}/include/c++/%{gcc_version}/s[^u]*
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifnarch sparcv9 ppc %{multilib_64_archs}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libstdc++.so
 %endif
@@ -2433,6 +2637,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libstdc++.a
@@ -2460,9 +2667,15 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/objc
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1obj
@@ -2486,6 +2699,9 @@ fi
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/cc1objplus
 
 %files -n libobjc
@@ -2501,9 +2717,15 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/finclude
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/finclude/omp_lib.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/finclude/omp_lib.f90
@@ -2542,6 +2764,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libgfortran.a
@@ -2569,9 +2794,15 @@ fi
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/jc1
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/ecj1
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/jvgenmain
@@ -2635,26 +2866,35 @@ fi
 %{_prefix}/%{_lib}/libgcj-tools.so.*
 %{_prefix}/%{_lib}/libgcj_bc.so.*
 %{_prefix}/%{_lib}/libgij.so.*
-%dir %{_prefix}/%{_lib}/gcj-%{version}
-%{_prefix}/%{_lib}/gcj-%{version}/libgtkpeer.so
-%{_prefix}/%{_lib}/gcj-%{version}/libgjsmalsa.so
-%{_prefix}/%{_lib}/gcj-%{version}/libjawt.so
-%{_prefix}/%{_lib}/gcj-%{version}/libjvm.so
-%{_prefix}/%{_lib}/gcj-%{version}/libjavamath.so
+%dir %{_prefix}/%{_lib}/gcj-%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/%{_lib}/gcj-%{version}
+%endif
+%{_prefix}/%{_lib}/gcj-%{gcc_version}/libgtkpeer.so
+%{_prefix}/%{_lib}/gcj-%{gcc_version}/libgjsmalsa.so
+%{_prefix}/%{_lib}/gcj-%{gcc_version}/libjawt.so
+%{_prefix}/%{_lib}/gcj-%{gcc_version}/libjvm.so
+%{_prefix}/%{_lib}/gcj-%{gcc_version}/libjavamath.so
 %dir %{_prefix}/share/java
 %{_prefix}/share/java/[^sl]*
+%{_prefix}/share/java/libgcj-%{gcc_version}.jar
+%if "%{version}" != "%{gcc_version}"
 %{_prefix}/share/java/libgcj-%{version}.jar
+%endif
 %dir %{_prefix}/%{_lib}/security
 %config(noreplace) %{_prefix}/%{_lib}/security/classpath.security
 %{_prefix}/%{_lib}/logging.properties
-%dir %{_prefix}/%{_lib}/gcj-%{version}/classmap.db.d
-%attr(0644,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) %{_prefix}/%{_lib}/gcj-%{version}/classmap.db
+%dir %{_prefix}/%{_lib}/gcj-%{gcc_version}/classmap.db.d
+%attr(0644,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) %{_prefix}/%{_lib}/gcj-%{gcc_version}/classmap.db
 
 %files -n libgcj-devel
 %defattr(-,root,root,-)
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/gcj
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/jawt.h
@@ -2676,6 +2916,9 @@ fi
 %endif
 %dir %{_prefix}/include/c++
 %dir %{_prefix}/include/c++/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/include/c++/%{version}
+%endif
 %{_prefix}/include/c++/%{gcc_version}/[gj]*
 %{_prefix}/include/c++/%{gcc_version}/org
 %{_prefix}/include/c++/%{gcc_version}/sun
@@ -2687,7 +2930,10 @@ fi
 %defattr(-,root,root,-)
 %dir %{_prefix}/share/java
 %{_prefix}/share/java/src*.zip
+%{_prefix}/share/java/libgcj-tools-%{gcc_version}.jar
+%if "%{version}" != "%{gcc_version}"
 %{_prefix}/share/java/libgcj-tools-%{version}.jar
+%endif
 %endif
 
 %if %{build_ada}
@@ -2699,9 +2945,15 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64/adainclude
@@ -2729,6 +2981,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/adainclude
@@ -2755,6 +3010,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/adalib
@@ -2790,6 +3048,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mf-runtime.h
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
@@ -2803,6 +3064,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libmudflap.a
@@ -2830,6 +3094,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/quadmath.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/quadmath_weak.h
@@ -2843,6 +3110,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libquadmath.a
@@ -2867,6 +3137,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include
 #%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/itm.h
 #%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/itm_weak.h
@@ -2880,6 +3153,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libitm.a
@@ -2903,6 +3179,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libatomic.a
@@ -2927,6 +3206,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libasan.a
@@ -2951,6 +3233,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libtsan.a
 %doc rpm.doc/changelogs/libsanitizer/ChangeLog* libsanitizer/LICENSE.TXT
 %endif
@@ -2963,9 +3248,15 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/go1
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/64
@@ -3000,11 +3291,17 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
 %dir %{_prefix}/%{_lib}/go
 %dir %{_prefix}/%{_lib}/go/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/%{_lib}/go/%{version}
+%endif
 %{_prefix}/%{_lib}/go/%{gcc_version}/%{gcc_target_platform}
 %ifarch %{multilib_64_archs}
 %ifnarch sparc64 ppc64 ppc64p7
 %dir %{_prefix}/lib/go
 %dir %{_prefix}/lib/go/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/go/%{version}
+%endif
 %{_prefix}/lib/go/%{gcc_version}/%{gcc_target_platform}
 %endif
 %endif
@@ -3026,6 +3323,9 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/lib32/libgo.a
@@ -3044,13 +3344,54 @@ fi
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}
+%if "%{version}" != "%{gcc_version}"
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{version}
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Sep 10 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-5
+- update from the 4.8 branch (#1140019)
+  - PRs c++/58714, c++/59823, c++/59956, c++/60241, c++/60361, c++/61959,
+	c/61271, debug/55794, debug/60655, debug/61923, fortran/61999,
+	fortran/62214, fortran/62270, ipa/61986, ipa/62015, libgfortran/62188,
+	libstdc++/58962, libstdc++/61946, middle-end/61010, middle-end/61045,
+	middle-end/62103, rtl-optimization/62004, rtl-optimization/62030,
+	target/61996, target/62038, target/62195, testsuite/56194,
+	tree-optimization/60196, tree-optimization/60707,
+	tree-optimization/61452, tree-optimization/62073,
+	tree-optimization/62075, tree-optimization/63189
+
+* Thu Aug 21 2014 Richard Henderson <rth@redhat.com> 4.8.3-5
+- backport aarch64 unwind info improvements (#1132636)
+
+* Fri Aug  1 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-4
+- update from the 4.8 branch
+  - PRs fortran/61780, libobjc/61920, target/47230, tree-optimization/61375,
+	tree-optimization/61964
+  - fix libgfortran overflows on allocation (CVE-2014-5044)
+- backport ibm-ldouble performance improvements (#1090620)
+
+* Wed Jul 30 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-3
+- on ppc64le use -mtune=power8 by default (#1123484)
+
+* Thu Jul 17 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-2
+- update from the 4.8 branch
+  - PRs c++/61500, c++/61539, c++/61647, fortran/58883, fortran/61459,
+	middle-end/53590, rtl-optimization/61801, target/61542, target/61586,
+	tree-optimization/61306, tree-optimization/61684
+- for rhel 7.1 keep the old 4.8.2 pathnames and use 4.8.3 symlinks
+- merge in aarch64 support (#1070290)
+- small improvements on s390x for z196 and later (#1088542)
+- make sure OpenMP outlined artificial functions have DW_AT_name (#844959)
+
 * Tue Jun 24 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-1
 - update from the 4.8 branch
   - GCC 4.8.3 release
