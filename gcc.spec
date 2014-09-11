@@ -1,8 +1,8 @@
-%global DATE 20140910
-%global SVNREV 215112
+%global DATE 20140911
+%global SVNREV 215159
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -3357,7 +3357,11 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
-* Wed Sep 10 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-5
+* Thu Sep 11 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-7
+- update from the 4.8 branch
+  - fix ppc32 libgo.so.4 to avoid RWE PT_GNU_STACK
+
+* Wed Sep 10 2014 Jakub Jelinek <jakub@redhat.com> 4.8.3-6
 - update from the 4.8 branch (#1140019)
   - PRs c++/58714, c++/59823, c++/59956, c++/60241, c++/60361, c++/61959,
 	c/61271, debug/55794, debug/60655, debug/61923, fortran/61999,
