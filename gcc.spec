@@ -1,9 +1,9 @@
-%global DATE 20140815
-%global SVNREV 214009
+%global DATE 20140912
+%global SVNREV 215204
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -203,6 +203,7 @@ Patch18: gcc49-aarch64-unwind-opt.patch
 Patch19: gcc49-pr62098.patch
 Patch20: gcc49-pr62025.patch
 Patch21: gcc49-pr62131.patch
+Patch22: gcc49-pr62662.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -734,6 +735,7 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch19 -p0 -b .pr62098~
 %patch20 -p0 -b .pr62025~
 %patch21 -p0 -b .pr62131~
+%patch22 -p0 -b .pr62662~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2806,6 +2808,23 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Sep 12 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-9
+- update from the 4.9 branch
+  - PRs c++/58624, c++/61214, c++/61659, c++/62129, c++/62224, c++/62659,
+	c++/63139, c/61271, c/62294, fortran/62106, fortran/62142,
+	fortran/62214, fortran/62215, fortran/62270, ipa/60449, ipa/61986,
+	ipa/62015, libgfortran/62188, libstdc++/62264, libstdc++/63219,
+	middle-end/61776, other/62008, other/62248, rtl-optimization/61672,
+	rtl-optimization/62004, rtl-optimization/62030,
+	rtl-optimization/62079, rtl-optimization/62146, target/61641,
+	target/61996, target/62011, target/62038, target/62040, target/62111,
+	target/62195, target/62261, target/62262, target/62312, target/63209,
+	target/63223, target/63228, testsuite/56194, tree-optimization/60196,
+	tree-optimization/62075, tree-optimization/62091,
+	tree-optimization/62175, tree-optimization/63189
+- fix s390{,x} return address handling in epilogues (#1131899,
+  PR target/62662)
+
 * Fri Aug 15 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-8
 - update from the 4.9 branch
   - PRs fortran/62076, fortran/62107, lto/62032, middle-end/62092,
