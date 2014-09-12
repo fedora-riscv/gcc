@@ -200,10 +200,7 @@ Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
-Patch19: gcc49-pr62098.patch
-Patch20: gcc49-pr62025.patch
-Patch21: gcc49-pr62131.patch
-Patch22: gcc49-pr62662.patch
+Patch19: gcc49-pr62662.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -732,10 +729,7 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
-%patch19 -p0 -b .pr62098~
-%patch20 -p0 -b .pr62025~
-%patch21 -p0 -b .pr62131~
-%patch22 -p0 -b .pr62662~
+%patch19 -p0 -b .pr62662~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
