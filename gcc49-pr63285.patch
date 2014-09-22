@@ -1,0 +1,50 @@
+2014-09-18  Vladimir Makarov  <vmakarov@redhat.com>
+
+	PR debug/63285
+	* haifa-sched.c (schedule_block): Advance cycle at the end of BB
+	if advance != 0.
+
+	* gcc.target/i386/pr63285.c: New test.
+
+--- gcc/haifa-sched.c	(revision 215363)
++++ gcc/haifa-sched.c	(revision 215364)
+@@ -6473,7 +6473,7 @@ schedule_block (basic_block *target_bb,
+   if (ls.modulo_epilogue)
+     success = true;
+  end_schedule:
+-  if (!ls.first_cycle_insn_p)
++  if (!ls.first_cycle_insn_p || advance)
+     advance_one_cycle ();
+   perform_replacements_new_cycle ();
+   if (modulo_ii > 0)
+--- gcc/testsuite/gcc.target/i386/pr63285.c	(revision 0)
++++ gcc/testsuite/gcc.target/i386/pr63285.c	(revision 215364)
+@@ -0,0 +1,28 @@
++/* { dg-do compile } */
++/* { dg-options "-O2 -fcompare-debug" } */
++
++struct S { int a; };
++struct T { int b, c; } a;
++long b;
++int c, d;
++void bar (int, int);
++void baz (void *, int);
++
++void
++foo (struct S *x, int y, int z, void *f, int *p, struct T *e)
++{
++  while (x)
++    {
++      baz (f, &d > p);
++      if (z & 1)
++        bar (f > (void *) &f, z);
++    }
++  if (c)
++    {
++      asm ("" : "+m" (a) : "i" (0));
++      y--;
++    }
++  if (e->b == e->c)
++    c = y;
++  y--;
++}

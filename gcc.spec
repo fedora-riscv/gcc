@@ -1,9 +1,9 @@
-%global DATE 20140912
-%global SVNREV 215204
+%global DATE 20140922
+%global SVNREV 215456
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 9
+%global gcc_release 10
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,7 +200,7 @@ Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
-Patch19: gcc49-pr62662.patch
+Patch19: gcc49-pr63285.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -729,7 +729,7 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
-%patch19 -p0 -b .pr62662~
+%patch19 -p0 -b .pr63285~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2802,6 +2802,12 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Mon Sep 22 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-10
+- update from the 4.9 branch
+  - PRs c++/62017, c++/63241, c++/63248, debug/63284, debug/63328, ipa/61654,
+	target/61853, testsuite/63292
+- fix scheduler -fcompare-debug issue (#1140872, PR debug/63285)
+
 * Fri Sep 12 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-9
 - update from the 4.9 branch
   - PRs c++/58624, c++/61214, c++/61659, c++/62129, c++/62224, c++/62659,
