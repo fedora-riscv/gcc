@@ -1,9 +1,9 @@
-%global DATE 20140922
-%global SVNREV 215456
+%global DATE 20140930
+%global SVNREV 215732
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 11
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -201,6 +201,7 @@ Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
 Patch19: gcc49-pr63285.patch
+Patch20: gcc49-pr63186.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -730,6 +731,7 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
 %patch19 -p0 -b .pr63285~
+%patch20 -p0 -b .pr63186~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2802,6 +2804,14 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Tue Sep 30 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-11
+- update from the 4.9 branch
+  - PRs c++/61465, c++/62219, c++/63249, inline-asm/63282, middle-end/63247,
+	plugins/63410, sanitizer/61272, target/49423, target/61407,
+	target/62218, target/63335, tree-optimization/63341
+- avoid fnsplit if there are forced labels accessed in between the partitions
+  (#1106758, PR tree-optimization/63186)
+
 * Mon Sep 22 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-10
 - update from the 4.9 branch
   - PRs c++/62017, c++/63241, c++/63248, debug/63284, debug/63328, ipa/61654,
