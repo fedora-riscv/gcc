@@ -1,9 +1,9 @@
-%global DATE 20140930
-%global SVNREV 215732
+%global DATE 20141017
+%global SVNREV 216410
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 11
+%global gcc_release 12
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,8 +200,6 @@ Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
-Patch19: gcc49-pr63285.patch
-Patch20: gcc49-pr63186.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -730,8 +728,6 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
-%patch19 -p0 -b .pr63285~
-%patch20 -p0 -b .pr63186~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2804,6 +2800,20 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Oct 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-12
+- update from the 4.9 branch
+  - PRs ada/63225, c++/63306, c++/63405, c++/63415, c++/63437, c++/63455,
+	c/63495, debug/63342, fortran/59488, ipa/61144, ipa/62121,
+	libgfortran/63460, libgomp/61200, libstdc++/57440, libstdc++/59603,
+	libstdc++/63199, libstdc++/63449, libstdc++/63456, lto/62026,
+	regression/61510, rtl-optimization/57003, rtl-optimization/63448,
+	sanitizer/61100, sanitizer/61530, sanitizer/61547, sanitizer/61897,
+	sanitizer/62089, sanitizer/62140, target/52941, target/63428,
+	tree-optimization/61969, tree-optimization/62031,
+	tree-optimization/63302, tree-optimization/63375,
+	tree-optimization/63379, tree-optimization/63380
+  - initial -fsanitize=kernel-address support
+
 * Tue Sep 30 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-11
 - update from the 4.9 branch
   - PRs c++/61465, c++/62219, c++/63249, inline-asm/63282, middle-end/63247,
