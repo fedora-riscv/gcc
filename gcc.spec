@@ -1,9 +1,9 @@
-%global DATE 20141017
-%global SVNREV 216410
+%global DATE 20141024
+%global SVNREV 216625
 %global gcc_version 4.9.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 12
+%global gcc_release 13
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -2800,6 +2800,13 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Oct 24 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-13
+- update from the 4.9 branch
+  - PRs bootstrap/63632, libfortran/63589, libstdc++/63500,
+	lto/63603, tree-optimization/63563
+- backport -f{,no-}sanitize-recover=<list> support from the trunk
+- backport var-tracking fix (#1151226, PR debug/63623)
+
 * Fri Oct 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-12
 - update from the 4.9 branch
   - PRs ada/63225, c++/63306, c++/63405, c++/63415, c++/63437, c++/63455,
