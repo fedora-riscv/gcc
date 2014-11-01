@@ -1,9 +1,9 @@
-%global DATE 20141024
-%global SVNREV 216625
-%global gcc_version 4.9.1
+%global DATE 20141101
+%global SVNREV 216995
+%global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 13
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,6 +200,7 @@ Patch15: gcc49-color-auto.patch
 Patch16: gcc49-libgo-p224.patch
 Patch17: gcc49-aarch64-async-unw-tables.patch
 Patch18: gcc49-aarch64-unwind-opt.patch
+Patch19: gcc49-pr63659.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -728,6 +729,7 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch17 -p0 -b .aarch64-async-unw-tables~
 %patch18 -p0 -b .aarch64-unwind-opt~
+%patch19 -p0 -b .pr63659~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -778,7 +780,7 @@ chmod 755 split-debuginfo.sh
 
 %patch1100 -p0 -b .cloog-ppc64le-config~
 
-sed -i -e 's/4\.9\.2/4.9.1/' gcc/BASE-VER
+sed -i -e 's/4\.9\.3/4.9.2/' gcc/BASE-VER
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -2052,6 +2054,9 @@ fi
 %if %{build_libcilkrts}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/cilk
 %endif
+%if %{build_libasan}
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/sanitizer
+%endif
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/collect2
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/crt*.o
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libgcc.a
@@ -2800,6 +2805,13 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Sat Nov  1 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-1
+- update from the 4.9 branch
+  - GCC 4.9.2 release
+  - PRs sanitizer/63638, sanitizer/63697, tree-optimization/63530
+- handle REG_EQ* notes in REE (PR rtl-optimization/63659)
+- include asan/lsan sanitizer/ includes
+
 * Fri Oct 24 2014 Jakub Jelinek <jakub@redhat.com> 4.9.1-13
 - update from the 4.9 branch
   - PRs bootstrap/63632, libfortran/63589, libstdc++/63500,
