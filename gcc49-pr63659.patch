@@ -8,14 +8,14 @@
 
 --- gcc/ree.c.jj	2014-10-22 15:52:18.000000000 +0200
 +++ gcc/ree.c	2014-10-27 19:18:37.287412478 +0100
-@@ -266,6 +266,50 @@ typedef struct ext_cand
+@@ -261,6 +261,50 @@ typedef struct ext_cand
  
  static int max_insn_uid;
  
 +/* Update or remove REG_EQUAL or REG_EQUIV notes for INSN.  */
 +
 +static bool
-+update_reg_equal_equiv_notes (rtx_insn *insn, enum machine_mode new_mode,
++update_reg_equal_equiv_notes (rtx insn, enum machine_mode new_mode,
 +			      enum machine_mode old_mode, enum rtx_code code)
 +{
 +  rtx *loc = &REG_NOTES (insn);
@@ -59,15 +59,15 @@
  /* Given a insn (CURR_INSN), an extension candidate for removal (CAND)
     and a pointer to the SET rtx (ORIG_SET) that needs to be modified,
     this code modifies the SET rtx to a new SET rtx that extends the
-@@ -287,6 +331,7 @@ static bool
- combine_set_extension (ext_cand *cand, rtx_insn *curr_insn, rtx *orig_set)
+@@ -282,6 +326,7 @@ static bool
+ combine_set_extension (ext_cand *cand, rtx curr_insn, rtx *orig_set)
  {
    rtx orig_src = SET_SRC (*orig_set);
 +  enum machine_mode orig_mode = GET_MODE (SET_DEST (*orig_set));
    rtx new_set;
    rtx cand_pat = PATTERN (cand->insn);
  
-@@ -323,9 +368,8 @@ combine_set_extension (ext_cand *cand, r
+@@ -318,9 +363,8 @@ combine_set_extension (ext_cand *cand, r
  	{
  	  /* Zero-extend the negative constant by masking out the bits outside
  	     the source mode.  */
@@ -78,7 +78,7 @@
  			    GET_MODE (new_reg));
  	  new_set = gen_rtx_SET (VOIDmode, new_reg, new_const_int);
  	}
-@@ -364,7 +408,9 @@ combine_set_extension (ext_cand *cand, r
+@@ -359,7 +403,9 @@ combine_set_extension (ext_cand *cand, r
  
    /* This change is a part of a group of changes.  Hence,
       validate_change will not try to commit the change.  */
@@ -89,7 +89,7 @@
      {
        if (dump_file)
          {
-@@ -414,7 +460,9 @@ transform_ifelse (ext_cand *cand, rtx_in
+@@ -409,7 +455,9 @@ transform_ifelse (ext_cand *cand, rtx de
    ifexpr = gen_rtx_IF_THEN_ELSE (cand->mode, cond, map_srcreg, map_srcreg2);
    new_set = gen_rtx_SET (VOIDmode, map_dstreg, ifexpr);
  
