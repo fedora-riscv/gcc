@@ -1,9 +1,9 @@
-%global DATE 20141101
-%global SVNREV 216995
+%global DATE 20141212
+%global SVNREV 218667
 %global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -195,12 +195,11 @@ Patch9: gcc49-cloog-dl2.patch
 Patch10: gcc49-pr38757.patch
 Patch11: gcc49-libstdc++-docs.patch
 Patch12: gcc49-no-add-needed.patch
-Patch14: gcc49-pr56493.patch
-Patch15: gcc49-color-auto.patch
-Patch16: gcc49-libgo-p224.patch
-Patch17: gcc49-aarch64-async-unw-tables.patch
-Patch18: gcc49-aarch64-unwind-opt.patch
-Patch19: gcc49-pr63659.patch
+Patch13: gcc49-color-auto.patch
+Patch14: gcc49-libgo-p224.patch
+Patch15: gcc49-aarch64-async-unw-tables.patch
+Patch16: gcc49-aarch64-unwind-opt.patch
+Patch17: gcc49-pr64269.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -721,15 +720,14 @@ package or when debugging this package.
 %patch11 -p0 -b .libstdc++-docs~
 %endif
 %patch12 -p0 -b .no-add-needed~
-%patch14 -p0 -b .pr56493~
 %if 0%{?fedora} >= 20 || 0%{?rhel} >= 7
-%patch15 -p0 -b .color-auto~
+%patch13 -p0 -b .color-auto~
 %endif
-%patch16 -p0 -b .libgo-p224~
+%patch14 -p0 -b .libgo-p224~
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
-%patch17 -p0 -b .aarch64-async-unw-tables~
-%patch18 -p0 -b .aarch64-unwind-opt~
-%patch19 -p0 -b .pr63659~
+%patch15 -p0 -b .aarch64-async-unw-tables~
+%patch16 -p0 -b .aarch64-unwind-opt~
+%patch17 -p0 -b .pr64269~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2805,6 +2803,26 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Fri Dec 12 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-2
+- update from the 4.9 branch
+  - PRs ada/42978, ada/47500, bootstrap/63703, bootstrap/64213, c++/56493,
+	c++/63265, c++/63849, c/52769, c/59708, fortran/63938, ipa/63551,
+	ipa/63838, ipa/64153, libstdc++/61947, libstdc++/63497,
+	libstdc++/63840, libstdc++/64103, libstdc++/64140, libstdc++/64203,
+	middle-end/63665, middle-end/63738, middle-end/63762,
+	middle-end/64067, middle-end/64111, middle-end/64225,
+	preprocessor/60436, rtl-optimization/63475, rtl-optimization/63483,
+	rtl-optimization/64037, sanitizer/63913, target/50751, target/51244,
+	target/53976, target/55351, target/56846, target/59593, target/60111,
+	target/61535, target/63538, target/63661, target/63673, target/63783,
+	target/63947, target/64108, target/64113, target/64115,
+	testsuite/63305, tree-optimization/61686, tree-optimization/61750,
+	tree-optimization/61927, tree-optimization/62021,
+	tree-optimization/62167, tree-optimization/62238,
+	tree-optimization/63605, tree-optimization/63738,
+	tree-optimization/63841, tree-optimization/63915,
+	tree-optimization/64191
+
 * Sat Nov  1 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-1
 - update from the 4.9 branch
   - GCC 4.9.2 release
