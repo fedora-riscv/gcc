@@ -1,9 +1,9 @@
-%global DATE 20141212
-%global SVNREV 218667
+%global DATE 20141217
+%global SVNREV 218815
 %global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -199,7 +199,8 @@ Patch13: gcc49-color-auto.patch
 Patch14: gcc49-libgo-p224.patch
 Patch15: gcc49-aarch64-async-unw-tables.patch
 Patch16: gcc49-aarch64-unwind-opt.patch
-Patch17: gcc49-pr64269.patch
+Patch17: gcc49-pr61669.patch
+Patch18: gcc49-pr64336.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -727,7 +728,8 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch15 -p0 -b .aarch64-async-unw-tables~
 %patch16 -p0 -b .aarch64-unwind-opt~
-%patch17 -p0 -b .pr64269~
+%patch17 -p0 -b .pr61669~
+%patch18 -p0 -b .pr64336~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2803,6 +2805,17 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Dec 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-3
+- update from the 4.9 branch
+  - PRs libstdc++/64239, sanitizer/64265, target/64200,
+	tree-optimization/63551, tree-optimization/64269
+- fix up SANITIZE_* enum values, so that -fsanitize=bool is independent
+  from -fsanitize=float-divide-by-zero and -fsanitize=enum is independent
+  from -fsanitize=float-cast-overflow (#1173185)
+- fix -fsanitize=float-cast-overflow in C (#1173185, PR sanitizer/64289)
+- fix -fsanitize=thread (PR sanitizer/64336)
+- fix up Fortran DATA error recovery (#1115207, PR fortran/61669)
+
 * Fri Dec 12 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-2
 - update from the 4.9 branch
   - PRs ada/42978, ada/47500, bootstrap/63703, bootstrap/64213, c++/56493,

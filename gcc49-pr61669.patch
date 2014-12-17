@@ -1,0 +1,94 @@
+2014-12-15  Steven Bosscher  <steven@gcc.gnu.org>
+
+	PR fortran/61669
+	* gfortran.h (struct gfc_namespace): Add OLD_DATA field.
+	* decl.c (gfc_reject_data): New function.
+	* parse.c *use_modules): Record roll-back point.
+	(next_statement): Likewise.
+	(reject_statement): Roll back to last accepted DATA.
+
+2014-12-15  Steven Bosscher  <steven@gcc.gnu.org>
+	    Jakub Jelinek  <jakub@redhat.com>
+
+	PR fortran/61669
+	* gfortran.dg/pr61669.f90: New test.
+
+--- gcc/fortran/decl.c	(revision 218756)
++++ gcc/fortran/decl.c	(revision 218757)
+@@ -178,6 +178,20 @@ gfc_free_data_all (gfc_namespace *ns)
+     }
+ }
+ 
++/* Reject data parsed since the last restore point was marked.  */
++
++void
++gfc_reject_data (gfc_namespace *ns)
++{
++  gfc_data *d;
++
++  while (ns->data && ns->data != ns->old_data)
++    {
++      d = ns->data->next;
++      free (ns->data);
++      ns->data = d;
++    }
++}
+ 
+ static match var_element (gfc_data_variable *);
+ 
+--- gcc/fortran/gfortran.h	(revision 218756)
++++ gcc/fortran/gfortran.h	(revision 218757)
+@@ -1627,7 +1627,7 @@ typedef struct gfc_namespace
+   gfc_st_label *st_labels;
+   /* This list holds information about all the data initializers in
+      this namespace.  */
+-  struct gfc_data *data;
++  struct gfc_data *data, *old_data;
+ 
+   gfc_charlen *cl_list, *old_cl_list;
+ 
+@@ -2929,6 +2929,7 @@ void gfc_free_omp_namelist (gfc_omp_name
+ void gfc_free_equiv (gfc_equiv *);
+ void gfc_free_equiv_until (gfc_equiv *, gfc_equiv *);
+ void gfc_free_data (gfc_data *);
++void gfc_reject_data (gfc_namespace *);
+ void gfc_free_case_list (gfc_case *);
+ 
+ /* matchexp.c -- FIXME too?  */
+--- gcc/fortran/parse.c	(revision 218756)
++++ gcc/fortran/parse.c	(revision 218757)
+@@ -119,6 +119,7 @@ use_modules (void)
+   gfc_warning_check ();
+   gfc_current_ns->old_cl_list = gfc_current_ns->cl_list;
+   gfc_current_ns->old_equiv = gfc_current_ns->equiv;
++  gfc_current_ns->old_data = gfc_current_ns->data;
+   last_was_use_stmt = false;
+ }
+ 
+@@ -1098,6 +1099,7 @@ next_statement (void)
+ 
+   gfc_current_ns->old_cl_list = gfc_current_ns->cl_list;
+   gfc_current_ns->old_equiv = gfc_current_ns->equiv;
++  gfc_current_ns->old_data = gfc_current_ns->data;
+   for (;;)
+     {
+       gfc_statement_label = NULL;
+@@ -2043,6 +2045,8 @@ reject_statement (void)
+   gfc_free_equiv_until (gfc_current_ns->equiv, gfc_current_ns->old_equiv);
+   gfc_current_ns->equiv = gfc_current_ns->old_equiv;
+ 
++  gfc_reject_data (gfc_current_ns);
++
+   gfc_new_block = NULL;
+   gfc_undo_symbols ();
+   gfc_clear_warning ();
+--- gcc/testsuite/gfortran.dg/pr61669.f90	(revision 0)
++++ gcc/testsuite/gfortran.dg/pr61669.f90	(revision 218757)
+@@ -0,0 +1,7 @@
++! { dg-do compile }
++      write (*,"(a)") char(12)
++      CHARACTER*80 A /"A"/      ! { dg-error "Unexpected data declaration statement" }
++      REAL*4 B                  ! { dg-error "Unexpected data declaration statement" }
++      write (*,"(a)") char(12)
++      DATA B / 0.02 /           ! { dg-warning "Obsolescent feature: DATA statement" }
++      END
