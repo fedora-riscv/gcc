@@ -1,9 +1,9 @@
-%global DATE 20141217
-%global SVNREV 218815
+%global DATE 20150107
+%global SVNREV 219315
 %global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -199,8 +199,7 @@ Patch13: gcc49-color-auto.patch
 Patch14: gcc49-libgo-p224.patch
 Patch15: gcc49-aarch64-async-unw-tables.patch
 Patch16: gcc49-aarch64-unwind-opt.patch
-Patch17: gcc49-pr61669.patch
-Patch18: gcc49-pr64336.patch
+Patch17: gcc49-pr64336.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -728,8 +727,7 @@ package or when debugging this package.
 rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch15 -p0 -b .aarch64-async-unw-tables~
 %patch16 -p0 -b .aarch64-unwind-opt~
-%patch17 -p0 -b .pr61669~
-%patch18 -p0 -b .pr64336~
+%patch17 -p0 -b .pr64336~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -1199,6 +1197,9 @@ mv %{buildroot}%{_prefix}/%{_lib}/libitm.spec $FULLPATH/
 %endif
 %if %{build_libasan}
 mv %{buildroot}%{_prefix}/%{_lib}/libsanitizer.spec $FULLPATH/
+%endif
+%if %{build_libcilkrts}
+mv %{buildroot}%{_prefix}/%{_lib}/libcilkrts.spec $FULLPATH/
 %endif
 
 mkdir -p %{buildroot}/%{_lib}
@@ -2053,6 +2054,7 @@ fi
 %endif
 %if %{build_libcilkrts}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/cilk
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/libcilkrts.spec
 %endif
 %if %{build_libasan}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/sanitizer
@@ -2805,6 +2807,18 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Wed Jan  7 2015 Jakub Jelinek <jakub@redhat.com> 4.9.2-4
+- update from the 4.9 branch
+  - PRs ada/64492, c++/38958, c++/60955, c++/63657, c++/63658, c++/64029,
+	c++/64251, c++/64297, c++/64352, c++/64487, fortran/64244,
+	libstdc++/64302, libstdc++/64303, rtl-optimization/64010,
+	target/64409, target/64507
+- backport -mskip-rax-setup support from trunk
+- fix -fsanitize=float-cast-overflow (PR sanitizer/64344)
+- fix handling of fortran components vs. cray pointers (#1134560,
+  PR fortran/62174)
+- package libcilkrts.spec (#1173905)
+
 * Wed Dec 17 2014 Jakub Jelinek <jakub@redhat.com> 4.9.2-3
 - update from the 4.9 branch
   - PRs libstdc++/64239, sanitizer/64265, target/64200,
