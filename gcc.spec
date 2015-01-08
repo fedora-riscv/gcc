@@ -3,7 +3,7 @@
 %global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,6 +200,7 @@ Patch14: gcc49-libgo-p224.patch
 Patch15: gcc49-aarch64-async-unw-tables.patch
 Patch16: gcc49-aarch64-unwind-opt.patch
 Patch17: gcc49-pr64336.patch
+Patch18: gcc49-pr64536.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -728,6 +729,7 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch15 -p0 -b .aarch64-async-unw-tables~
 %patch16 -p0 -b .aarch64-unwind-opt~
 %patch17 -p0 -b .pr64336~
+%patch18 -p0 -b .pr64536~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2807,6 +2809,10 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Jan  8 2015 Jakub Jelinek <jakub@redhat.com> 4.9.2-5
+- don't remove tablejumps in rtl_tidy_fallthru_edge (#1136939,
+  PR rtl-optimization/64536)
+
 * Wed Jan  7 2015 Jakub Jelinek <jakub@redhat.com> 4.9.2-4
 - update from the 4.9 branch
   - PRs ada/64492, c++/38958, c++/60955, c++/63657, c++/63658, c++/64029,
