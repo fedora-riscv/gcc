@@ -1,9 +1,9 @@
-%global DATE 20150107
-%global SVNREV 219315
+%global DATE 20150212
+%global SVNREV 220644
 %global gcc_version 4.9.2
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -200,7 +200,6 @@ Patch14: gcc49-libgo-p224.patch
 Patch15: gcc49-aarch64-async-unw-tables.patch
 Patch16: gcc49-aarch64-unwind-opt.patch
 Patch17: gcc49-pr64336.patch
-Patch18: gcc49-pr64536.patch
 
 Patch1100: cloog-%{cloog_version}-ppc64le-config.patch
 
@@ -729,7 +728,6 @@ rm -f libgo/go/crypto/elliptic/p224{,_test}.go
 %patch15 -p0 -b .aarch64-async-unw-tables~
 %patch16 -p0 -b .aarch64-unwind-opt~
 %patch17 -p0 -b .pr64336~
-%patch18 -p0 -b .pr64536~
 
 %if 0%{?_enable_debug_packages}
 cat > split-debuginfo.sh <<\EOF
@@ -2809,6 +2807,21 @@ fi
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_version}/plugin
 
 %changelog
+* Thu Feb 12 2015 Jakub Jelinek <jakub@redhat.com> 4.9.2-6
+- update from the 4.9 branch
+  - PRs c++/54442, c++/64514, c++/64521, c++/64901, c/57653, c/61553, c/64766,
+	c/64778, c/64824, c/64868, debug/64511, debug/64663, fortran/56867,
+	fortran/57023, fortran/60922, fortran/62044, fortran/63733,
+	fortran/64230, fortran/64528, fortran/64771, ipa/63970, ipa/64068,
+	ipa/64559, libstdc++/64476, libstdc++/64584, libstdc++/64585,
+	libstdc++/64646, libstdc++/64649, libstdc++/64680, middle-end/63704,
+	middle-end/64391, middle-end/64421, middle-end/64734,
+	rtl-optimization/61058, rtl-optimization/63637,
+	rtl-optimization/64286, rtl-optimization/64557, target/61413,
+	target/63424, target/64358, target/64479, target/64505, target/64513,
+	target/64580, target/64795, target/64882, target/64938, target/64979,
+	testsuite/64712, tree-optimization/64563
+
 * Thu Jan  8 2015 Jakub Jelinek <jakub@redhat.com> 4.9.2-5
 - don't remove tablejumps in rtl_tidy_fallthru_edge (#1136939,
   PR rtl-optimization/64536)
