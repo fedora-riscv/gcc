@@ -1,9 +1,9 @@
-%global DATE 20151207
-%global SVNREV 231358
+%global DATE 20160212
+%global SVNREV 233373
 %global gcc_version 5.3.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 4
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3097,6 +3097,43 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Fri Feb 12 2016 Jakub Jelinek <jakub@redhat.com> 5.3.1-4
+- update from the 5 branch
+  - PRs ada/69219, c++/25466, c++/59627, c++/63628, c++/66921, c++/67339,
+	c++/67376, c++/67411, c++/67550, c++/67576, c++/68449, c++/68926,
+	c++/68949, c++/68965, c++/68983, c++/69009, c++/69131, c/68062,
+	c/68162, c/68513, c/68668, c/69037, c/69669, debug/65779, debug/67355,
+	driver/67425, fortran/49954, fortran/50221, fortran/59746,
+	fortran/61831, fortran/62536, fortran/63932, fortran/66082,
+	fortran/66408, fortran/66680, fortran/66707, fortran/67451,
+	fortran/67674, fortran/67779, fortran/68216, fortran/68283,
+	fortran/68987, fortran/69128, fortran/69268, fortran/69418,
+	fortran/69484, go/68562, ipa/66616, ipa/68184, ipa/68790, ipa/68851,
+	libfortran/68987, libstdc++/60637, libstdc++/60976, libstdc++/68863,
+	libstdc++/68912, libstdc++/68921, libstdc++/68995, libstdc++/69005,
+	libstdc++/69092, libstdc++/69116, libstdc++/69222, lto/65948,
+	middle-end/65702, middle-end/67653, middle-end/68636,
+	middle-end/68960, middle-end/69308, middle-end/69542, other/60465,
+	other/67627, pch/68176, preprocessor/57580, rtl-opt/69447,
+	rtl-optimization/64557, rtl-optimization/64682,
+	rtl-optimization/67609, rtl-optimization/68670,
+	rtl-optimization/68910, rtl-optimization/68955,
+	rtl-optimization/69567, sanitizer/69055, sanitizer/69147, target/65546,
+	target/67032, target/67484, target/67895, target/68269, target/68648,
+	target/68701, target/68729, target/68741, target/68779, target/68872,
+	target/68986, target/69015, target/69118, target/69135, target/69140,
+	target/69187, target/69194, target/69198, target/69228, target/69305,
+	target/69403, target/69432, target/69459, target/69548, target/69551,
+	target/69644, target/69713, testsuite/68820, testsuite/69366,
+	tree-optimization/67755, tree-optimization/67781,
+	tree-optimization/68799, tree-optimization/68835,
+	tree-optimization/69013, tree-optimization/69110,
+	tree-optimization/69214, tree-optimization/69355,
+	tree-optimization/69399, tree-optimization/69426,
+	tree-optimization/69546, tree-optimization/69574,
+	tree-optimization/69579, tree-optimization/69606,
+	tree-optimization/69715
+
 * Tue Dec  8 2015 Jakub Jelinek <jakub@redhat.com> 5.3.1-2
 - work around doxygen 1.8.10 bugs (#1279639)
 
