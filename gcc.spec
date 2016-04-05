@@ -1,9 +1,9 @@
-%global DATE 20160212
-%global SVNREV 233373
+%global DATE 20160405
+%global SVNREV 234750
 %global gcc_version 5.3.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3095,6 +3095,43 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Tue Apr  5 2016 Jakub Jelinek <jakub@redhat.com> 5.3.1-5
+- update from the 5 branch
+  - PRs c++/51406, c++/51489, c++/65985, c++/67364, c++/67767, c++/68049,
+	c++/68585, c++/68679, c++/68890, c++/69261, c++/69323, c++/69743,
+	c++/69797, c++/69826, c++/69995, c++/70067, c++/70139, c++/70209,
+	c++/70272, c++/70393, c/69522, debug/69705, fortran/45076,
+	fortran/49630, fortran/52531, fortran/54070, fortran/57365,
+	fortran/60126, fortran/60593, fortran/60795, fortran/61147,
+	fortran/61156, fortran/64324, fortran/65795, fortran/65996,
+	fortran/66911, fortran/69423, fortran/70397, ipa/68672, ipa/70161,
+	ipa/70269, ipa/70306, libgfortran/69651, libgfortran/69668,
+	libgfortran/70235, libstdc++/69794, libstdc++/69939, lto/67709,
+	middle-end/69838, middle-end/69920, middle-end/70457, other/69006,
+	rtl-optimization/47992, rtl-optimization/68236,
+	rtl-optimization/68730, rtl-optimization/69032,
+	rtl-optimization/69102, rtl-optimization/69195,
+	rtl-optimization/69307, rtl-optimization/69609,
+	rtl-optimization/69648, rtl-optimization/69737,
+	rtl-optimization/69752, rtl-optimization/69764,
+	rtl-optimization/69771, rtl-optimization/69891,
+	rtl-optimization/69941, rtl-optimization/70007,
+	rtl-optimization/70222, rtl-optimization/70429,
+	rtl-optimization/70460, target/38239, target/61397, target/62281,
+	target/64411, target/65932, target/66660, target/67172, target/67260,
+	target/67714, target/67896, target/68973, target/69614, target/69625,
+	target/69875, target/69885, target/69888, target/69890, target/69917,
+	target/69969, target/70004, target/70028, target/70052, target/70059,
+	target/70062, target/70131, target/70168, target/70188, target/70293,
+	target/70296, target/70319, target/70325, target/70327, target/70329,
+	target/70406, target/70421, target/70453, target/70525,
+	testsuite/68580, testsuite/70356, tree-optimization/69666,
+	tree-optimization/69714, tree-optimization/69719,
+	tree-optimization/69740, tree-optimization/69776,
+	tree-optimization/69783, tree-optimization/69802,
+	tree-optimization/69989, tree-optimization/70152,
+	tree-optimization/70169
+
 * Fri Feb 12 2016 Jakub Jelinek <jakub@redhat.com> 5.3.1-4
 - update from the 5 branch
   - PRs ada/69219, c++/25466, c++/59627, c++/63628, c++/66921, c++/67339,
