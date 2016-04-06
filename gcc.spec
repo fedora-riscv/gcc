@@ -1,9 +1,9 @@
-%global DATE 20160405
-%global SVNREV 234750
+%global DATE 20160406
+%global SVNREV 234777
 %global gcc_version 5.3.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3095,6 +3095,13 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Wed Apr  6 2016 Jakub Jelinek <jakub@redhat.com> 5.3.1-6
+- update from the 5 branch
+  - PRs c++/70430, middle-end/68963, middle-end/69760, middle-end/70022,
+	middle-end/70333, middle-end/70424, middle-end/70450,
+	rtl-optimization/70484, target/70510, tree-optimization/69983,
+	tree-optimization/70115, tree-optimization/70177
+
 * Tue Apr  5 2016 Jakub Jelinek <jakub@redhat.com> 5.3.1-5
 - update from the 5 branch
   - PRs c++/51406, c++/51489, c++/65985, c++/67364, c++/67767, c++/68049,
