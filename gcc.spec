@@ -1,9 +1,9 @@
-%global DATE 20160901
-%global SVNREV 239935
+%global DATE 20160916
+%global SVNREV 240184
 %global gcc_version 6.2.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3108,6 +3108,12 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Fri Sep 16 2016 Jakub Jelinek <jakub@redhat.com> 6.2.1-2
+- update from the 6 branch
+  - PRs c++/77427, c++/77539, c++/77553, debug/57519, fortran/77500,
+	fortran/77516, middle-end/77594, rtl-optimization/77452,
+	sanitizer/68260, sanitizer/77396, target/69255
+
 * Thu Sep  1 2016 Jakub Jelinek <jakub@redhat.com> 6.2.1-1
 - update from the 6 branch
   - GCC 6.2 release
