@@ -1,9 +1,9 @@
-%global DATE 20160916
-%global SVNREV 240184
-%global gcc_version 6.2.1
+%global DATE 20161221
+%global SVNREV 243852
+%global gcc_version 6.3.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3108,6 +3108,68 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Wed Dec 21 2016 Jakub Jelinek <jakub@redhat.com> 6.3.1-1
+- update from the 6 branch
+  - GCC 6.3 release
+  - PRs bootstrap/77995, bootstrap/78188, c++/57728, c++/67631, c++/68377,
+	c++/71274, c++/71515, c++/71848, c++/71912, c++/71979, c++/72808,
+	c++/77285, c++/77375, c++/77467, c++/77482, c++/77591, c++/77637,
+	c++/77638, c++/77722, c++/77739, c++/77748, c++/77804, c++/77907,
+	c++/78039, c++/78089, c++/78252, c++/78550, c++/78551, c++/78649,
+	c++/78701, c++/78761, c/71115, c/77450, c/77767, debug/77773,
+	driver/78206, fortran/41922, fortran/58001, fortran/58991,
+	fortran/58992, fortran/60774, fortran/61318, fortran/61420,
+	fortran/66227, fortran/67219, fortran/69514, fortran/69544,
+	fortran/69741, fortran/69867, fortran/69962, fortran/70006,
+	fortran/71067, fortran/71730, fortran/71799, fortran/71859,
+	fortran/71862, fortran/71891, fortran/71895, fortran/71902,
+	fortran/72832, fortran/77260, fortran/77351, fortran/77372,
+	fortran/77380, fortran/77391, fortran/77406, fortran/77420,
+	fortran/77429, fortran/77460, fortran/77506, fortran/77507,
+	fortran/77612, fortran/77665, fortran/77666, fortran/77694,
+	fortran/77763, fortran/77915, fortran/77942, fortran/77973,
+	fortran/77978, fortran/78013, fortran/78021, fortran/78092,
+	fortran/78108, fortran/78123, fortran/78178, fortran/78221,
+	fortran/78279, fortran/78297, fortran/78298, fortran/78299,
+	fortran/78443, fortran/78500, fortran/78593, inline-asm/70184,
+	ipa/77905, ipa/78309, libgcc/77519, libgcc/78064, libgfortran/77707,
+	libgfortran/78123, libstdc++/51960, libstdc++/68323, libstdc++/70101,
+	libstdc++/70564, libstdc++/70975, libstdc++/71337, libstdc++/72820,
+	libstdc++/77288, libstdc++/77322, libstdc++/77459, libstdc++/77645,
+	libstdc++/77686, libstdc++/77727, libstdc++/77794, libstdc++/77795,
+	libstdc++/77801, libstdc++/77864, libstdc++/77987, libstdc++/77990,
+	libstdc++/77994, libstdc++/78052, libstdc++/78111, libstdc++/78326,
+	libstdc++/78465, libstdc++/78490, lto/78129, lto/78472,
+	middle-end/67335, middle-end/69183, middle-end/71762,
+	middle-end/72747, middle-end/77436, middle-end/77544,
+	middle-end/77558, middle-end/77605, middle-end/77624,
+	middle-end/77679, middle-end/78025, middle-end/78128,
+	middle-end/78185, middle-end/78305, middle-end/78333,
+	middle-end/78416, middle-end/78419, middle-end/78429,
+	middle-end/78540, rtl-optimization/71496, rtl-optimization/71709,
+	rtl-optimization/77309, rtl-optimization/77919,
+	rtl-optimization/78038, rtl-optimization/78378,
+	rtl-optimization/78546, sanitizer/66343, sanitizer/78294,
+	target/48863, target/57438, target/59874, target/67710, target/71767,
+	target/72717, target/72827, target/77326, target/77349, target/77483,
+	target/77587, target/77621, target/77670, target/77756, target/77759,
+	target/77822, target/77834, target/77874, target/77904, target/77933,
+	target/77957, target/77991, target/78037, target/78057, target/78101,
+	target/78166, target/78227, target/78229, target/78262, target/78310,
+	target/78426, target/78796, testsuite/77411, tree-optimization/71575,
+	tree-optimization/77478, tree-optimization/77514,
+	tree-optimization/77550, tree-optimization/77621,
+	tree-optimization/77646, tree-optimization/77648,
+	tree-optimization/77673, tree-optimization/77745,
+	tree-optimization/77768, tree-optimization/77839,
+	tree-optimization/77855, tree-optimization/77879,
+	tree-optimization/77916, tree-optimization/77937,
+	tree-optimization/77943, tree-optimization/78047,
+	tree-optimization/78189, tree-optimization/78224,
+	tree-optimization/78228, tree-optimization/78482,
+	tree-optimization/78542, tree-optimization/78646,
+	tree-optimization/78731
+
 * Fri Sep 16 2016 Jakub Jelinek <jakub@redhat.com> 6.2.1-2
 - update from the 6 branch
   - PRs c++/77427, c++/77539, c++/77553, debug/57519, fortran/77500,
