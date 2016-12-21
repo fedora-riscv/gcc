@@ -2243,7 +2243,6 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/avx512vlintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/clflushoptintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/clwbintrin.h
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/pcommitintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/mwaitxintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/xsavecintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_version}/include/xsavesintrin.h
@@ -3169,6 +3168,7 @@ fi
 	tree-optimization/78228, tree-optimization/78482,
 	tree-optimization/78542, tree-optimization/78646,
 	tree-optimization/78731
+  - remove pcommitintrin.h header
 
 * Fri Sep 16 2016 Jakub Jelinek <jakub@redhat.com> 6.2.1-2
 - update from the 6 branch
