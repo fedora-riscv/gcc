@@ -1,10 +1,10 @@
-%global DATE 20170309
-%global SVNREV 246007
+%global DATE 20170327
+%global SVNREV 246493
 %global gcc_version 7.0.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.12
+%global gcc_release 0.13
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,9 +232,6 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-pr79941.patch
-Patch13: gcc7-pr79969.patch
-Patch14: gcc7-pr79972.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -823,9 +820,6 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .pr79941~
-%patch13 -p0 -b .pr79969~
-%patch14 -p0 -b .pr79972~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3242,6 +3236,47 @@ fi
 %endif
 
 %changelog
+* Mon Mar 27 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.13
+- update from the trunk
+  - PRs bootstrap/79771, bootstrap/79952, c++/35878, c++/52477, c++/77339,
+	c++/77563, c++/77752, c++/78345, c++/79393, c++/79519, c++/79548,
+	c++/79640, c++/79687, c++/79896, c++/79899, c++/79960, c++/79962,
+	c++/79967, c++/79984, c++/80029, c++/80043, c++/80059, c++/80073,
+	c++/80077, c++/80084, c++/80096, c++/80119, c++/80129, c++/80141,
+	c++/80150, c/67338, c/78165, c/79921, c/79936, c/80097, driver/79875,
+	fortran/33271, fortran/39239, fortran/69498, fortran/71838,
+	fortran/79602, fortran/79676, fortran/79838, fortran/79844,
+	fortran/79853, fortran/79859, fortran/79860, fortran/79886,
+	fortran/80010, fortran/80011, fortran/80142, fortran/80156,
+	gcov-profile/80081, libfortran/79956, libgfortran/78854,
+	libgfortran/78881, libstdc++/62045, libstdc++/67440, libstdc++/79162,
+	libstdc++/79511, libstdc++/79980, libstdc++/80034, libstdc++/80041,
+	libstdc++/80064, libstdc++/80183, middle-end/78339, middle-end/79753,
+	middle-end/79831, middle-end/80020, middle-end/80050,
+	middle-end/80075, middle-end/80171, other/79991, plugins/80094,
+	rtl-optimization/63191, rtl-optimization/78911,
+	rtl-optimization/79150, rtl-optimization/79728,
+	rtl-optimization/79909, rtl-optimization/79910,
+	rtl-optimization/80112, rtl-optimization/80159,
+	rtl-optimization/80160, sanitizer/78158, sanitizer/79757,
+	sanitizer/80063, sanitizer/80110, sanitizer/80168, target/71294,
+	target/71436, target/78857, target/79769, target/79770, target/79892,
+	target/79893, target/79906, target/79907, target/79911, target/79912,
+	target/79925, target/79941, target/79947, target/79951, target/79963,
+	target/80017, target/80019, target/80052, target/80082, target/80083,
+	target/80123, target/80125, target/80148, target/80180,
+	testsuite/79356, testsuite/80092, translation/79848,
+	translation/79923, translation/80001, tree-optimization/71437,
+	tree-optimization/77975, tree-optimization/79800,
+	tree-optimization/79908, tree-optimization/79981,
+	tree-optimization/80030, tree-optimization/80032,
+	tree-optimization/80048, tree-optimization/80054,
+	tree-optimization/80072, tree-optimization/80079,
+	tree-optimization/80109, tree-optimization/80113,
+	tree-optimization/80122, tree-optimization/80136,
+	tree-optimization/80158, tree-optimization/80167,
+	tree-optimization/80170
+
 * Thu Mar  9 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.12
 - update from the trunk
   - PRs c++/71966, c++/79672, c++/79797, c++/79900, ipa/79761, ipa/79764,
