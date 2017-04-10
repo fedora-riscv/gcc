@@ -1,0 +1,270 @@
+2017-04-07  Jakub Jelinek  <jakub@redhat.com>
+
+	PR debug/80321
+	* dwarf2out.c (decls_for_scope): Ignore declarations of
+	current_function_decl in BLOCK_NONLOCALIZED_VARS.
+
+	* gcc.dg/debug/pr80321.c: New test.
+
+2017-04-07  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gnat.dg/debug10.adb: New test.
+	* gnat.dg/debug10_pkg.ads: New helper.
+
+--- gcc/dwarf2out.c.jj	2017-04-07 11:46:48.000000000 +0200
++++ gcc/dwarf2out.c	2017-04-07 20:00:43.503772542 +0200
+@@ -24889,7 +24889,12 @@ decls_for_scope (tree stmt, dw_die_ref c
+ 	for (i = 0; i < BLOCK_NUM_NONLOCALIZED_VARS (stmt); i++)
+ 	  {
+ 	    decl = BLOCK_NONLOCALIZED_VAR (stmt, i);
+-	    if (TREE_CODE (decl) == FUNCTION_DECL)
++	    if (decl == current_function_decl)
++	      /* Ignore declarations of the current function, while they
++		 are declarations, gen_subprogram_die would treat them
++		 as definitions again, because they are equal to
++		 current_function_decl and endlessly recurse.  */;
++	    else if (TREE_CODE (decl) == FUNCTION_DECL)
+ 	      process_scope_var (stmt, decl, NULL_TREE, context_die);
+ 	    else
+ 	      process_scope_var (stmt, NULL_TREE, decl, context_die);
+--- gcc/testsuite/gcc.dg/debug/pr80321.c.jj	2017-04-07 21:39:01.930615179 +0200
++++ gcc/testsuite/gcc.dg/debug/pr80321.c	2017-04-07 21:39:49.722982635 +0200
+@@ -0,0 +1,26 @@
++/* PR debug/80321 */
++/* { dg-do compile } */
++/* { dg-options "-fkeep-inline-functions" } */
++
++void bar (void);
++
++static inline void
++test (int x)
++{
++  inline void
++  foo (int x)
++  {
++    test (0);
++    asm volatile ("" : : : "memory");
++  }
++  if (x != 0)
++    foo (x);
++  else
++    bar ();
++}
++
++void
++baz (int x)
++{
++  test (x);
++}
+--- gcc/testsuite/gnat.dg/debug10.adb.jj	2017-04-07 20:24:44.232473780 +0200
++++ gcc/testsuite/gnat.dg/debug10.adb	2017-04-07 20:26:40.493980722 +0200
+@@ -0,0 +1,68 @@
++-- PR debug/80321
++
++-- { dg-do compile }
++-- { dg-options "-O2 -g" }
++
++with Debug10_Pkg; use Debug10_Pkg;
++
++procedure Debug10 (T : Entity_Id) is
++
++   procedure Inner (E : Entity_Id);
++   pragma Inline (Inner);
++
++   procedure Inner (E : Entity_Id) is
++   begin
++      if E /= Empty
++         and then not Nodes (E + 3).Flag16
++      then
++         Debug10 (E);
++      end if;
++   end Inner;
++
++   function Ekind (E : Entity_Id) return Entity_Kind is
++   begin
++      return N_To_E (Nodes (E + 1).Nkind);
++   end Ekind;
++
++begin
++
++   if T = Empty then
++      return;
++   end if;
++
++   Nodes (T + 3).Flag16 := True;
++
++   if Ekind (T) in Object_Kind then
++      Inner (T);
++
++   elsif Ekind (T) in Type_Kind then
++      Inner (T);
++
++      if Ekind (T) in Record_Kind then
++
++         if Ekind (T) = E_Class_Wide_Subtype then
++            Inner (T);
++         end if;
++
++      elsif Ekind (T) in Array_Kind then
++         Inner (T);
++
++      elsif Ekind (T) in Access_Kind then
++         Inner (T);
++
++      elsif Ekind (T) in Scalar_Kind then
++
++         if My_Scalar_Range (T) /= Empty
++           and then My_Test (My_Scalar_Range (T))
++         then
++            if My_Is_Entity_Name (T) then
++               Inner (T);
++            end if;
++
++            if My_Is_Entity_Name (T) then
++               Inner (T);
++            end if;
++         end if;
++      end if;
++   end if;
++end;
+--- gcc/testsuite/gnat.dg/debug10_pkg.ads.jj	2017-04-07 20:24:47.384433302 +0200
++++ gcc/testsuite/gnat.dg/debug10_pkg.ads	2017-04-07 20:24:22.000000000 +0200
+@@ -0,0 +1,138 @@
++with Unchecked_Conversion;
++
++package Debug10_Pkg is
++
++   type Node_Id is range 0 .. 99_999_999;
++
++   Empty : constant Node_Id := 0;
++
++   subtype Entity_Id is Node_Id;
++
++   type Union_Id is new Integer;
++
++   function My_Is_Entity_Name (N : Node_Id) return Boolean;
++
++   function My_Scalar_Range (Id : Entity_Id) return Node_Id;
++
++   function My_Test (N : Node_Id) return Boolean;
++
++   type Node_Kind is (N_Unused_At_Start, N_Unused_At_End);
++
++   type Entity_Kind is (
++
++      E_Void,
++      E_Component,
++      E_Constant,
++      E_Discriminant,
++      E_Loop_Parameter,
++      E_Variable,
++      E_Out_Parameter,
++      E_In_Out_Parameter,
++      E_In_Parameter,
++      E_Generic_In_Out_Parameter,
++      E_Generic_In_Parameter,
++      E_Named_Integer,
++      E_Named_Real,
++      E_Enumeration_Type,
++      E_Enumeration_Subtype,
++      E_Signed_Integer_Type,
++      E_Signed_Integer_Subtype,
++      E_Modular_Integer_Type,
++      E_Modular_Integer_Subtype,
++      E_Ordinary_Fixed_Point_Type,
++      E_Ordinary_Fixed_Point_Subtype,
++      E_Decimal_Fixed_Point_Type,
++      E_Decimal_Fixed_Point_Subtype,
++      E_Floating_Point_Type,
++      E_Floating_Point_Subtype,
++      E_Access_Type,
++      E_Access_Subtype,
++      E_Access_Attribute_Type,
++      E_Allocator_Type,
++      E_General_Access_Type,
++      E_Access_Subprogram_Type,
++      E_Anonymous_Access_Subprogram_Type,
++      E_Access_Protected_Subprogram_Type,
++      E_Anonymous_Access_Protected_Subprogram_Type,
++      E_Anonymous_Access_Type,
++      E_Array_Type,
++      E_Array_Subtype,
++      E_String_Literal_Subtype,
++      E_Class_Wide_Type,
++      E_Class_Wide_Subtype,
++      E_Record_Type,
++      E_Record_Subtype,
++      E_Record_Type_With_Private,
++      E_Record_Subtype_With_Private,
++      E_Private_Type,
++      E_Private_Subtype,
++      E_Limited_Private_Type,
++      E_Limited_Private_Subtype,
++      E_Incomplete_Type,
++      E_Incomplete_Subtype,
++      E_Task_Type,
++      E_Task_Subtype,
++      E_Protected_Type,
++      E_Protected_Subtype,
++      E_Exception_Type,
++      E_Subprogram_Type,
++      E_Enumeration_Literal,
++      E_Function,
++      E_Operator,
++      E_Procedure,
++      E_Abstract_State,
++      E_Entry,
++      E_Entry_Family,
++      E_Block,
++      E_Entry_Index_Parameter,
++      E_Exception,
++      E_Generic_Function,
++      E_Generic_Procedure,
++      E_Generic_Package,
++      E_Label,
++      E_Loop,
++      E_Return_Statement,
++      E_Package,
++      E_Package_Body,
++      E_Protected_Object,
++      E_Protected_Body,
++      E_Task_Body,
++      E_Subprogram_Body
++   );
++
++   subtype Access_Kind                 is Entity_Kind range
++       E_Access_Type ..
++       E_Anonymous_Access_Type;
++
++   subtype Array_Kind                  is Entity_Kind range
++       E_Array_Type ..
++       E_String_Literal_Subtype;
++
++   subtype Object_Kind                 is Entity_Kind range
++       E_Component ..
++       E_Generic_In_Parameter;
++
++   subtype Record_Kind                 is Entity_Kind range
++       E_Class_Wide_Type ..
++       E_Record_Subtype_With_Private;
++
++   subtype Scalar_Kind                 is Entity_Kind range
++       E_Enumeration_Type ..
++       E_Floating_Point_Subtype;
++
++   subtype Type_Kind                   is Entity_Kind range
++       E_Enumeration_Type ..
++       E_Subprogram_Type;
++
++   type Node_Record (Is_Extension : Boolean := False) is record
++      Flag16 : Boolean;
++      Nkind : Node_Kind;
++   end record;
++
++   function N_To_E is new Unchecked_Conversion (Node_Kind, Entity_Kind);
++
++   type Arr is array (Node_Id) of Node_Record;
++
++   Nodes : Arr;
++
++end Debug10_Pkg;

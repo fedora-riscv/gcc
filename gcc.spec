@@ -232,6 +232,7 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
+Patch12: gcc7-pr80321.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -820,6 +821,7 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
+%patch12 -p0 -b .pr80321~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3262,6 +3264,7 @@ fi
 	tree-optimization/80216, tree-optimization/80218,
 	tree-optimization/80262, tree-optimization/80275,
 	tree-optimization/80304, tree-optimization/80334
+- fix dwarf ICE with nested function self-inlining (PR debug/80321)
 
 * Mon Mar 27 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.13
 - update from the trunk
