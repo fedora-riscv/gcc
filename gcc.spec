@@ -1,10 +1,10 @@
 %global DATE 20170327
-%global SVNREV 246493
+%global SVNREV 246806
 %global gcc_version 7.0.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.13
+%global gcc_release 0.14
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3236,6 +3236,33 @@ fi
 %endif
 
 %changelog
+* Mon Apr 10 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.14
+- update from the trunk
+  - PRs ada/80117, ada/80146, c++/60992, c++/69487, c++/79572, c++/80095,
+	c++/80267, c++/80296, c++/80297, c++/80309, c++/80356, c/79730,
+	debug/79255, debug/80025, debug/80234, documentation/78732,
+	fortran/78661, fortran/80254, gcov-profile/80224, go/80226, ipa/77333,
+	ipa/79776, ipa/80104, ipa/80205, ipa/80212, libgfortran/78670,
+	libgomp/79876, libstdc++/79141, libstdc++/80137, libstdc++/80229,
+	libstdc++/80251, middle-end/80162, middle-end/80163, middle-end/80173,
+	middle-end/80222, middle-end/80281, middle-end/80341,
+	middle-end/80344, middle-end/80362, rtl-optimization/60818,
+	rtl-optimization/70478, rtl-optimization/70703,
+	rtl-optimization/79405, rtl-optimization/80193,
+	rtl-optimization/80233, sanitizer/79993, sanitizer/80067,
+	sanitizer/80166, sanitizer/80308, sanitizer/80348, sanitizer/80350,
+	target/45053, target/53383, target/78002, target/78543, target/79733,
+	target/79889, target/79890, target/79905, target/80102, target/80103,
+	target/80107, target/80206, target/80246, target/80250, target/80286,
+	target/80298, target/80307, target/80310, target/80322, target/80323,
+	target/80324, target/80325, target/80326, target/80358,
+	testsuite/43496, translation/80189, tree-optimization/49498,
+	tree-optimization/77498, tree-optimization/78644,
+	tree-optimization/79390, tree-optimization/80181,
+	tree-optimization/80216, tree-optimization/80218,
+	tree-optimization/80262, tree-optimization/80275,
+	tree-optimization/80304, tree-optimization/80334
+
 * Mon Mar 27 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.13
 - update from the trunk
   - PRs bootstrap/79771, bootstrap/79952, c++/35878, c++/52477, c++/77339,
