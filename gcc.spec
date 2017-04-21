@@ -1,10 +1,10 @@
-%global DATE 20170410
-%global SVNREV 246806
+%global DATE 20170421
+%global SVNREV 247058
 %global gcc_version 7.0.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.14
+%global gcc_release 0.15
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -74,7 +74,7 @@
 %else
 %global attr_ifunc 0
 %endif
-%ifarch x86_64
+%ifarch x86_64 ppc64le
 %global build_offload_nvptx 1
 %else
 %global build_offload_nvptx 0
@@ -232,7 +232,6 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-pr80321.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -821,7 +820,6 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .pr80321~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3238,6 +3236,28 @@ fi
 %endif
 
 %changelog
+* Fri Apr 21 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.15
+- update from the trunk and 7 branch
+  - PRs bootstrap/77661, c++/80176, c++/80241, c++/80244, c++/80287,
+	c++/80294, c++/80363, c++/80370, c++/80415, c++/80459, c++/80473,
+	c/80163, debug/80263, debug/80436, debug/80461, fortran/80046,
+	fortran/80361, fortran/80440, gcov-profile/78783, gcov-profile/80413,
+	gcov-profile/80435, ipa/65972, libgomp/80394, libstdc++/80446,
+	libstdc++/80448, lto/50345, lto/69953, middle-end/79671,
+	middle-end/79788, middle-end/80100, middle-end/80364,
+	middle-end/80375, middle-end/80422, middle-end/80423,
+	rtl-optimization/80343, rtl-optimization/80357,
+	rtl-optimization/80385, rtl-optimization/80429, sanitizer/70878,
+	sanitizer/80349, sanitizer/80403, sanitizer/80404, sanitizer/80405,
+	sanitizer/80414, sanitizer/80444, target/74563, target/79453,
+	target/80057, target/80098, target/80099, target/80108, target/80315,
+	target/80376, target/80381, target/80382, target/80389, target/80462,
+	testsuite/79867, testsuite/80221, testsuite/80416,
+	tree-optimization/80153, tree-optimization/80359,
+	tree-optimization/80374, tree-optimization/80426,
+	tree-optimization/80443
+- reenable {gcc,libgomp}-offload-nvptx on ppc64le
+
 * Mon Apr 10 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.14
 - update from the trunk
   - PRs ada/80117, ada/80146, c++/60992, c++/69487, c++/79572, c++/80095,
