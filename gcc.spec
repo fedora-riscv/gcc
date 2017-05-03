@@ -1,10 +1,10 @@
-%global DATE 20170425
-%global SVNREV 247266
-%global gcc_version 7.0.1
+%global DATE 20170503
+%global SVNREV 247535
+%global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.16
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3236,6 +3236,12 @@ fi
 %endif
 
 %changelog
+* Wed May  3 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-1
+- update from the 7 branch
+  - GCC 7.1 release
+  - PRs bootstrap/80531, c++/80534, c/80468, target/68491, target/79430,
+	target/80530, tree-optimization/80591
+
 * Tue Apr 25 2017 Jakub Jelinek <jakub@redhat.com> 7.0.1-0.16
 - update from the 7 branch
   - ABI change on ARM and AArch64 (PR target/77728)
