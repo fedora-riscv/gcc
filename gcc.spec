@@ -235,6 +235,7 @@ Patch11: gcc7-Wno-format-security.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
+Patch1002: nvptx-tools-glibc.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -824,6 +825,7 @@ package or when debugging this package.
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
 %patch1001 -p1 -b .nvptx-tools-build~
+%patch1002 -p1 -b .nvptx-tools-glibc~
 cd ..
 
 %if 0%{?_enable_debug_packages}
