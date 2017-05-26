@@ -1,10 +1,10 @@
-%global DATE 20170503
-%global SVNREV 247535
+%global DATE 20170526
+%global SVNREV 248505
 %global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,6 +232,7 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
+Patch12: gcc7-pr80725.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -821,6 +822,7 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
+%patch12 -p0 -b .pr80725~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3238,6 +3240,19 @@ fi
 %endif
 
 %changelog
+* Fri May 26 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-2
+- update from the 7 branch
+  - PRs ada/80626, ada/80784, documentation/50642, fortran/78659,
+	fortran/80121, fortran/80333, fortran/80392, fortran/80484,
+	fortran/80741, fortran/80752, go/64238, libgfortran/80333,
+	libgfortran/80727, libgfortran/80741, libstdc++/78939, libstdc++/80478,
+	libstdc++/80761, libstdc++/80796, middle-end/80539, middle-end/80809,
+	middle-end/80853, rtl-optimization/80754, sanitizer/80659,
+	sanitizer/80875, target/68163, target/79027, target/79202,
+	target/79203, target/80090, target/80510, target/80671, target/80706,
+	target/80799, tree-optimization/80453, tree-optimization/80492
+- fix s390 indirect_jump reloading (#1450353, PR target/80725)
+
 * Wed May  3 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-1
 - update from the 7 branch
   - GCC 7.1 release
