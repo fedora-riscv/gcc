@@ -1,10 +1,10 @@
-%global DATE 20170526
-%global SVNREV 248505
+%global DATE 20170622
+%global SVNREV 249497
 %global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,7 +232,6 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-pr80725.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -822,7 +821,6 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .pr80725~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3240,6 +3238,23 @@ fi
 %endif
 
 %changelog
+* Thu Jun 22 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-3
+- update from the 7 branch
+  - PRs ada/80921, ada/81070, ada/81105, c++/60063, c++/66297, c++/70844,
+	c++/71747, c++/80179, c++/80384, c++/80465, c++/80562, c++/80593,
+	c++/80605, c++/80614, c++/80639, c++/80829, c++/80831, c++/80840,
+	c++/80856, c++/80972, c++/80973, c++/80984, c++/81011, c++/81045,
+	c++/81073, c++/81074, c++/81102, c++/81130, c++/81154, c/80919,
+	c/81006, fortran/70601, fortran/80766, fortran/80904, fortran/80918,
+	fortran/80975, libgcc/80037, libgomp/80822, libstdc++/80675,
+	libstdc++/80940, libstdc++/81002, libstdc++/81092,
+	rtl-optimization/80474, rtl-optimization/80903, sanitizer/81111,
+	sanitizer/81125, target/59874, target/71607, target/71778,
+	target/80718, target/80968, target/80970, target/81015, target/81121,
+	target/81151, tree-optimization/80293, tree-optimization/80549,
+	tree-optimization/80705, tree-optimization/80842,
+	tree-optimization/80906
+
 * Fri May 26 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-2
 - update from the 7 branch
   - PRs ada/80626, ada/80784, documentation/50642, fortran/78659,
