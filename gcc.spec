@@ -1,10 +1,10 @@
-%global DATE 20170622
-%global SVNREV 249497
+%global DATE 20170708
+%global SVNREV 250082
 %global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,6 +232,7 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
+Patch12: gcc7-rh1467526.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -821,6 +822,7 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
+%patch12 -p0 -b .rh1467526~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3238,6 +3240,20 @@ fi
 %endif
 
 %changelog
+* Sun Jul  8 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-4
+- update from the 7 branch
+  - PRs c++/54769, c++/61022, c++/72801, c++/79056, c++/81164, c++/81180,
+	c++/81187, c++/81188, c++/81204, c++/81215, c++/81257, driver/31468,
+	driver/56469, gcov-profile/53915, gcov-profile/81080, ipa/79849,
+	ipa/79850, ipa/80663, ipa/81112, libfortran/81195, libgfortran/53029,
+	libstdc++/81221, middle-end/80692, middle-end/80902, middle-end/81007,
+	middle-end/81207, other/80589, other/80909, sanitizer/80879,
+	sanitizer/81209, target/79155, target/79799, target/80618,
+	target/80966, target/81294, target/81300, target/81305, target/81348,
+	tree-optimization/80612, tree-optimization/81083,
+	tree-optimization/81192
+- fix ppc* float128 ifunc (#1467526)
+
 * Thu Jun 22 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-3
 - update from the 7 branch
   - PRs ada/80921, ada/81070, ada/81105, c++/60063, c++/66297, c++/70844,
