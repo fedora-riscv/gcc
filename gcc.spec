@@ -3240,7 +3240,7 @@ fi
 %endif
 
 %changelog
-* Sun Jul  8 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-4
+* Sun Jul  9 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-4
 - update from the 7 branch
   - PRs c++/54769, c++/61022, c++/72801, c++/79056, c++/81164, c++/81180,
 	c++/81187, c++/81188, c++/81204, c++/81215, c++/81257, driver/31468,
