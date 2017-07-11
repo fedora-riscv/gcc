@@ -1,10 +1,10 @@
-%global DATE 20170708
-%global SVNREV 250082
+%global DATE 201707011
+%global SVNREV 250136
 %global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -233,6 +233,7 @@ Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-rh1467526.patch
+Patch13: gcc7-pr81066.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -823,6 +824,7 @@ package or when debugging this package.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1467526~
+%patch13 -p0 -b .pr81066~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3240,6 +3242,11 @@ fi
 %endif
 
 %changelog
+* Tue Jul 11 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-5
+- update from the 7 branch
+  - PRs libstdc++/80316, target/81375
+- fix libsanitizer build against recent glibc (PR sanitizer/81066)
+
 * Sun Jul  9 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-4
 - update from the 7 branch
   - PRs c++/54769, c++/61022, c++/72801, c++/79056, c++/81164, c++/81180,
