@@ -1,4 +1,4 @@
-%global DATE 201707011
+%global DATE 20170711
 %global SVNREV 250136
 %global gcc_version 7.1.1
 %global gcc_major 7
