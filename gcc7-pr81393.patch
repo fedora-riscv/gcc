@@ -30,9 +30,28 @@
  #if defined(HAVE_LINUX_RTNETLINK_H)
  #include <linux/rtnetlink.h>
  #endif
+--- libgo/mksysinfo.sh	(revision 249711)
++++ libgo/mksysinfo.sh	(revision 249712)
+@@ -294,16 +294,6 @@ upcase_fields () {
+ # GNU/Linux specific; it should do no harm if there is no
+ # _user_regs_struct.
+ regs=`grep '^type _user_regs_struct struct' gen-sysinfo.go || true`
+-if test "$regs" = ""; then
+-  # s390
+-  regs=`grep '^type __user_regs_struct struct' gen-sysinfo.go || true`
+-  if test "$regs" != ""; then
+-    # Substructures of __user_regs_struct on s390
+-    upcase_fields "__user_psw_struct" "PtracePsw" >> ${OUT} || true
+-    upcase_fields "__user_fpregs_struct" "PtraceFpregs" >> ${OUT} || true
+-    upcase_fields "__user_per_struct" "PtracePer" >> ${OUT} || true
+-  fi
+-fi
+ if test "$regs" != ""; then
+   regs=`echo $regs |
+     sed -e 's/type __*user_regs_struct struct //' -e 's/[{}]//g'`
 --- libgo/go/syscall/syscall_linux_s390x.go	(revision 250173)
 +++ libgo/go/syscall/syscall_linux_s390x.go	(revision 250174)
-@@ -4,6 +4,23 @@
+@@ -4,18 +4,45 @@
  // Use of this source code is governed by a BSD-style
  // license that can be found in the LICENSE file.
  
@@ -56,9 +75,12 @@
  package syscall
  
  import "unsafe"
-@@ -12,10 +29,20 @@ func (r *PtraceRegs) PC() uint64 { retur
  
- func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.Addr = pc }
+-func (r *PtraceRegs) PC() uint64 { return r.Psw.Addr }
++func (r *PtraceRegs) PC() uint64 { return r.Psw.addr }
+ 
+-func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.Addr = pc }
++func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.addr = pc }
  
 -func PtraceGetRegs(pid int, regsout *PtraceRegs) (err error) {
 -	return ptrace(PTRACE_GETREGS, pid, 0, uintptr(unsafe.Pointer(regsout)))
@@ -82,7 +104,7 @@
  }
 --- libgo/go/syscall/syscall_linux_s390.go	(revision 250173)
 +++ libgo/go/syscall/syscall_linux_s390.go	(revision 250174)
-@@ -4,6 +4,8 @@
+@@ -4,18 +4,30 @@
  // Use of this source code is governed by a BSD-style
  // license that can be found in the LICENSE file.
  
@@ -91,9 +113,12 @@
  package syscall
  
  import "unsafe"
-@@ -12,10 +14,20 @@ func (r *PtraceRegs) PC() uint64 { retur
  
- func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.Addr = uint32(pc) }
+-func (r *PtraceRegs) PC() uint64 { return uint64(r.Psw.Addr) }
++func (r *PtraceRegs) PC() uint64 { return uint64(r.Psw.addr) }
+ 
+-func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.Addr = uint32(pc) }
++func (r *PtraceRegs) SetPC(pc uint64) { r.Psw.addr = uint32(pc) }
  
 -func PtraceGetRegs(pid int, regsout *PtraceRegs) (err error) {
 -	return ptrace(PTRACE_GETREGS, pid, 0, uintptr(unsafe.Pointer(regsout)))
