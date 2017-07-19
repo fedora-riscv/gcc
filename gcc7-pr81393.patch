@@ -1,3 +1,35 @@
+--- libgo/configure.ac	(revision 249471)
++++ libgo/configure.ac	(revision 249472)
+@@ -580,7 +580,7 @@ AC_C_BIGENDIAN
+ 
+ GCC_CHECK_UNWIND_GETIPINFO
+ 
+-AC_CHECK_HEADERS(port.h sched.h semaphore.h sys/file.h sys/mman.h syscall.h sys/epoll.h sys/event.h sys/inotify.h sys/ptrace.h sys/syscall.h sys/user.h sys/utsname.h sys/select.h sys/socket.h net/if.h net/if_arp.h net/route.h netpacket/packet.h sys/prctl.h sys/mount.h sys/vfs.h sys/statfs.h sys/timex.h sys/sysinfo.h utime.h linux/ether.h linux/fs.h linux/reboot.h netinet/icmp6.h netinet/in_syst.h netinet/ip.h netinet/ip_mroute.h netinet/if_ether.h)
++AC_CHECK_HEADERS(port.h sched.h semaphore.h sys/file.h sys/mman.h syscall.h sys/epoll.h sys/event.h sys/inotify.h sys/ptrace.h sys/syscall.h sys/user.h sys/utsname.h sys/select.h sys/socket.h net/if.h net/if_arp.h net/route.h netpacket/packet.h sys/prctl.h sys/mount.h sys/vfs.h sys/statfs.h sys/timex.h sys/sysinfo.h utime.h linux/ether.h linux/fs.h linux/ptrace.h linux/reboot.h netinet/icmp6.h netinet/in_syst.h netinet/ip.h netinet/ip_mroute.h netinet/if_ether.h)
+ 
+ AC_CHECK_HEADERS([linux/filter.h linux/if_addr.h linux/if_ether.h linux/if_tun.h linux/netlink.h linux/rtnetlink.h], [], [],
+ [#ifdef HAVE_SYS_SOCKET_H
+--- libgo/sysinfo.c	(revision 249471)
++++ libgo/sysinfo.c	(revision 250324)
+@@ -102,6 +102,18 @@
+ #if defined(HAVE_LINUX_NETLINK_H)
+ #include <linux/netlink.h>
+ #endif
++#if defined(HAVE_LINUX_PTRACE_H)
++/* Avoid https://sourceware.org/bugzilla/show_bug.cgi?id=762 .  */
++#define ia64_fpreg pt_ia64_fpreg
++#define pt_all_user_regs pt_ia64_all_user_regs
++/* Avoid redefinition of ptrace_peeksiginfo from <sys/ptrace.h>.
++   https://gcc.gnu.org/PR81324 .  */
++#define ptrace_peeksiginfo_args ignore_ptrace_peeksiginfo_args
++#include <linux/ptrace.h>
++#undef ia64_fpreg
++#undef pt_all_user_regs
++#undef ptrace_peeksiginfo_args
++#endif
+ #if defined(HAVE_LINUX_RTNETLINK_H)
+ #include <linux/rtnetlink.h>
+ #endif
 --- libgo/go/syscall/syscall_linux_s390x.go	(revision 250173)
 +++ libgo/go/syscall/syscall_linux_s390x.go	(revision 250174)
 @@ -4,6 +4,23 @@
@@ -83,3 +115,26 @@
 +	}
 +	return ptrace(PTRACE_POKEUSR_AREA, pid, uintptr(unsafe.Pointer(&parea)), 0)
  }
+--- libgo/configure	(revision 249471)
++++ libgo/configure	(revision 249472)
+@@ -14782,7 +14782,7 @@ $as_echo "#define HAVE_GETIPINFO 1" >>co
+   fi
+ 
+ 
+-for ac_header in port.h sched.h semaphore.h sys/file.h sys/mman.h syscall.h sys/epoll.h sys/event.h sys/inotify.h sys/ptrace.h sys/syscall.h sys/user.h sys/utsname.h sys/select.h sys/socket.h net/if.h net/if_arp.h net/route.h netpacket/packet.h sys/prctl.h sys/mount.h sys/vfs.h sys/statfs.h sys/timex.h sys/sysinfo.h utime.h linux/ether.h linux/fs.h linux/reboot.h netinet/icmp6.h netinet/in_syst.h netinet/ip.h netinet/ip_mroute.h netinet/if_ether.h
++for ac_header in port.h sched.h semaphore.h sys/file.h sys/mman.h syscall.h sys/epoll.h sys/event.h sys/inotify.h sys/ptrace.h sys/syscall.h sys/user.h sys/utsname.h sys/select.h sys/socket.h net/if.h net/if_arp.h net/route.h netpacket/packet.h sys/prctl.h sys/mount.h sys/vfs.h sys/statfs.h sys/timex.h sys/sysinfo.h utime.h linux/ether.h linux/fs.h linux/ptrace.h linux/reboot.h netinet/icmp6.h netinet/in_syst.h netinet/ip.h netinet/ip_mroute.h netinet/if_ether.h
+ do :
+   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+--- libgo/config.h.in	(revision 249471)
++++ libgo/config.h.in	(revision 249472)
+@@ -114,6 +114,9 @@
+ /* Define to 1 if you have the <linux/netlink.h> header file. */
+ #undef HAVE_LINUX_NETLINK_H
+ 
++/* Define to 1 if you have the <linux/ptrace.h> header file. */
++#undef HAVE_LINUX_PTRACE_H
++
+ /* Define to 1 if you have the <linux/reboot.h> header file. */
+ #undef HAVE_LINUX_REBOOT_H
+ 
