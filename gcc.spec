@@ -1,9 +1,9 @@
-%global DATE 20170216
-%global SVNREV 245503
-%global gcc_version 6.3.1
+%global DATE 20170727
+%global SVNREV 250613
+%global gcc_version 6.4.1
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 1
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -3107,6 +3107,80 @@ fi
 %doc rpm.doc/changelogs/libcc1/ChangeLog*
 
 %changelog
+* Thu Jul 27 2017 Jakub Jelinek <jakub@redhat.com> 6.4.1-1
+- update from the 6 branch
+  - GCC 6.4 release
+  - PRs ada/79903, ada/79945, ada/80117, ada/80921, bootstrap/71510,
+	c++/60992, c++/61636, c++/70844, c++/72775, c++/77563, c++/78282,
+	c++/79050, c++/79264, c++/79461, c++/79508, c++/79512, c++/79519,
+	c++/79548, c++/79566, c++/79572, c++/79580, c++/79607, c++/79639,
+	c++/79640, c++/79641, c++/79664, c++/79681, c++/79687, c++/79796,
+	c++/79896, c++/79900, c++/79962, c++/79984, c++/80043, c++/80091,
+	c++/80129, c++/80141, c++/80150, c++/80176, c++/80179, c++/80241,
+	c++/80244, c++/80267, c++/80294, c++/80297, c++/80363, c++/80973,
+	c++/80984, c++/81011, c++/81130, c++/81154, c/79756, c/79940, c/80097,
+	c/81006, debug/79255, debug/80025, debug/80321, driver/31468,
+	driver/56469, fortran/65542, fortran/70601, fortran/71838,
+	fortran/78331, fortran/78474, fortran/79434, fortran/79676,
+	fortran/79894, fortran/80361, fortran/80392, fortran/80752,
+	fortran/80904, fortran/80918, gcov-profile/53915, gcov-profile/78783,
+	gcov-profile/80081, gcov-profile/80224, gcov-profile/80413, go/64238,
+	ipa/65972, ipa/77333, ipa/79761, ipa/79849, ipa/79850, ipa/80104,
+	ipa/80205, ipa/80212, ipa/80663, libgcc/80037, libgomp/80394,
+	libgomp/80822, libstdc++/62045, libstdc++/67440, libstdc++/69699,
+	libstdc++/71444, libstdc++/78236, libstdc++/79141, libstdc++/79511,
+	libstdc++/79789, libstdc++/79980, libstdc++/80034, libstdc++/80041,
+	libstdc++/80137, libstdc++/80316, libstdc++/80448, libstdc++/80493,
+	libstdc++/80504, libstdc++/81002, lto/50345, lto/66295, lto/69953,
+	lto/78049, lto/79579, lto/79587, lto/79760, lto/81487,
+	middle-end/71310, middle-end/78339, middle-end/79396,
+	middle-end/79536, middle-end/79537, middle-end/79576,
+	middle-end/79753, middle-end/79831, middle-end/79931,
+	middle-end/79971, middle-end/80004, middle-end/80075,
+	middle-end/80171, middle-end/80222, middle-end/80281,
+	middle-end/80341, middle-end/80362, middle-end/80539,
+	middle-end/80692, middle-end/80809, middle-end/80853,
+	middle-end/80902, middle-end/80929, other/80589, other/80909,
+	plugin/80094, rtl-optimization/60818, rtl-optimization/73650,
+	rtl-optimization/75964, rtl-optimization/79574,
+	rtl-optimization/79577, rtl-optimization/79901,
+	rtl-optimization/80112, rtl-optimization/80385,
+	rtl-optimization/80429, rtl-optimization/80474,
+	rtl-optimization/80501, sanitizer/70878, sanitizer/71458,
+	sanitizer/78532, sanitizer/78992, sanitizer/79558, sanitizer/79562,
+	sanitizer/79944, sanitizer/80067, sanitizer/80166, sanitizer/80168,
+	sanitizer/80348, sanitizer/80349, sanitizer/80350, target/45053,
+	target/49244, target/61729, target/65705, target/66669, target/67353,
+	target/68163, target/68491, target/68972, target/69804, target/71294,
+	target/71778, target/76731, target/77728, target/77850, target/78002,
+	target/78543, target/79027, target/79155, target/79261, target/79439,
+	target/79453, target/79494, target/79514, target/79544, target/79545,
+	target/79559, target/79568, target/79570, target/79729, target/79733,
+	target/79749, target/79752, target/79769, target/79770, target/79807,
+	target/79883, target/79892, target/79906, target/79932, target/79947,
+	target/79951, target/80019, target/80082, target/80090, target/80101,
+	target/80103, target/80123, target/80246, target/80286, target/80298,
+	target/80315, target/80376, target/80382, target/80462, target/80510,
+	target/80569, target/80618, target/80718, target/80799, target/80966,
+	target/80968, target/81300, target/81305, target/81375, target/81407,
+	target/81471, testsuite/80092, testsuite/80678,
+	tree-optimization/43434, tree-optimization/69264,
+	tree-optimization/69823, tree-optimization/78644,
+	tree-optimization/79256, tree-optimization/79552,
+	tree-optimization/79631, tree-optimization/79666,
+	tree-optimization/79732, tree-optimization/79803,
+	tree-optimization/79977, tree-optimization/80113,
+	tree-optimization/80122, tree-optimization/80167,
+	tree-optimization/80170, tree-optimization/80181,
+	tree-optimization/80218, tree-optimization/80262,
+	tree-optimization/80275, tree-optimization/80334,
+	tree-optimization/80426, tree-optimization/80453,
+	tree-optimization/80492, tree-optimization/81162,
+	tree-optimization/81192, tree-optimization/81555,
+	tree-optimization/81556
+  - fix _rdseed*_step and _rdrand*_step expansion (CVE-2017-11671, #1475735,
+    PR target/80180)
+
 * Thu Feb 16 2017 Jakub Jelinek <jakub@redhat.com> 6.3.1-3
 - update from the 6 branch
   - PRs c++/77284, c++/77545, c++/78897, c++/78908, c++/79176, c++/79296,
