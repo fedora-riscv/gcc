@@ -1,10 +1,10 @@
-%global DATE 20170718
-%global SVNREV 250298
+%global DATE 20170802
+%global SVNREV 250834
 %global gcc_version 7.1.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,8 +232,6 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-rh1467526.patch
-Patch13: gcc7-pr81393.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -823,8 +821,6 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .rh1467526~
-%patch13 -p0 -b .pr81393~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3242,6 +3238,23 @@ fi
 %endif
 
 %changelog
+* Wed Aug  2 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-7
+- update from the 7 branch
+  - 7.2-rc1
+  - PRs c++/71570, gcov-profile/81561, libgcc/61152, libquadmath/65757,
+	libstdc++/80553, libstdc++/80721, libstdc++/80737, libstdc++/80939,
+	libstdc++/81017, lto/81487, middle-end/79499, middle-end/81505,
+	rtl-optimization/75964, sanitize/81186, sanitizer/81021,
+	sanitizer/81224, sanitizer/81302, sanitizer/81604, target/79041,
+	target/80569, target/81069, target/81175, target/81193, target/81407,
+	target/81414, target/81471, target/81473, target/81534, target/81622,
+	target/81641, tree-optimization/71752, tree-optimization/80769,
+	tree-optimization/81162, tree-optimization/81388,
+	tree-optimization/81410, tree-optimization/81455,
+	tree-optimization/81555, tree-optimization/81556,
+	tree-optimization/81588, tree-optimization/81633,
+	tree-optimization/81655
+
 * Tue Jul 18 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-6
 - update from the 7 branch
   - PRs ada/81446, c++/81258, middle-end/80929, rtl-optimization/81424,
