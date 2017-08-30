@@ -1,10 +1,10 @@
-%global DATE 20170802
-%global SVNREV 250834
-%global gcc_version 7.1.1
+%global DATE 20170829
+%global SVNREV 251415
+%global gcc_version 7.2.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3238,6 +3238,18 @@ fi
 %endif
 
 %changelog
+* Tue Aug 29 2017 Jakub Jelinek <jakub@redhat.com> 7.2.1-1
+- update from the 7 branch
+  - 7.2 release
+  - PRs c++/67054, c++/81607, debug/81993, driver/81523, fortran/80164,
+	fortran/81296, ipa/77732, libstdc++/53984, libstdc++/79820,
+	libstdc++/81751, middle-end/81065, middle-end/81088, middle-end/81766,
+	middle-end/81884, sanitizer/80932, target/67712, target/72804,
+	target/78460, target/80210, target/81170, target/81295, target/81861,
+	target/81894, target/81910, target/81921, testsuite/81056,
+	tree-optimization/81181, tree-optimization/81354,
+	tree-optimization/81723, tree-optimization/81977
+
 * Wed Aug  2 2017 Jakub Jelinek <jakub@redhat.com> 7.1.1-7
 - update from the 7 branch
   - 7.2-rc1
