@@ -1,10 +1,10 @@
-%global DATE 20170829
-%global SVNREV 251415
+%global DATE 20170915
+%global SVNREV 252800
 %global gcc_version 7.2.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,6 +232,11 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
+Patch12: gcc7-pr81314.patch
+Patch13: gcc7-pr81325.patch
+Patch14: gcc7-pr82112-1.patch
+Patch15: gcc7-pr82112-2.patch
+Patch16: gcc7-pr81929.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -821,6 +826,11 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
+%patch12 -p0 -b .pr81314~
+%patch13 -p0 -b .pr81325~
+%patch14 -p0 -b .pr82112-1~
+%patch15 -p0 -b .pr82112-2~
+%patch16 -p0 -b .pr81929~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3238,6 +3248,23 @@ fi
 %endif
 
 %changelog
+* Fri Sep 15 2017 Jakub Jelinek <jakub@redhat.com> 7.2.1-2
+- update from the 7 branch
+  - PRs ada/62235, ada/79441, ada/79542, bootstrap/81926, c++/81355,
+	c++/81852, c++/82039, c++/82040, c/45784, c/81687, driver/81650,
+	fortran/81770, inline-asm/82001, ipa/81128, libstdc++/70483,
+	libstdc++/81338, libstdc++/81468, libstdc++/81599, libstdc++/81835,
+	libstdc++/81891, libstdc++/81912, middle-end/81052, middle-end/81768,
+	other/39851, sanitizer/63361, sanitizer/81923, target/80695,
+	target/81504, target/81593, target/81621, target/81833, target/81988,
+	target/82181, testsuite/82114, testsuite/82120, tree-opt/81696,
+	tree-optimization/81503, tree-optimization/81987
+- fix OpenMP implicit firstprivate handling of references (PR c++/81314)
+- fix -fcompare-debug failures with PowerPC atomics (PR target/81325)
+- fix compile time hog in C++ replace_placeholders (PR sanitizer/81929)
+- fix __atomic* and PowerPC vec_ld/vec_st handling of array arguments
+  (PR target/82112)
+
 * Tue Aug 29 2017 Jakub Jelinek <jakub@redhat.com> 7.2.1-1
 - update from the 7 branch
   - 7.2 release
