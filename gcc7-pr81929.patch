@@ -1,0 +1,73 @@
+2017-09-14  Jakub Jelinek  <jakub@redhat.com>
+
+	PR sanitizer/81929
+	* tree.c (struct replace_placeholders_t): Add pset field.
+	(replace_placeholders_r): Call cp_walk_tree with d->pset as
+	last argument instead of NULL.  Formatting fix.
+	(replace_placeholders): Add pset variable, add its address
+	into data.  Pass &pset instead of NULL to cp_walk_tree.
+
+	* g++.dg/ubsan/pr81929.C: New test.
+
+--- gcc/cp/tree.c.jj	2017-09-12 09:35:47.000000000 +0200
++++ gcc/cp/tree.c	2017-09-14 17:38:07.717064412 +0200
+@@ -3063,6 +3063,7 @@ struct replace_placeholders_t
+ {
+   tree obj;	    /* The object to be substituted for a PLACEHOLDER_EXPR.  */
+   bool seen;	    /* Whether we've encountered a PLACEHOLDER_EXPR.  */
++  hash_set<tree> *pset;	/* To avoid walking same trees multiple times.  */
+ };
+ 
+ /* Like substitute_placeholder_in_expr, but handle C++ tree codes and
+@@ -3085,8 +3086,8 @@ replace_placeholders_r (tree* t, int* wa
+     case PLACEHOLDER_EXPR:
+       {
+ 	tree x = obj;
+-	for (; !(same_type_ignoring_top_level_qualifiers_p
+-		 (TREE_TYPE (*t), TREE_TYPE (x)));
++	for (; !same_type_ignoring_top_level_qualifiers_p (TREE_TYPE (*t),
++							   TREE_TYPE (x));
+ 	     x = TREE_OPERAND (x, 0))
+ 	  gcc_assert (TREE_CODE (x) == COMPONENT_REF);
+ 	*t = x;
+@@ -3118,8 +3119,7 @@ replace_placeholders_r (tree* t, int* wa
+ 		  valp = &TARGET_EXPR_INITIAL (*valp);
+ 	      }
+ 	    d->obj = subob;
+-	    cp_walk_tree (valp, replace_placeholders_r,
+-			  data_, NULL);
++	    cp_walk_tree (valp, replace_placeholders_r, data_, d->pset);
+ 	    d->obj = obj;
+ 	  }
+ 	*walk_subtrees = false;
+@@ -3151,10 +3151,11 @@ replace_placeholders (tree exp, tree obj
+     return exp;
+ 
+   tree *tp = &exp;
+-  replace_placeholders_t data = { obj, false };
++  hash_set<tree> pset;
++  replace_placeholders_t data = { obj, false, &pset };
+   if (TREE_CODE (exp) == TARGET_EXPR)
+     tp = &TARGET_EXPR_INITIAL (exp);
+-  cp_walk_tree (tp, replace_placeholders_r, &data, NULL);
++  cp_walk_tree (tp, replace_placeholders_r, &data, &pset);
+   if (seen_p)
+     *seen_p = data.seen;
+   return exp;
+--- gcc/testsuite/g++.dg/ubsan/pr81929.C.jj	2017-09-14 17:48:09.052611540 +0200
++++ gcc/testsuite/g++.dg/ubsan/pr81929.C	2017-09-14 17:49:21.644711332 +0200
+@@ -0,0 +1,14 @@
++// PR sanitizer/81929
++// { dg-do compile }
++// { dg-options "-std=c++14 -fsanitize=undefined" }
++
++struct S { S &operator<< (long); S foo (); S (); };
++
++void
++bar ()
++{
++  static_cast<S&>(S () << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0
++		       << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0
++		       << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0
++		       << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0).foo ();
++}
