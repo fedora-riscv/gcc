@@ -1,0 +1,13 @@
+diff --git a/libsanitizer/sanitizer_common/sanitizer_linux.cc b/libsanitizer/sanitizer_common/sanitizer_linux.cc
+index 5b6f18602e7..b5e96a1a0e4 100644
+--- a/libsanitizer/sanitizer_common/sanitizer_linux.cc
++++ b/libsanitizer/sanitizer_common/sanitizer_linux.cc
+@@ -1262,7 +1262,7 @@ struct __sanitizer_esr_context {
+ 
+ static bool Aarch64GetESR(ucontext_t *ucontext, u64 *esr) {
+   static const u32 kEsrMagic = 0x45535201;
+-  u8 *aux = ucontext->uc_mcontext.__reserved;
++  u8 *aux = ucontext->uc_mcontext.__glibc_reserved1;
+   while (true) {
+     _aarch64_ctx *ctx = (_aarch64_ctx *)aux;
+     if (ctx->size == 0) break;

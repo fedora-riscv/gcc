@@ -1,0 +1,28 @@
+commit eecbe7ada9a8ab913e779a27c0e90ec736eedc78
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Fri Nov 3 17:14:23 2017 +0000
+
+            * config/i386/i386.c (ix86_expand_prologue): Tighten assert
+            for int_registers_saved.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@254386 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/config/i386/i386.c b/gcc/config/i386/i386.c
+index 086848b2c73..fd74f1f6c0c 100644
+--- a/gcc/config/i386/i386.c
++++ b/gcc/config/i386/i386.c
+@@ -14172,8 +14172,12 @@ ix86_expand_prologue (void)
+       && (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
+ 	  || flag_stack_clash_protection))
+     {
+-      /* We expect the registers to be saved when probes are used.  */
+-      gcc_assert (int_registers_saved);
++      /* This assert wants to verify that integer registers were saved
++	 prior to probing.  This is necessary when probing may be implemented
++	 as a function call (Windows).  It is not necessary for stack clash
++	 protection probing.  */
++      if (!flag_stack_clash_protection)
++	gcc_assert (int_registers_saved);
+ 
+       if (flag_stack_clash_protection)
+ 	{
