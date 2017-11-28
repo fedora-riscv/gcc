@@ -1,0 +1,81 @@
+commit 75179275ecc35724a058676199188e0d13e65054
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Fri Nov 3 20:30:53 2017 +0000
+
+            * config/i386/i386.c (ix86_emit_restore_reg_using_pop): Prototype.
+            (ix86_adjust_stack_and_probe_stack_clash): Use a push/pop sequence
+            to probe at the start of a noreturn function.
+    
+            * gcc.target/i386/stack-check-12.c: New test.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@254396 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/config/i386/i386.c b/gcc/config/i386/i386.c
+index fd74f1f6c0c..3c828ba492d 100644
+--- a/gcc/config/i386/i386.c
++++ b/gcc/config/i386/i386.c
+@@ -96,6 +96,7 @@ static rtx legitimize_dllimport_symbol (rtx, bool);
+ static rtx legitimize_pe_coff_extern_decl (rtx, bool);
+ static rtx legitimize_pe_coff_symbol (rtx, bool);
+ static void ix86_print_operand_address_as (FILE *, rtx, addr_space_t, bool);
++static void ix86_emit_restore_reg_using_pop (rtx);
+ 
+ #ifndef CHECK_STACK_LIMIT
+ #define CHECK_STACK_LIMIT (-1)
+@@ -13287,10 +13288,13 @@ ix86_adjust_stack_and_probe_stack_clash (const HOST_WIDE_INT size)
+      no probes are needed.  */
+   if (!size)
+     {
++      struct ix86_frame frame;
++      ix86_compute_frame_layout (&frame);
++
+       /* However, the allocation of space via pushes for register
+ 	 saves could be viewed as allocating space, but without the
+ 	 need to probe.  */
+-      if (m->frame.nregs || m->frame.nsseregs || frame_pointer_needed)
++      if (frame.nregs || frame.nsseregs || frame_pointer_needed)
+         dump_stack_clash_frame_info (NO_PROBE_SMALL_FRAME, true);
+       else
+ 	dump_stack_clash_frame_info (NO_PROBE_NO_FRAME, false);
+@@ -13312,8 +13316,14 @@ ix86_adjust_stack_and_probe_stack_clash (const HOST_WIDE_INT size)
+      we just probe when we cross PROBE_INTERVAL.  */
+   if (TREE_THIS_VOLATILE (cfun->decl))
+     {
+-      emit_stack_probe (plus_constant (Pmode, stack_pointer_rtx,
+-				       -GET_MODE_SIZE (word_mode)));
++      /* We can safely use any register here since we're just going to push
++	 its value and immediately pop it back.  But we do try and avoid
++	 argument passing registers so as not to introduce dependencies in
++	 the pipeline.  For 32 bit we use %esi and for 64 bit we use %rax.  */
++      rtx dummy_reg = gen_rtx_REG (word_mode, TARGET_64BIT ? AX_REG : SI_REG);
++      rtx_insn *insn = emit_insn (gen_push (dummy_reg));
++      RTX_FRAME_RELATED_P (insn) = 1;
++      ix86_emit_restore_reg_using_pop (dummy_reg);
+       emit_insn (gen_blockage ());
+     }
+ 
+diff --git a/gcc/testsuite/gcc.target/i386/stack-check-12.c b/gcc/testsuite/gcc.target/i386/stack-check-12.c
+new file mode 100644
+index 00000000000..cb69bb08086
+--- /dev/null
++++ b/gcc/testsuite/gcc.target/i386/stack-check-12.c
+@@ -0,0 +1,19 @@
++/* { dg-do compile } */
++/* { dg-options "-O2 -fstack-clash-protection -mtune=generic" } */
++/* { dg-require-effective-target supports_stack_clash_protection } */
++
++__attribute__ ((noreturn)) void exit (int);
++
++__attribute__ ((noreturn)) void
++f (void)
++{
++  asm volatile ("nop" ::: "edi");
++  exit (1);
++}
++
++/* { dg-final { scan-assembler-not "or\[ql\]" } } */
++/* { dg-final { scan-assembler "pushl	%esi" { target ia32 } } } */
++/* { dg-final { scan-assembler "popl	%esi" { target ia32 } } }*/
++/* { dg-final { scan-assembler "pushq	%rax" { target { ! ia32 } } } } */
++/* { dg-final { scan-assembler "popq	%rax" { target { ! ia32 } } } }*/
++
