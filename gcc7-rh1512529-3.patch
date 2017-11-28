@@ -1,0 +1,199 @@
+commit 640ca5ef08a3ade8fe3f32d8c412008410de989c
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Wed Sep 20 05:21:09 2017 +0000
+
+            * config/alpha/alpha.c (alpha_expand_prologue): Also check
+            flag_stack_clash_protection.
+            * config/arm/arm.c (arm_compute_static_chain_stack_bytes): Likewise.
+            (arm_expand_prologue, thumb1_expand_prologue): Likewise.
+            (arm_frame_pointer_required): Likewise.
+            * config/ia64/ia64.c (ia64_compute_frame_size): Likewise.
+            (ia64_expand_prologue): Likewise.
+            * config/mips/mips.c (mips_expand_prologue): Likewise.
+            * config/powerpcspe/powerpcspe.c (rs6000_expand_prologue): Likewise.
+            * config/sparc/sparc.c (sparc_expand_prologue): Likewise.
+            (sparc_flat_expand_prologue): Likewise.
+            * config/spu/spu.c (spu_expand_prologue): Likewise.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@252996 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/config/alpha/alpha.c b/gcc/config/alpha/alpha.c
+index 91f3d7cfbeb..36e78a0caf7 100644
+--- a/gcc/config/alpha/alpha.c
++++ b/gcc/config/alpha/alpha.c
+@@ -7740,7 +7740,7 @@ alpha_expand_prologue (void)
+      Note that we are only allowed to adjust sp once in the prologue.  */
+ 
+   probed_size = frame_size;
+-  if (flag_stack_check)
++  if (flag_stack_check || flag_stack_clash_protection)
+     probed_size += get_stack_check_protect ();
+ 
+   if (probed_size <= 32768)
+@@ -7755,7 +7755,7 @@ alpha_expand_prologue (void)
+ 	  /* We only have to do this probe if we aren't saving registers or
+ 	     if we are probing beyond the frame because of -fstack-check.  */
+ 	  if ((sa_size == 0 && probed_size > probed - 4096)
+-	      || flag_stack_check)
++	      || flag_stack_check || flag_stack_clash_protection)
+ 	    emit_insn (gen_probe_stack (GEN_INT (-probed_size)));
+ 	}
+ 
+@@ -7785,7 +7785,8 @@ alpha_expand_prologue (void)
+ 	 late in the compilation, generate the loop as a single insn.  */
+       emit_insn (gen_prologue_stack_probe_loop (count, ptr));
+ 
+-      if ((leftover > 4096 && sa_size == 0) || flag_stack_check)
++      if ((leftover > 4096 && sa_size == 0)
++	  || flag_stack_check || flag_stack_clash_protection)
+ 	{
+ 	  rtx last = gen_rtx_MEM (DImode,
+ 				  plus_constant (Pmode, ptr, -leftover));
+@@ -7793,7 +7794,7 @@ alpha_expand_prologue (void)
+ 	  emit_move_insn (last, const0_rtx);
+ 	}
+ 
+-      if (flag_stack_check)
++      if (flag_stack_check || flag_stack_clash_protection)
+ 	{
+ 	  /* If -fstack-check is specified we have to load the entire
+ 	     constant into a register and subtract from the sp in one go,
+diff --git a/gcc/config/arm/arm.c b/gcc/config/arm/arm.c
+index 242d7c792fe..4f85a061753 100644
+--- a/gcc/config/arm/arm.c
++++ b/gcc/config/arm/arm.c
+@@ -19083,7 +19083,8 @@ arm_compute_static_chain_stack_bytes (void)
+   /* See the defining assertion in arm_expand_prologue.  */
+   if (IS_NESTED (arm_current_func_type ())
+       && ((TARGET_APCS_FRAME && frame_pointer_needed && TARGET_ARM)
+-	  || (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++	  || ((flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++	       || flag_stack_clash_protection)
+ 	      && !df_regs_ever_live_p (LR_REGNUM)))
+       && arm_r3_live_at_start_p ()
+       && crtl->args.pretend_args_size == 0)
+@@ -21377,7 +21378,8 @@ arm_expand_prologue (void)
+      clobbered when creating the frame, we need to save and restore it.  */
+   clobber_ip = IS_NESTED (func_type)
+ 	       && ((TARGET_APCS_FRAME && frame_pointer_needed && TARGET_ARM)
+-		   || (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++		   || ((flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++			|| flag_stack_clash_protection)
+ 		       && !df_regs_ever_live_p (LR_REGNUM)
+ 		       && arm_r3_live_at_start_p ()));
+ 
+@@ -21591,7 +21593,8 @@ arm_expand_prologue (void)
+      stack checking.  We use IP as the first scratch register, except for the
+      non-APCS nested functions if LR or r3 are available (see clobber_ip).  */
+   if (!IS_INTERRUPT (func_type)
+-      && flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++      && (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++	  || flag_stack_clash_protection))
+     {
+       unsigned int regno;
+ 
+@@ -24875,7 +24878,9 @@ thumb1_expand_prologue (void)
+     current_function_static_stack_size = size;
+ 
+   /* If we have a frame, then do stack checking.  FIXME: not implemented.  */
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK && size)
++  if ((flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++       || flag_stack_clash_protection)
++      && size)
+     sorry ("-fstack-check=specific for Thumb-1");
+ 
+   amount = offsets->outgoing_args - offsets->saved_regs;
+@@ -27736,7 +27741,8 @@ arm_frame_pointer_required (void)
+      instruction prior to the stack adjustment and this requires a frame
+      pointer if we want to catch the exception using the EABI unwinder.  */
+   if (!IS_INTERRUPT (arm_current_func_type ())
+-      && flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      && (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++	  || flag_stack_clash_protection)
+       && arm_except_unwind_info (&global_options) == UI_TARGET
+       && cfun->can_throw_non_call_exceptions)
+     {
+diff --git a/gcc/config/ia64/ia64.c b/gcc/config/ia64/ia64.c
+index 17d6b3318a6..8acb92fd32b 100644
+--- a/gcc/config/ia64/ia64.c
++++ b/gcc/config/ia64/ia64.c
+@@ -2685,7 +2685,8 @@ ia64_compute_frame_size (HOST_WIDE_INT size)
+     mark_reg_gr_used_mask (cfun->machine->ia64_eh_epilogue_bsp, NULL);
+ 
+   /* Static stack checking uses r2 and r3.  */
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      || flag_stack_clash_protection)
+     current_frame_info.gr_used_mask |= 0xc;
+ 
+   /* Find the size of the register stack frame.  We have only 80 local
+@@ -3468,7 +3469,8 @@ ia64_expand_prologue (void)
+   if (flag_stack_usage_info)
+     current_function_static_stack_size = current_frame_info.total_size;
+ 
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      || flag_stack_clash_protection)
+     {
+       HOST_WIDE_INT size = current_frame_info.total_size;
+       int bs_size = BACKING_STORE_SIZE (current_frame_info.n_input_regs
+diff --git a/gcc/config/mips/mips.c b/gcc/config/mips/mips.c
+index 7d85ce7055a..b2d3c737b34 100644
+--- a/gcc/config/mips/mips.c
++++ b/gcc/config/mips/mips.c
+@@ -12077,7 +12077,8 @@ mips_expand_prologue (void)
+   if (flag_stack_usage_info)
+     current_function_static_stack_size = size;
+ 
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      || flag_stack_clash_protection)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+diff --git a/gcc/config/sparc/sparc.c b/gcc/config/sparc/sparc.c
+index b32bb9859e1..498bd04f5c2 100644
+--- a/gcc/config/sparc/sparc.c
++++ b/gcc/config/sparc/sparc.c
+@@ -5691,7 +5691,8 @@ sparc_expand_prologue (void)
+   if (flag_stack_usage_info)
+     current_function_static_stack_size = size;
+ 
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      || flag_stack_clash_protection)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+@@ -5802,7 +5803,8 @@ sparc_flat_expand_prologue (void)
+   if (flag_stack_usage_info)
+     current_function_static_stack_size = size;
+ 
+-  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
++  if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK
++      || flag_stack_clash_protection)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+diff --git a/gcc/config/spu/spu.c b/gcc/config/spu/spu.c
+index fcb85c0ee16..22745fa32c3 100644
+--- a/gcc/config/spu/spu.c
++++ b/gcc/config/spu/spu.c
+@@ -1760,7 +1760,7 @@ spu_expand_prologue (void)
+ 
+   if (total_size > 0)
+     {
+-      if (flag_stack_check)
++      if (flag_stack_check || flag_stack_clash_protection)
+ 	{
+ 	  /* We compare against total_size-1 because
+ 	     ($sp >= total_size) <=> ($sp > total_size-1) */
+@@ -5364,7 +5364,7 @@ spu_allocate_stack (rtx op0, rtx op1)
+   emit_insn (gen_spu_convert (sp, stack_pointer_rtx));
+   emit_insn (gen_subv4si3 (sp, sp, splatted));
+ 
+-  if (flag_stack_check)
++  if (flag_stack_check || flag_stack_clash_protection)
+     {
+       rtx avail = gen_reg_rtx(SImode);
+       rtx result = gen_reg_rtx(SImode);

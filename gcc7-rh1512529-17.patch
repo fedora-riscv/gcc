@@ -1,0 +1,40 @@
+commit 5ed5d56d36fc50627edf537c75afa0fdf6ba4f5d
+Author: Jeff Law <law@redhat.com>
+Date:   Wed Nov 22 12:02:50 2017 -0700
+
+    2017-10-31  Segher Boessenkool  <segher@kernel.crsahing.org>
+    
+           PR target/82674
+           * config/rs6000/rs6000.md (allocate_stack): Force update interval
+           into a register if it does not fit into an immediate offset field.
+
+diff --git a/gcc/config/rs6000/rs6000.md b/gcc/config/rs6000/rs6000.md
+index 843148e9703..4b9732a78ec 100644
+--- a/gcc/config/rs6000/rs6000.md
++++ b/gcc/config/rs6000/rs6000.md
+@@ -10450,6 +10450,9 @@
+ 	{
+ 	  rtx loop_lab, end_loop;
+ 	  bool rotated = CONST_INT_P (rounded_size);
++	  rtx update = GEN_INT (-probe_interval);
++	  if (probe_interval > 32768)
++	    update = force_reg (Pmode, update);
+ 
+ 	  emit_stack_clash_protection_probe_loop_start (&loop_lab, &end_loop,
+ 							last_addr, rotated);
+@@ -10457,13 +10460,11 @@
+ 	  if (Pmode == SImode)
+ 	    emit_insn (gen_movsi_update_stack (stack_pointer_rtx,
+ 					       stack_pointer_rtx,
+-					       GEN_INT (-probe_interval),
+-					       chain));
++					       update, chain));
+ 	  else
+ 	    emit_insn (gen_movdi_di_update_stack (stack_pointer_rtx,
+ 					          stack_pointer_rtx,
+-					          GEN_INT (-probe_interval),
+-					          chain));
++					          update, chain));
+ 	  emit_stack_clash_protection_probe_loop_end (loop_lab, end_loop,
+ 						      last_addr, rotated);
+ 	}

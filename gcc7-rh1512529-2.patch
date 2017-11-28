@@ -1,0 +1,735 @@
+commit bed27844b80e17ad786028a0a82c7d47990d15bb
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Wed Sep 20 05:05:12 2017 +0000
+
+    2017-09-18  Jeff Law  <law@redhat.com>
+    
+            * explow.c: Include "params.h".
+            (anti_adjust_stack_and_probe_stack_clash): New function.
+            (get_stack_check_protect): Likewise.
+            (compute_stack_clash_protection_loop_data): Likewise.
+            (emit_stack_clash_protection_loop_start): Likewise.
+            (emit_stack_clash_protection_loop_end): Likewise.
+            (allocate_dynamic_stack_space): Use get_stack_check_protect.
+            Use anti_adjust_stack_and_probe_stack_clash.
+            * explow.h (compute_stack_clash_protection_loop_data): Prototype.
+            (emit_stack_clash_protection_loop_start): Likewise.
+            (emit_stack_clash_protection_loop_end): Likewise.
+            * rtl.h (get_stack_check_protect): Prototype.
+            * target.def (stack_clash_protection_final_dynamic_probe): New hook.
+            * targhooks.c (default_stack_clash_protection_final_dynamic_probe): New.
+            * targhooks.h (default_stack_clash_protection_final_dynamic_probe):
+            Prototype.
+            * doc/tm.texi.in (TARGET_STACK_CLASH_PROTECTION_FINAL_DYNAMIC_PROBE):
+            Add @hook.
+            * doc/tm.texi: Rebuilt.
+            * config/aarch64/aarch64.c (aarch64_expand_prologue): Use
+            get_stack_check_protect.
+            * config/alpha/alpha.c (alpha_expand_prologue): Likewise.
+            * config/arm/arm.c (arm_expand_prologue): Likewise.
+            (arm_frame_pointer_required): Likewise.
+            * config/i386/i386.c (ix86_expand_prologue): Likewise.
+            * config/ia64/ia64.c (ia64_expand_prologue): Likewise.
+            * config/mips/mips.c (mips_expand_prologue): Likewise.
+            * config/powerpcspe/powerpcspe.c (rs6000_emit_prologue): Likewise.
+            * config/rs6000/rs6000.c (rs6000_emit_prologue): Likewise.
+            * config/sparc/sparc.c (sparc_expand_prologue): Likewise.
+            (sparc_flat_expand_prologue): Likewise.
+    
+            * gcc.dg/stack-check-3.c: New test.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@252995 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/config/aarch64/aarch64.c b/gcc/config/aarch64/aarch64.c
+index 1bd010be756..75c12f1de65 100644
+--- a/gcc/config/aarch64/aarch64.c
++++ b/gcc/config/aarch64/aarch64.c
+@@ -3582,12 +3582,14 @@ aarch64_expand_prologue (void)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (frame_size > PROBE_INTERVAL && frame_size > STACK_CHECK_PROTECT)
+-	    aarch64_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					    frame_size - STACK_CHECK_PROTECT);
++	  if (frame_size > PROBE_INTERVAL
++	      && frame_size > get_stack_check_protect ())
++	    aarch64_emit_probe_stack_range (get_stack_check_protect (),
++					    (frame_size
++					     - get_stack_check_protect ()));
+ 	}
+       else if (frame_size > 0)
+-	aarch64_emit_probe_stack_range (STACK_CHECK_PROTECT, frame_size);
++	aarch64_emit_probe_stack_range (get_stack_check_protect (), frame_size);
+     }
+ 
+   aarch64_sub_sp (IP0_REGNUM, initial_adjust, true);
+diff --git a/gcc/config/alpha/alpha.c b/gcc/config/alpha/alpha.c
+index 00a69c1a08d..91f3d7cfbeb 100644
+--- a/gcc/config/alpha/alpha.c
++++ b/gcc/config/alpha/alpha.c
+@@ -7741,7 +7741,7 @@ alpha_expand_prologue (void)
+ 
+   probed_size = frame_size;
+   if (flag_stack_check)
+-    probed_size += STACK_CHECK_PROTECT;
++    probed_size += get_stack_check_protect ();
+ 
+   if (probed_size <= 32768)
+     {
+diff --git a/gcc/config/arm/arm.c b/gcc/config/arm/arm.c
+index 1ded0d2a17d..242d7c792fe 100644
+--- a/gcc/config/arm/arm.c
++++ b/gcc/config/arm/arm.c
+@@ -21604,13 +21604,13 @@ arm_expand_prologue (void)
+ 
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    arm_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					size - STACK_CHECK_PROTECT,
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    arm_emit_probe_stack_range (get_stack_check_protect (),
++					size - get_stack_check_protect (),
+ 					regno, live_regs_mask);
+ 	}
+       else if (size > 0)
+-	arm_emit_probe_stack_range (STACK_CHECK_PROTECT, size,
++	arm_emit_probe_stack_range (get_stack_check_protect (), size,
+ 				    regno, live_regs_mask);
+     }
+ 
+@@ -27751,7 +27751,7 @@ arm_frame_pointer_required (void)
+ 	{
+ 	  /* We don't have the final size of the frame so adjust.  */
+ 	  size += 32 * UNITS_PER_WORD;
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
+ 	    return true;
+ 	}
+       else
+diff --git a/gcc/config/i386/i386.c b/gcc/config/i386/i386.c
+index 2d163797ba0..60bab9a26a6 100644
+--- a/gcc/config/i386/i386.c
++++ b/gcc/config/i386/i386.c
+@@ -14037,7 +14037,7 @@ ix86_expand_prologue (void)
+ 	  HOST_WIDE_INT size = allocate;
+ 
+ 	  if (TARGET_64BIT && size >= HOST_WIDE_INT_C (0x80000000))
+-	    size = 0x80000000 - STACK_CHECK_PROTECT - 1;
++	    size = 0x80000000 - get_stack_check_protect () - 1;
+ 
+ 	  if (TARGET_STACK_PROBE)
+ 	    {
+@@ -14047,18 +14047,20 @@ ix86_expand_prologue (void)
+ 		    ix86_emit_probe_stack_range (0, size);
+ 		}
+ 	      else
+-		ix86_emit_probe_stack_range (0, size + STACK_CHECK_PROTECT);
++		ix86_emit_probe_stack_range (0,
++					     size + get_stack_check_protect ());
+ 	    }
+ 	  else
+ 	    {
+ 	      if (crtl->is_leaf && !cfun->calls_alloca)
+ 		{
+-		  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-		    ix86_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-						 size - STACK_CHECK_PROTECT);
++		  if (size > PROBE_INTERVAL
++		      && size > get_stack_check_protect ())
++		    ix86_emit_probe_stack_range (get_stack_check_protect (),
++						 size - get_stack_check_protect ());
+ 		}
+ 	      else
+-		ix86_emit_probe_stack_range (STACK_CHECK_PROTECT, size);
++		ix86_emit_probe_stack_range (get_stack_check_protect (), size);
+ 	    }
+ 	}
+     }
+diff --git a/gcc/config/ia64/ia64.c b/gcc/config/ia64/ia64.c
+index a9f479b6e5c..17d6b3318a6 100644
+--- a/gcc/config/ia64/ia64.c
++++ b/gcc/config/ia64/ia64.c
+@@ -3476,15 +3476,16 @@ ia64_expand_prologue (void)
+ 
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    ia64_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					 size - STACK_CHECK_PROTECT,
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    ia64_emit_probe_stack_range (get_stack_check_protect (),
++					 size - get_stack_check_protect (),
+ 					 bs_size);
+-	  else if (size + bs_size > STACK_CHECK_PROTECT)
+-	    ia64_emit_probe_stack_range (STACK_CHECK_PROTECT, 0, bs_size);
++	  else if (size + bs_size > get_stack_check_protect ())
++	    ia64_emit_probe_stack_range (get_stack_check_protect (),
++					 0, bs_size);
+ 	}
+       else if (size + bs_size > 0)
+-	ia64_emit_probe_stack_range (STACK_CHECK_PROTECT, size, bs_size);
++	ia64_emit_probe_stack_range (get_stack_check_protect (), size, bs_size);
+     }
+ 
+   if (dump_file) 
+diff --git a/gcc/config/mips/mips.c b/gcc/config/mips/mips.c
+index 6bfd86a07af..7d85ce7055a 100644
+--- a/gcc/config/mips/mips.c
++++ b/gcc/config/mips/mips.c
+@@ -12081,12 +12081,12 @@ mips_expand_prologue (void)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    mips_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					 size - STACK_CHECK_PROTECT);
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    mips_emit_probe_stack_range (get_stack_check_protect (),
++					 size - get_stack_check_protect ());
+ 	}
+       else if (size > 0)
+-	mips_emit_probe_stack_range (STACK_CHECK_PROTECT, size);
++	mips_emit_probe_stack_range (get_stack_check_protect (), size);
+     }
+ 
+   /* Save the registers.  Allocate up to MIPS_MAX_FIRST_STACK_STEP
+diff --git a/gcc/config/rs6000/rs6000.c b/gcc/config/rs6000/rs6000.c
+index 66496a1f80f..1836e1d147d 100644
+--- a/gcc/config/rs6000/rs6000.c
++++ b/gcc/config/rs6000/rs6000.c
+@@ -29294,12 +29294,12 @@ rs6000_emit_prologue (void)
+ 
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    rs6000_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					   size - STACK_CHECK_PROTECT);
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    rs6000_emit_probe_stack_range (get_stack_check_protect (),
++					   size - get_stack_check_protect ());
+ 	}
+       else if (size > 0)
+-	rs6000_emit_probe_stack_range (STACK_CHECK_PROTECT, size);
++	rs6000_emit_probe_stack_range (get_stack_check_protect (), size);
+     }
+ 
+   if (TARGET_FIX_AND_CONTINUE)
+diff --git a/gcc/config/sparc/sparc.c b/gcc/config/sparc/sparc.c
+index 83ca1dcc617..b32bb9859e1 100644
+--- a/gcc/config/sparc/sparc.c
++++ b/gcc/config/sparc/sparc.c
+@@ -5695,12 +5695,12 @@ sparc_expand_prologue (void)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    sparc_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					  size - STACK_CHECK_PROTECT);
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    sparc_emit_probe_stack_range (get_stack_check_protect (),
++					  size - get_stack_check_protect ());
+ 	}
+       else if (size > 0)
+-	sparc_emit_probe_stack_range (STACK_CHECK_PROTECT, size);
++	sparc_emit_probe_stack_range (get_stack_check_protect (), size);
+     }
+ 
+   if (size == 0)
+@@ -5806,12 +5806,12 @@ sparc_flat_expand_prologue (void)
+     {
+       if (crtl->is_leaf && !cfun->calls_alloca)
+ 	{
+-	  if (size > PROBE_INTERVAL && size > STACK_CHECK_PROTECT)
+-	    sparc_emit_probe_stack_range (STACK_CHECK_PROTECT,
+-					  size - STACK_CHECK_PROTECT);
++	  if (size > PROBE_INTERVAL && size > get_stack_check_protect ())
++	    sparc_emit_probe_stack_range (get_stack_check_protect (),
++					  size - get_stack_check_protect ());
+ 	}
+       else if (size > 0)
+-	sparc_emit_probe_stack_range (STACK_CHECK_PROTECT, size);
++	sparc_emit_probe_stack_range (get_stack_check_protect (), size);
+     }
+ 
+   if (sparc_save_local_in_regs_p)
+diff --git a/gcc/doc/tm.texi b/gcc/doc/tm.texi
+index c4f2c893c8e..0ba2925a1bd 100644
+--- a/gcc/doc/tm.texi
++++ b/gcc/doc/tm.texi
+@@ -3419,6 +3419,10 @@ GCC computed the default from the values of the above macros and you will
+ normally not need to override that default.
+ @end defmac
+ 
++@deftypefn {Target Hook} bool TARGET_STACK_CLASH_PROTECTION_FINAL_DYNAMIC_PROBE (rtx @var{residual})
++Some targets make optimistic assumptions about the state of stack probing when they emit their prologues.  On such targets a probe into the end of any dynamically allocated space is likely required for safety against stack clash style attacks.  Define this variable to return nonzero if such a probe is required or zero otherwise.  You need not define this macro if it would always have the value zero.
++@end deftypefn
++
+ @need 2000
+ @node Frame Registers
+ @subsection Registers That Address the Stack Frame
+diff --git a/gcc/doc/tm.texi.in b/gcc/doc/tm.texi.in
+index 1c471d8da35..d31255e86cb 100644
+--- a/gcc/doc/tm.texi.in
++++ b/gcc/doc/tm.texi.in
+@@ -2999,6 +2999,8 @@ GCC computed the default from the values of the above macros and you will
+ normally not need to override that default.
+ @end defmac
+ 
++@hook TARGET_STACK_CLASH_PROTECTION_FINAL_DYNAMIC_PROBE
++
+ @need 2000
+ @node Frame Registers
+ @subsection Registers That Address the Stack Frame
+diff --git a/gcc/explow.c b/gcc/explow.c
+index 67cb6ff1513..e7db438b1ec 100644
+--- a/gcc/explow.c
++++ b/gcc/explow.c
+@@ -39,8 +39,11 @@ along with GCC; see the file COPYING3.  If not see
+ #include "expr.h"
+ #include "common/common-target.h"
+ #include "output.h"
++#include "params.h"
++#include "dumpfile.h"
+ 
+ static rtx break_out_memory_refs (rtx);
++static void anti_adjust_stack_and_probe_stack_clash (rtx);
+ 
+ 
+ /* Truncate and perhaps sign-extend C as appropriate for MODE.  */
+@@ -1271,6 +1274,29 @@ get_dynamic_stack_size (rtx *psize, unsigned size_align,
+   *psize = size;
+ }
+ 
++/* Return the number of bytes to "protect" on the stack for -fstack-check.
++
++   "protect" in the context of -fstack-check means how many bytes we
++   should always ensure are available on the stack.  More importantly
++   this is how many bytes are skipped when probing the stack.
++
++   On some targets we want to reuse the -fstack-check prologue support
++   to give a degree of protection against stack clashing style attacks.
++
++   In that scenario we do not want to skip bytes before probing as that
++   would render the stack clash protections useless.
++
++   So we never use STACK_CHECK_PROTECT directly.  Instead we indirect though
++   this helper which allows us to provide different values for
++   -fstack-check and -fstack-clash-protection.  */
++HOST_WIDE_INT
++get_stack_check_protect (void)
++{
++  if (flag_stack_clash_protection)
++    return 0;
++ return STACK_CHECK_PROTECT;
++}
++
+ /* Return an rtx representing the address of an area of memory dynamically
+    pushed on the stack.
+ 
+@@ -1429,7 +1455,7 @@ allocate_dynamic_stack_space (rtx size, unsigned size_align,
+     probe_stack_range (STACK_OLD_CHECK_PROTECT + STACK_CHECK_MAX_FRAME_SIZE,
+ 		       size);
+   else if (flag_stack_check == STATIC_BUILTIN_STACK_CHECK)
+-    probe_stack_range (STACK_CHECK_PROTECT, size);
++    probe_stack_range (get_stack_check_protect (), size);
+ 
+   /* Don't let anti_adjust_stack emit notes.  */
+   suppress_reg_args_size = true;
+@@ -1482,6 +1508,8 @@ allocate_dynamic_stack_space (rtx size, unsigned size_align,
+ 
+       if (flag_stack_check && STACK_CHECK_MOVING_SP)
+ 	anti_adjust_stack_and_probe (size, false);
++      else if (flag_stack_clash_protection)
++	anti_adjust_stack_and_probe_stack_clash (size);
+       else
+ 	anti_adjust_stack (size);
+ 
+@@ -1757,6 +1785,219 @@ probe_stack_range (HOST_WIDE_INT first, rtx size)
+   emit_insn (gen_blockage ());
+ }
+ 
++/* Compute parameters for stack clash probing a dynamic stack
++   allocation of SIZE bytes.
++
++   We compute ROUNDED_SIZE, LAST_ADDR, RESIDUAL and PROBE_INTERVAL.
++
++   Additionally we conditionally dump the type of probing that will
++   be needed given the values computed.  */
++
++void
++compute_stack_clash_protection_loop_data (rtx *rounded_size, rtx *last_addr,
++					  rtx *residual,
++					  HOST_WIDE_INT *probe_interval,
++					  rtx size)
++{
++  /* Round SIZE down to STACK_CLASH_PROTECTION_PROBE_INTERVAL */
++  *probe_interval
++    = 1 << PARAM_VALUE (PARAM_STACK_CLASH_PROTECTION_PROBE_INTERVAL);
++  *rounded_size = simplify_gen_binary (AND, Pmode, size,
++				        GEN_INT (-*probe_interval));
++
++  /* Compute the value of the stack pointer for the last iteration.
++     It's just SP + ROUNDED_SIZE.  */
++  rtx rounded_size_op = force_operand (*rounded_size, NULL_RTX);
++  *last_addr = force_operand (gen_rtx_fmt_ee (STACK_GROW_OP, Pmode,
++					      stack_pointer_rtx,
++					      rounded_size_op),
++			      NULL_RTX);
++
++  /* Compute any residuals not allocated by the loop above.  Residuals
++     are just the ROUNDED_SIZE - SIZE.  */
++  *residual = simplify_gen_binary (MINUS, Pmode, size, *rounded_size);
++
++  /* Dump key information to make writing tests easy.  */
++  if (dump_file)
++    {
++      if (*rounded_size == CONST0_RTX (Pmode))
++	fprintf (dump_file,
++		 "Stack clash skipped dynamic allocation and probing loop.\n");
++      else if (GET_CODE (*rounded_size) == CONST_INT
++	       && INTVAL (*rounded_size) <= 4 * *probe_interval)
++	fprintf (dump_file,
++		 "Stack clash dynamic allocation and probing inline.\n");
++      else if (GET_CODE (*rounded_size) == CONST_INT)
++	fprintf (dump_file,
++		 "Stack clash dynamic allocation and probing in "
++		 "rotated loop.\n");
++      else
++	fprintf (dump_file,
++		 "Stack clash dynamic allocation and probing in loop.\n");
++
++      if (*residual != CONST0_RTX (Pmode))
++	fprintf (dump_file,
++		 "Stack clash dynamic allocation and probing residuals.\n");
++      else
++	fprintf (dump_file,
++		 "Stack clash skipped dynamic allocation and "
++		 "probing residuals.\n");
++    }
++}
++
++/* Emit the start of an allocate/probe loop for stack
++   clash protection.
++
++   LOOP_LAB and END_LAB are returned for use when we emit the
++   end of the loop.
++
++   LAST addr is the value for SP which stops the loop.  */
++void
++emit_stack_clash_protection_probe_loop_start (rtx *loop_lab,
++					      rtx *end_lab,
++					      rtx last_addr,
++					      bool rotated)
++{
++  /* Essentially we want to emit any setup code, the top of loop
++     label and the comparison at the top of the loop.  */
++  *loop_lab = gen_label_rtx ();
++  *end_lab = gen_label_rtx ();
++
++  emit_label (*loop_lab);
++  if (!rotated)
++    emit_cmp_and_jump_insns (stack_pointer_rtx, last_addr, EQ, NULL_RTX,
++			     Pmode, 1, *end_lab);
++}
++
++/* Emit the end of a stack clash probing loop.
++
++   This consists of just the jump back to LOOP_LAB and
++   emitting END_LOOP after the loop.  */
++
++void
++emit_stack_clash_protection_probe_loop_end (rtx loop_lab, rtx end_loop,
++					    rtx last_addr, bool rotated)
++{
++  if (rotated)
++    emit_cmp_and_jump_insns (stack_pointer_rtx, last_addr, NE, NULL_RTX,
++			     Pmode, 1, loop_lab);
++  else
++    emit_jump (loop_lab);
++
++  emit_label (end_loop);
++
++}
++
++/* Adjust the stack pointer by minus SIZE (an rtx for a number of bytes)
++   while probing it.  This pushes when SIZE is positive.  SIZE need not
++   be constant.
++
++   This is subtly different than anti_adjust_stack_and_probe to try and
++   prevent stack-clash attacks
++
++     1. It must assume no knowledge of the probing state, any allocation
++	must probe.
++
++	Consider the case of a 1 byte alloca in a loop.  If the sum of the
++	allocations is large, then this could be used to jump the guard if
++	probes were not emitted.
++
++     2. It never skips probes, whereas anti_adjust_stack_and_probe will
++	skip probes on the first couple PROBE_INTERVALs on the assumption
++	they're done elsewhere.
++
++     3. It only allocates and probes SIZE bytes, it does not need to
++	allocate/probe beyond that because this probing style does not
++	guarantee signal handling capability if the guard is hit.  */
++
++static void
++anti_adjust_stack_and_probe_stack_clash (rtx size)
++{
++  /* First ensure SIZE is Pmode.  */
++  if (GET_MODE (size) != VOIDmode && GET_MODE (size) != Pmode)
++    size = convert_to_mode (Pmode, size, 1);
++
++  /* We can get here with a constant size on some targets.  */
++  rtx rounded_size, last_addr, residual;
++  HOST_WIDE_INT probe_interval;
++  compute_stack_clash_protection_loop_data (&rounded_size, &last_addr,
++					    &residual, &probe_interval, size);
++
++  if (rounded_size != CONST0_RTX (Pmode))
++    {
++      if (INTVAL (rounded_size) <= 4 * probe_interval)
++	{
++	  for (HOST_WIDE_INT i = 0;
++	       i < INTVAL (rounded_size);
++	       i += probe_interval)
++	    {
++	      anti_adjust_stack (GEN_INT (probe_interval));
++
++	      /* The prologue does not probe residuals.  Thus the offset
++		 here to probe just beyond what the prologue had already
++		 allocated.  */
++	      emit_stack_probe (plus_constant (Pmode, stack_pointer_rtx,
++					       (probe_interval
++						- GET_MODE_SIZE (word_mode))));
++	      emit_insn (gen_blockage ());
++	    }
++	}
++      else
++	{
++	  rtx loop_lab, end_loop;
++	  bool rotate_loop = GET_CODE (rounded_size) == CONST_INT;
++	  emit_stack_clash_protection_probe_loop_start (&loop_lab, &end_loop,
++							last_addr, rotate_loop);
++
++	  anti_adjust_stack (GEN_INT (probe_interval));
++
++	  /* The prologue does not probe residuals.  Thus the offset here
++	     to probe just beyond what the prologue had already allocated.  */
++	  emit_stack_probe (plus_constant (Pmode, stack_pointer_rtx,
++					   (probe_interval
++					    - GET_MODE_SIZE (word_mode))));
++
++	  emit_stack_clash_protection_probe_loop_end (loop_lab, end_loop,
++						      last_addr, rotate_loop);
++	  emit_insn (gen_blockage ());
++	}
++    }
++
++  if (residual != CONST0_RTX (Pmode))
++    {
++      rtx x = force_reg (Pmode, plus_constant (Pmode, residual,
++					       -GET_MODE_SIZE (word_mode)));
++      anti_adjust_stack (residual);
++      emit_stack_probe (gen_rtx_PLUS (Pmode, stack_pointer_rtx, x));
++      emit_insn (gen_blockage ());
++    }
++
++  /* Some targets make optimistic assumptions in their prologues about
++     how the caller may have probed the stack.  Make sure we honor
++     those assumptions when needed.  */
++  if (size != CONST0_RTX (Pmode)
++      && targetm.stack_clash_protection_final_dynamic_probe (residual))
++    {
++      /* Ideally we would just probe at *sp.  However, if SIZE is not
++	 a compile-time constant, but is zero at runtime, then *sp
++	 might hold live data.  So probe at *sp if we know that
++	 an allocation was made, otherwise probe into the red zone
++	 which is obviously undesirable.  */
++      if (GET_CODE (size) == CONST_INT)
++	{
++	  emit_stack_probe (stack_pointer_rtx);
++	  emit_insn (gen_blockage ());
++	}
++      else
++	{
++	  emit_stack_probe (plus_constant (Pmode, stack_pointer_rtx,
++					   -GET_MODE_SIZE (word_mode)));
++	  emit_insn (gen_blockage ());
++	}
++    }
++}
++
++
+ /* Adjust the stack pointer by minus SIZE (an rtx for a number of bytes)
+    while probing it.  This pushes when SIZE is positive.  SIZE need not
+    be constant.  If ADJUST_BACK is true, adjust back the stack pointer
+diff --git a/gcc/explow.h b/gcc/explow.h
+index 217a3226adb..b85c051e8ce 100644
+--- a/gcc/explow.h
++++ b/gcc/explow.h
+@@ -69,6 +69,15 @@ extern void anti_adjust_stack (rtx);
+ /* Add some bytes to the stack while probing it.  An rtx says how many. */
+ extern void anti_adjust_stack_and_probe (rtx, bool);
+ 
++/* Support for building allocation/probing loops for stack-clash
++   protection of dyamically allocated stack space.  */
++extern void compute_stack_clash_protection_loop_data (rtx *, rtx *, rtx *,
++						      HOST_WIDE_INT *, rtx);
++extern void emit_stack_clash_protection_probe_loop_start (rtx *, rtx *,
++							  rtx, bool);
++extern void emit_stack_clash_protection_probe_loop_end (rtx, rtx,
++							rtx, bool);
++
+ /* This enum is used for the following two functions.  */
+ enum save_level {SAVE_BLOCK, SAVE_FUNCTION, SAVE_NONLOCAL};
+ 
+diff --git a/gcc/rtl.h b/gcc/rtl.h
+index 93330425c00..98f993a95a5 100644
+--- a/gcc/rtl.h
++++ b/gcc/rtl.h
+@@ -2707,6 +2707,7 @@ get_full_set_src_cost (rtx x, machine_mode mode, struct full_rtx_costs *c)
+ /* In explow.c */
+ extern HOST_WIDE_INT trunc_int_for_mode	(HOST_WIDE_INT, machine_mode);
+ extern rtx plus_constant (machine_mode, rtx, HOST_WIDE_INT, bool = false);
++extern HOST_WIDE_INT get_stack_check_protect (void);
+ 
+ /* In rtl.c */
+ extern rtx rtx_alloc_stat (RTX_CODE MEM_STAT_DECL);
+diff --git a/gcc/target.def b/gcc/target.def
+index 6bebfd5b9d6..8b8ad1f4938 100644
+--- a/gcc/target.def
++++ b/gcc/target.def
+@@ -5473,6 +5473,13 @@ these registers when the target switches are opposed to them.)",
+  void, (void),
+  hook_void_void)
+ 
++DEFHOOK
++(stack_clash_protection_final_dynamic_probe,
++ "Some targets make optimistic assumptions about the state of stack probing when they emit their prologues.  On such targets a probe into the end of any dynamically allocated space is likely required for safety against stack clash style attacks.  Define this variable to return nonzero if such a probe is required or zero otherwise.  You need not define this macro if it would always have the value zero.",
++ bool, (rtx residual),
++ default_stack_clash_protection_final_dynamic_probe)
++
++
+ /* Functions specific to the C family of frontends.  */
+ #undef HOOK_PREFIX
+ #define HOOK_PREFIX "TARGET_C_"
+diff --git a/gcc/targhooks.c b/gcc/targhooks.c
+index 1cdec068ed8..225048e7518 100644
+--- a/gcc/targhooks.c
++++ b/gcc/targhooks.c
+@@ -2107,4 +2107,10 @@ default_excess_precision (enum excess_precision_type ATTRIBUTE_UNUSED)
+   return FLT_EVAL_METHOD_PROMOTE_TO_FLOAT;
+ }
+ 
++HOST_WIDE_INT
++default_stack_clash_protection_final_dynamic_probe (rtx residual ATTRIBUTE_UNUSED)
++{
++  return 0;
++}
++
+ #include "gt-targhooks.h"
+diff --git a/gcc/targhooks.h b/gcc/targhooks.h
+index 18070df7839..32ae9d88050 100644
+--- a/gcc/targhooks.h
++++ b/gcc/targhooks.h
+@@ -263,5 +263,6 @@ extern unsigned int default_min_arithmetic_precision (void);
+ 
+ extern enum flt_eval_method
+ default_excess_precision (enum excess_precision_type ATTRIBUTE_UNUSED);
++extern bool default_stack_clash_protection_final_dynamic_probe (rtx);
+ 
+ #endif /* GCC_TARGHOOKS_H */
+diff --git a/gcc/testsuite/gcc.dg/stack-check-3.c b/gcc/testsuite/gcc.dg/stack-check-3.c
+new file mode 100644
+index 00000000000..58fb65649ee
+--- /dev/null
++++ b/gcc/testsuite/gcc.dg/stack-check-3.c
+@@ -0,0 +1,86 @@
++/* The goal here is to ensure that dynamic allocations via vlas or
++   alloca calls receive probing.
++
++   Scanning the RTL or assembly code seems like insanity here as does
++   checking for particular allocation sizes and probe offsets.  For
++   now we just verify that there's an allocation + probe loop and
++   residual allocation + probe for f?.  */
++
++/* { dg-do compile } */
++/* { dg-options "-O2 -fstack-clash-protection -fdump-rtl-expand -fno-optimize-sibling-calls --param stack-clash-protection-probe-interval=4096 --param stack-clash-protection-guard-size=4096" } */
++/* { dg-require-effective-target supports_stack_clash_protection } */
++
++__attribute__((noinline, noclone)) void
++foo (char *p)
++{
++  asm volatile ("" : : "r" (p) : "memory");
++}
++
++/* Simple VLA, no other locals. */
++__attribute__((noinline, noclone)) void
++f0 (int x)
++{
++  char vla[x];
++  foo (vla);
++}
++
++/* Simple VLA, small local frame.  */
++__attribute__((noinline, noclone)) void
++f1 (int x)
++{
++  char locals[128];
++  char vla[x];
++  foo (vla);
++}
++
++/* Small constant alloca, no other locals. */
++__attribute__((noinline, noclone)) void
++f2 (int x)
++{
++  char *vla = __builtin_alloca (128);
++  foo (vla);
++}
++
++/* Big constant alloca, small local frame.  */
++__attribute__((noinline, noclone)) void
++f3 (int x)
++{
++  char locals[128];
++  char *vla = __builtin_alloca (16384);
++  foo (vla);
++}
++
++/* Big constant alloca, small local frame.  */
++__attribute__((noinline, noclone)) void
++f3a (int x)
++{
++  char locals[128];
++  char *vla = __builtin_alloca (32768);
++  foo (vla);
++}
++
++/* Nonconstant alloca, no other locals. */
++__attribute__((noinline, noclone)) void
++f4 (int x)
++{
++  char *vla = __builtin_alloca (x);
++  foo (vla);
++}
++
++/* Nonconstant alloca, small local frame.  */
++__attribute__((noinline, noclone)) void
++f5 (int x)
++{
++  char locals[128];
++  char *vla = __builtin_alloca (x);
++  foo (vla);
++}
++
++/* { dg-final { scan-rtl-dump-times "allocation and probing residuals" 7 "expand" } } */
++
++
++/* { dg-final { scan-rtl-dump-times "allocation and probing in loop" 7 "expand" { target callee_realigns_stack } } } */
++/* { dg-final { scan-rtl-dump-times "allocation and probing in loop" 4 "expand" { target { ! callee_realigns_stack } } } } */
++/* { dg-final { scan-rtl-dump-times "allocation and probing in rotated loop" 1 "expand" { target { ! callee_realigns_stack } } } } */
++/* { dg-final { scan-rtl-dump-times "allocation and probing inline" 1 "expand" { target { ! callee_realigns_stack } } } } */
++/* { dg-final { scan-rtl-dump-times "skipped dynamic allocation and probing loop" 1 "expand" { target { ! callee_realigns_stack } } } } */

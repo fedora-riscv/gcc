@@ -1,0 +1,92 @@
+commit 7f0d332f992c3b51c8aff3ed79e2233ed2498863
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Wed Sep 20 05:23:51 2017 +0000
+
+            * function.c (dump_stack_clash_frame_info): New function.
+            * function.h (dump_stack_clash_frame_info): Prototype.
+            (enum stack_clash_probes): New enum.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@252997 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/function.c b/gcc/function.c
+index 21eb586a8f7..6d0f462a262 100644
+--- a/gcc/function.c
++++ b/gcc/function.c
+@@ -5695,6 +5695,58 @@ get_arg_pointer_save_area (void)
+   return ret;
+ }
+ 
++
++/* If debugging dumps are requested, dump information about how the
++   target handled -fstack-check=clash for the prologue.
++
++   PROBES describes what if any probes were emitted.
++
++   RESIDUALS indicates if the prologue had any residual allocation
++   (i.e. total allocation was not a multiple of PROBE_INTERVAL).  */
++
++void
++dump_stack_clash_frame_info (enum stack_clash_probes probes, bool residuals)
++{
++  if (!dump_file)
++    return;
++
++  switch (probes)
++    {
++    case NO_PROBE_NO_FRAME:
++      fprintf (dump_file,
++	       "Stack clash no probe no stack adjustment in prologue.\n");
++      break;
++    case NO_PROBE_SMALL_FRAME:
++      fprintf (dump_file,
++	       "Stack clash no probe small stack adjustment in prologue.\n");
++      break;
++    case PROBE_INLINE:
++      fprintf (dump_file, "Stack clash inline probes in prologue.\n");
++      break;
++    case PROBE_LOOP:
++      fprintf (dump_file, "Stack clash probe loop in prologue.\n");
++      break;
++    }
++
++  if (residuals)
++    fprintf (dump_file, "Stack clash residual allocation in prologue.\n");
++  else
++    fprintf (dump_file, "Stack clash no residual allocation in prologue.\n");
++
++  if (frame_pointer_needed)
++    fprintf (dump_file, "Stack clash frame pointer needed.\n");
++  else
++    fprintf (dump_file, "Stack clash no frame pointer needed.\n");
++
++  if (TREE_THIS_VOLATILE (cfun->decl))
++    fprintf (dump_file,
++	     "Stack clash noreturn prologue, assuming no implicit"
++	     " probes in caller.\n");
++  else
++    fprintf (dump_file,
++	     "Stack clash not noreturn prologue.\n");
++}
++
+ /* Add a list of INSNS to the hash HASHP, possibly allocating HASHP
+    for the first time.  */
+ 
+diff --git a/gcc/function.h b/gcc/function.h
+index 0f34bcd6123..87dac803622 100644
+--- a/gcc/function.h
++++ b/gcc/function.h
+@@ -553,6 +553,14 @@ do {								\
+   ((TARGET_PTRMEMFUNC_VBIT_LOCATION == ptrmemfunc_vbit_in_pfn)	     \
+    ? MAX (FUNCTION_BOUNDARY, 2 * BITS_PER_UNIT) : FUNCTION_BOUNDARY)
+ 
++enum stack_clash_probes {
++  NO_PROBE_NO_FRAME,
++  NO_PROBE_SMALL_FRAME,
++  PROBE_INLINE,
++  PROBE_LOOP
++};
++
++extern void dump_stack_clash_frame_info (enum stack_clash_probes, bool);
+ 
+ 
+ extern void push_function_context (void);

@@ -1,0 +1,340 @@
+commit cc3586c7f4704acbbd3f2f99de5b82bcc8f6fe36
+Author: law <law@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date:   Wed Sep 20 04:56:54 2017 +0000
+
+            * common.opt (-fstack-clash-protection): New option.
+            * flag-types.h (enum stack_check_type): Note difference between
+            -fstack-check= and -fstack-clash-protection.
+            * params.def (PARAM_STACK_CLASH_PROTECTION_GUARD_SIZE): New PARAM.
+            (PARAM_STACK_CLASH_PROTECTION_PROBE_INTERVAL): Likewise.
+            * toplev.c (process_options): Issue warnings/errors for cases
+            not handled with -fstack-clash-protection.
+            * doc/invoke.texi (-fstack-clash-protection): Document new option.
+            (-fstack-check): Note additional problem with -fstack-check=generic.
+            Note that -fstack-check is primarily for Ada and refer users
+            to -fstack-clash-protection for stack-clash-protection.
+            Document new params for stack clash protection.
+    
+            * gcc.dg/stack-check-2.c: New test.
+            * lib/target-supports.exp
+            (check_effective_target_supports_stack_clash_protection): New function.
+            (check_effective_target_frame_pointer_for_non_leaf): Likewise.
+            (check_effective_target_caller_implicit_probes): Likewise.
+    
+    git-svn-id: svn+ssh://gcc.gnu.org/svn/gcc/trunk@252994 138bc75d-0d04-0410-961f-82ee72b054a4
+
+diff --git a/gcc/common.opt b/gcc/common.opt
+index 592bbd15309..bcaea91c130 100644
+--- a/gcc/common.opt
++++ b/gcc/common.opt
+@@ -2291,13 +2291,18 @@ Common Report Var(flag_variable_expansion_in_unroller) Optimization
+ Apply variable expansion when loops are unrolled.
+ 
+ fstack-check=
+-Common Report RejectNegative Joined
++Common Report RejectNegative Joined Optimization
+ -fstack-check=[no|generic|specific]	Insert stack checking code into the program.
+ 
+ fstack-check
+ Common Alias(fstack-check=, specific, no)
+ Insert stack checking code into the program.  Same as -fstack-check=specific.
+ 
++fstack-clash-protection
++Common Report Var(flag_stack_clash_protection) Optimization
++Insert code to probe each page of stack space as it is allocated to protect
++from stack-clash style attacks.
++
+ fstack-limit
+ Common Var(common_deferred_options) Defer
+ 
+diff --git a/gcc/doc/invoke.texi b/gcc/doc/invoke.texi
+index a0fb09eb9e1..f77035571a1 100644
+--- a/gcc/doc/invoke.texi
++++ b/gcc/doc/invoke.texi
+@@ -10026,6 +10026,21 @@ compilation without.  The value for compilation with profile feedback
+ needs to be more conservative (higher) in order to make tracer
+ effective.
+ 
++@item stack-clash-protection-guard-size
++Specify the size of the operating system provided stack guard as
++2 raised to @var{num} bytes.  The default value is 12 (4096 bytes).
++Acceptable values are between 12 and 30.  Higher values may reduce the
++number of explicit probes, but a value larger than the operating system
++provided guard will leave code vulnerable to stack clash style attacks.
++
++@item stack-clash-protection-probe-interval
++Stack clash protection involves probing stack space as it is allocated.  This
++param controls the maximum distance between probes into the stack as 2 raised
++to @var{num} bytes.  Acceptable values are between 10 and 16 and defaults to
++12.  Higher values may reduce the number of explicit probes, but a value
++larger than the operating system provided guard will leave code vulnerable to
++stack clash style attacks.
++
+ @item max-cse-path-length
+ 
+ The maximum number of basic blocks on path that CSE considers.
+@@ -11218,7 +11233,8 @@ target support in the compiler but comes with the following drawbacks:
+ @enumerate
+ @item
+ Modified allocation strategy for large objects: they are always
+-allocated dynamically if their size exceeds a fixed threshold.
++allocated dynamically if their size exceeds a fixed threshold.  Note this
++may change the semantics of some code.
+ 
+ @item
+ Fixed limit on the size of the static frame of functions: when it is
+@@ -11233,6 +11249,25 @@ generic implementation, code performance is hampered.
+ Note that old-style stack checking is also the fallback method for
+ @samp{specific} if no target support has been added in the compiler.
+ 
++@samp{-fstack-check=} is designed for Ada's needs to detect infinite recursion
++and stack overflows.  @samp{specific} is an excellent choice when compiling
++Ada code.  It is not generally sufficient to protect against stack-clash
++attacks.  To protect against those you want @samp{-fstack-clash-protection}.
++
++@item -fstack-clash-protection
++@opindex fstack-clash-protection
++Generate code to prevent stack clash style attacks.  When this option is
++enabled, the compiler will only allocate one page of stack space at a time
++and each page is accessed immediately after allocation.  Thus, it prevents
++allocations from jumping over any stack guard page provided by the
++operating system.
++
++Most targets do not fully support stack clash protection.  However, on
++those targets @option{-fstack-clash-protection} will protect dynamic stack
++allocations.  @option{-fstack-clash-protection} may also provide limited
++protection for static stack allocations if the target supports
++@option{-fstack-check=specific}.
++
+ @item -fstack-limit-register=@var{reg}
+ @itemx -fstack-limit-symbol=@var{sym}
+ @itemx -fno-stack-limit
+diff --git a/gcc/flag-types.h b/gcc/flag-types.h
+index 27a38efdc8e..4e5a4e58119 100644
+--- a/gcc/flag-types.h
++++ b/gcc/flag-types.h
+@@ -166,7 +166,14 @@ enum permitted_flt_eval_methods
+   PERMITTED_FLT_EVAL_METHODS_C11
+ };
+ 
+-/* Type of stack check.  */
++/* Type of stack check.
++
++   Stack checking is designed to detect infinite recursion and stack
++   overflows for Ada programs.  Furthermore stack checking tries to ensure
++   in that scenario that enough stack space is left to run a signal handler.
++
++   -fstack-check= does not prevent stack-clash style attacks.  For that
++   you want -fstack-clash-protection.  */
+ enum stack_check_type
+ {
+   /* Do not check the stack.  */
+diff --git a/gcc/params.def b/gcc/params.def
+index 6b07518a34b..ce66e393eb1 100644
+--- a/gcc/params.def
++++ b/gcc/params.def
+@@ -213,6 +213,16 @@ DEFPARAM(PARAM_STACK_FRAME_GROWTH,
+ 	 "Maximal stack frame growth due to inlining (in percent).",
+ 	 1000, 0, 0)
+ 
++DEFPARAM(PARAM_STACK_CLASH_PROTECTION_GUARD_SIZE,
++	 "stack-clash-protection-guard-size",
++	 "Size of the stack guard expressed as a power of two.",
++	 12, 12, 30)
++
++DEFPARAM(PARAM_STACK_CLASH_PROTECTION_PROBE_INTERVAL,
++	 "stack-clash-protection-probe-interval",
++	 "Interval in which to probe the stack expressed as a power of two.",
++	 12, 10, 16)
++
+ /* The GCSE optimization will be disabled if it would require
+    significantly more memory than this value.  */
+ DEFPARAM(PARAM_MAX_GCSE_MEMORY,
+diff --git a/gcc/testsuite/gcc.dg/stack-check-2.c b/gcc/testsuite/gcc.dg/stack-check-2.c
+new file mode 100644
+index 00000000000..196c4bbfbdd
+--- /dev/null
++++ b/gcc/testsuite/gcc.dg/stack-check-2.c
+@@ -0,0 +1,66 @@
++/* The goal here is to ensure that we never consider a call to a noreturn
++   function as a potential tail call.
++
++   Right now GCC discovers potential tail calls by looking at the
++   predecessors of the exit block.  A call to a non-return function
++   has no successors and thus can never match that first filter.
++
++   But that could change one day and we want to catch it.  The problem
++   is the compiler could potentially optimize a tail call to a nonreturn
++   function, even if the caller has a frame.  That breaks the assumption
++   that calls probe *sp when saving the return address that some targets
++   depend on to elide stack probes.  */
++
++/* { dg-do compile } */
++/* { dg-options "-O2 -fstack-clash-protection -fdump-tree-tailc -fdump-tree-optimized" } */
++/* { dg-require-effective-target supports_stack_clash_protection } */
++
++extern void foo (void) __attribute__ ((__noreturn__));
++
++
++void
++test_direct_1 (void)
++{
++  foo ();
++}
++
++void
++test_direct_2 (void)
++{
++  return foo ();
++}
++
++void (*indirect)(void)__attribute__ ((noreturn));
++
++
++void
++test_indirect_1 ()
++{
++  (*indirect)();
++}
++
++void
++test_indirect_2 (void)
++{
++  return (*indirect)();;
++}
++
++
++typedef void (*pvfn)() __attribute__ ((noreturn));
++
++void (*indirect_casted)(void);
++
++void
++test_indirect_casted_1 ()
++{
++  (*(pvfn)indirect_casted)();
++}
++
++void
++test_indirect_casted_2 (void)
++{
++  return (*(pvfn)indirect_casted)();
++}
++/* { dg-final { scan-tree-dump-not "tail call" "tailc" } } */
++/* { dg-final { scan-tree-dump-not "tail call" "optimized" } } */
++
+diff --git a/gcc/testsuite/lib/target-supports.exp b/gcc/testsuite/lib/target-supports.exp
+index 57caec74836..1000f15358b 100644
+--- a/gcc/testsuite/lib/target-supports.exp
++++ b/gcc/testsuite/lib/target-supports.exp
+@@ -8371,3 +8371,80 @@ proc check_effective_target_arm_coproc4_ok { } {
+     return [check_cached_effective_target arm_coproc4_ok \
+ 		check_effective_target_arm_coproc4_ok_nocache]
+ }
++
++# Return 1 if the target has support for stack probing designed
++# to avoid stack-clash style attacks.
++#
++# This is used to restrict the stack-clash mitigation tests to
++# just those targets that have been explicitly supported.
++# 
++# In addition to the prologue work on those targets, each target's
++# properties should be described in the functions below so that
++# tests do not become a mess of unreadable target conditions.
++# 
++proc check_effective_target_supports_stack_clash_protection { } {
++
++   # Temporary until the target bits are fully ACK'd.
++#  if { [istarget aarch*-*-*] || [istarget x86_64-*-*]
++#       || [istarget i?86-*-*] || [istarget s390*-*-*]
++#       || [istarget powerpc*-*-*] || [istarget rs6000*-*-*] } {
++#	return 1
++#  }
++  return 0
++}
++
++# Return 1 if the target creates a frame pointer for non-leaf functions
++# Note we ignore cases where we apply tail call optimization here.
++proc check_effective_target_frame_pointer_for_non_leaf { } {
++  if { [istarget aarch*-*-*] } {
++	return 1
++  }
++  return 0
++}
++
++# Return 1 if the target's calling sequence or its ABI
++# create implicit stack probes at or prior to function entry.
++proc check_effective_target_caller_implicit_probes { } {
++
++  # On x86/x86_64 the call instruction itself pushes the return
++  # address onto the stack.  That is an implicit probe of *sp.
++  if { [istarget x86_64-*-*] || [istarget i?86-*-*] } {
++	return 1
++  }
++
++  # On PPC, the ABI mandates that the address of the outer
++  # frame be stored at *sp.  Thus each allocation of stack
++  # space is itself an implicit probe of *sp.
++  if { [istarget powerpc*-*-*] || [istarget rs6000*-*-*] } {
++	return 1
++  }
++
++  # s390's ABI has a register save area allocated by the
++  # caller for use by the callee.  The mere existence does
++  # not constitute a probe by the caller, but when the slots
++  # used by the callee those stores are implicit probes.
++  if { [istarget s390*-*-*] } {
++	return 1
++  }
++
++  # Not strictly true on aarch64, but we have agreed that we will
++  # consider any function that pushes SP more than 3kbytes into
++  # the guard page as broken.  This essentially means that we can
++  # consider the aarch64 as having a caller implicit probe at
++  # *(sp + 1k).
++  if { [istarget aarch64*-*-*] } {
++	return 1;
++  }
++
++  return 0
++}
++
++# Targets that potentially realign the stack pointer often cause residual
++# stack allocations and make it difficult to elimination loops or residual
++# allocations for dynamic stack allocations
++proc check_effective_target_callee_realigns_stack { } {
++  if { [istarget x86_64-*-*] || [istarget i?86-*-*] } {
++	return 1
++  }
++  return 0
++}
+diff --git a/gcc/toplev.c b/gcc/toplev.c
+index e7a5d487313..a7da7964fbb 100644
+--- a/gcc/toplev.c
++++ b/gcc/toplev.c
+@@ -1574,6 +1574,26 @@ process_options (void)
+       flag_associative_math = 0;
+     }
+ 
++  /* -fstack-clash-protection is not currently supported on targets
++     where the stack grows up.  */
++  if (flag_stack_clash_protection && !STACK_GROWS_DOWNWARD)
++    {
++      warning_at (UNKNOWN_LOCATION, 0,
++		  "%<-fstack-clash-protection%> is not supported on targets "
++		  "where the stack grows from lower to higher addresses");
++      flag_stack_clash_protection = 0;
++    }
++
++  /* We can not support -fstack-check= and -fstack-clash-protection at
++     the same time.  */
++  if (flag_stack_check != NO_STACK_CHECK && flag_stack_clash_protection)
++    {
++      warning_at (UNKNOWN_LOCATION, 0,
++		  "%<-fstack-check=%> and %<-fstack-clash_protection%> are "
++		  "mutually exclusive.  Disabling %<-fstack-check=%>");
++      flag_stack_check = NO_STACK_CHECK;
++    }
++
+   /* With -fcx-limited-range, we do cheap and quick complex arithmetic.  */
+   if (flag_cx_limited_range)
+     flag_complex_method = 0;
