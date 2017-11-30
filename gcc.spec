@@ -11,6 +11,10 @@
 %global _performance_build 1
 # Hardening slows the compiler way too much.
 %undefine _hardened_build
+%if 0%{?fedora} > 27
+# Until annobin is fixed (#1519165).
+%undefine _annotated_build
+%endif
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64
 %global build_ada 1
@@ -237,6 +241,7 @@ Patch13: gcc7-pr81325.patch
 Patch14: gcc7-pr82112-1.patch
 Patch15: gcc7-pr82112-2.patch
 Patch16: gcc7-pr81929.patch
+Patch17: gcc7-aarch64-sanitizer-fix.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -849,6 +854,9 @@ package or when debugging this package.
 %patch14 -p0 -b .pr82112-1~
 %patch15 -p0 -b .pr82112-2~
 %patch16 -p0 -b .pr81929~
+%if 0%{?fedora} > 27
+%patch17 -p0 -b .aarch64-sanitizer-fix~
+%endif
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
