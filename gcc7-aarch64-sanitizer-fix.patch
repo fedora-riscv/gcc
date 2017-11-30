@@ -1,7 +1,5 @@
-diff --git a/libsanitizer/sanitizer_common/sanitizer_linux.cc b/libsanitizer/sanitizer_common/sanitizer_linux.cc
-index 5b6f18602e7..b5e96a1a0e4 100644
---- a/libsanitizer/sanitizer_common/sanitizer_linux.cc
-+++ b/libsanitizer/sanitizer_common/sanitizer_linux.cc
+--- libsanitizer/sanitizer_common/sanitizer_linux.cc
++++ libsanitizer/sanitizer_common/sanitizer_linux.cc
 @@ -1262,7 +1262,7 @@ struct __sanitizer_esr_context {
  
  static bool Aarch64GetESR(ucontext_t *ucontext, u64 *esr) {
