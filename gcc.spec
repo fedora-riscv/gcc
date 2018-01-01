@@ -235,12 +235,8 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-pr81314.patch
-Patch13: gcc7-pr81325.patch
-Patch14: gcc7-pr82112-1.patch
-Patch15: gcc7-pr82112-2.patch
-Patch16: gcc7-pr81929.patch
-Patch17: gcc7-aarch64-sanitizer-fix.patch
+Patch12: gcc7-pr83556.patch
+Patch13: gcc7-aarch64-sanitizer-fix.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -847,13 +843,9 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .pr81314~
-%patch13 -p0 -b .pr81325~
-%patch14 -p0 -b .pr82112-1~
-%patch15 -p0 -b .pr82112-2~
-%patch16 -p0 -b .pr81929~
+%patch12 -p0 -b .pr83556~
 %if 0%{?fedora} > 27
-%patch17 -p0 -b .aarch64-sanitizer-fix~
+%patch13 -p0 -b .aarch64-sanitizer-fix~
 %endif
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
@@ -3344,6 +3336,7 @@ fi
   - fix sccvn ICE (#1506809, PR tree-optimization/82264)
   - fix ICE in dwarf2out force_type_die (#1516576, #1516577, PR debug/82155)
   - fix power6 ICE in store_data_bypass_p (#1522675, PR target/80101)
+- fix replace_placeholders (PR c++/83556)
 
 * Wed Nov 29 2017 Jeff Law  <law@redhat.com> 7.2.1-4
 - Fix problem with large outgoing args and -fstack-clash-protection
