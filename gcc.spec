@@ -1,10 +1,10 @@
-%global DATE 20170915
-%global SVNREV 252800
+%global DATE 20180101
+%global SVNREV 256064
 %global gcc_version 7.2.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -95,7 +95,7 @@
 %ifarch x86_64
 %global multilib_32_arch i686
 %endif
-Summary: Various compilers (C, C++, Objective-C, Java, ...)
+Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
 Release: %{gcc_release}%{?dist}
@@ -105,7 +105,7 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-6-branch@%{SVNREV} gcc-%{version}-%{DATE}
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-7-branch@%{SVNREV} gcc-%{version}-%{DATE}
 # tar cf - gcc-%{version}-%{DATE} | bzip2 -9 > gcc-%{version}-%{DATE}.tar.bz2
 Source0: gcc-%{version}-%{DATE}.tar.bz2
 # The source for nvptx-tools package was pulled from upstream's vcs.  Use the
@@ -3290,6 +3290,61 @@ fi
 %endif
 
 %changelog
+* Mon Jan  1 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-5
+- update from the 7 branch
+  - PRs ada/82393, bootstrap/83439, c++/70029, c++/79650, c++/80259,
+	c++/80767, c++/80935, c++/81197, c++/81212, c++/81236, c++/81525,
+	c++/81671, c++/81675, c++/81702, c++/81888, c++/82030, c++/82085,
+	c++/82159, c++/82299, c++/82373, c++/82406, c++/82560, c++/82781,
+	c++/83059, c++/83116, c++/83205, c++/83217, c++/83553, c/81875,
+	c/82234, c/82340, c/83448, debug/83084, driver/81829, fortran/52832,
+	fortran/67543, fortran/69739, fortran/78152, fortran/78512,
+	fortran/78619, fortran/78641, fortran/78686, fortran/79072,
+	fortran/79795, fortran/80118, fortran/80120, fortran/80554,
+	fortran/80850, fortran/81048, fortran/81304, fortran/81735,
+	fortran/81758, fortran/81841, fortran/81903, fortran/82121,
+	fortran/82312, fortran/82796, fortran/82934, fortran/83021,
+	fortran/83191, fortran/83436, fortran/83548, gcov-profile/82457,
+	gcov-profile/82633, go/80914, ipa/82801, ipa/82808, ipa/83346,
+	libfortran/82233, libgcc/82635, libgfortran/78387, libgfortran/78549,
+	libgfortran/81937, libgfortran/81938, libgfortran/83168,
+	libgfortran/83191, libgfortran/83225, libgfortran/83613,
+	libstdc++/59568, libstdc++/79433, libstdc++/81395, libstdc++/82254,
+	libstdc++/82262, libstdc++/82481, libstdc++/82522, libstdc++/82685,
+	libstdc++/83134, libstdc++/83226, libstdc++/83395, libstdc++/83427,
+	lto/82027, middle-end/60580, middle-end/80295, middle-end/82128,
+	middle-end/82253, middle-end/82556, middle-end/82765,
+	middle-end/83471, middle-end/83608, middle-end/83609,
+	middle-end/83623, rtl-optimization/64682, rtl-optimization/69567,
+	rtl-optimization/69737, rtl-optimization/80747,
+	rtl-optimization/81553, rtl-optimization/81803,
+	rtl-optimization/82044, rtl-optimization/82192,
+	rtl-optimization/82602, rtl-optimization/82621,
+	rtl-optimization/82683, rtl-optimization/83512, sanitizer/81715,
+	sanitizer/82379, sanitizer/82545, sanitizer/82595, sanitizer/82792,
+	sanitizer/82869, sanitizer/83014, target/39570, target/66488,
+	target/71727, target/71951, target/77480, target/77687, target/78643,
+	target/80583, target/80600, target/80819, target/81288, target/81906,
+	target/81959, target/81996, target/82274, target/82445, target/82524,
+	target/82703, target/82717, target/82772, target/82880, target/82941,
+	target/82942, target/82990, target/83111, target/83387, target/83467,
+	tree-optimization/80631, tree-optimization/81790,
+	tree-optimization/82042, tree-optimization/82060,
+	tree-optimization/82084, tree-optimization/82102,
+	tree-optimization/82108, tree-optimization/82244,
+	tree-optimization/82276, tree-optimization/82285,
+	tree-optimization/82291, tree-optimization/82337,
+	tree-optimization/82402, tree-optimization/82436,
+	tree-optimization/82549, tree-optimization/82603,
+	tree-optimization/82697, tree-optimization/82726,
+	tree-optimization/82902, tree-optimization/82985,
+	tree-optimization/83198, tree-optimization/83269,
+	tree-optimization/83521, tree-optimization/83523
+  - fix debuginfo for forward declared C structs (#1500862, PR debug/83550)
+  - fix sccvn ICE (#1506809, PR tree-optimization/82264)
+  - fix ICE in dwarf2out force_type_die (#1516576, #1516577, PR debug/82155)
+  - fix power6 ICE in store_data_bypass_p (#1522675, PR target/80101)
+
 * Wed Nov 29 2017 Jeff Law  <law@redhat.com> 7.2.1-4
 - Fix problem with large outgoing args and -fstack-clash-protection
   on aarch64 (#1518823)
