@@ -225,7 +225,6 @@ Provides: bundled(libiberty)
 Provides: gcc(major) = %{gcc_major}
 
 Patch0: gcc7-hack.patch
-Patch1: gcc7-ppc32-retaddr.patch
 Patch2: gcc7-i386-libgomp.patch
 Patch3: gcc7-sparc-config-detection.patch
 Patch4: gcc7-libgomp-omp_h-multilib.patch
@@ -834,7 +833,6 @@ package or when debugging this package.
 %prep
 %setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %patch0 -p0 -b .hack~
-%patch1 -p0 -b .ppc32-retaddr~
 %patch2 -p0 -b .i386-libgomp~
 %patch3 -p0 -b .sparc-config-detection~
 %patch4 -p0 -b .libgomp-omp_h-multilib~
