@@ -4,10 +4,8 @@ Date:   Wed Nov 22 12:01:56 2017 -0700
 
     aarch64 support
 
-diff --git a/gcc/config/aarch64/aarch64.c b/gcc/config/aarch64/aarch64.c
-index 75c12f1de65..31fa4148c3f 100644
---- a/gcc/config/aarch64/aarch64.c
-+++ b/gcc/config/aarch64/aarch64.c
+--- gcc/config/aarch64/aarch64.c
++++ gcc/config/aarch64/aarch64.c
 @@ -2747,7 +2747,14 @@ aarch64_output_probe_stack_range (rtx reg1, rtx reg2)
    output_asm_insn ("sub\t%0, %0, %1", xops);
  
@@ -319,10 +317,8 @@ index 75c12f1de65..31fa4148c3f 100644
  #if CHECKING_P
  #undef TARGET_RUN_TARGET_SELFTESTS
  #define TARGET_RUN_TARGET_SELFTESTS selftest::aarch64_run_selftests
-diff --git a/gcc/config/aarch64/aarch64.md b/gcc/config/aarch64/aarch64.md
-index 51368e29f2d..09b353d7470 100644
---- a/gcc/config/aarch64/aarch64.md
-+++ b/gcc/config/aarch64/aarch64.md
+--- gcc/config/aarch64/aarch64.md
++++ gcc/config/aarch64/aarch64.md
 @@ -5413,7 +5413,7 @@
  )
  
@@ -332,11 +328,8 @@ index 51368e29f2d..09b353d7470 100644
  	(unspec_volatile:DI [(match_operand:DI 1 "register_operand" "0")
  			     (match_operand:DI 2 "register_operand" "r")]
  			      UNSPECV_PROBE_STACK_RANGE))]
-diff --git a/gcc/testsuite/gcc.dg/stack-check-16.c b/gcc/testsuite/gcc.dg/stack-check-16.c
-new file mode 100644
-index 00000000000..0b9728532e8
---- /dev/null
-+++ b/gcc/testsuite/gcc.dg/stack-check-16.c
+--- gcc/testsuite/gcc.dg/stack-check-16.c
++++ gcc/testsuite/gcc.dg/stack-check-16.c
 @@ -0,0 +1,2017 @@
 +/* { dg-do compile } */
 +/* { dg-options "-fstack-clash-protection -w" } */
@@ -2355,11 +2348,8 @@ index 00000000000..0b9728532e8
 +"\n");
 +  return 0;
 +}
-diff --git a/gcc/testsuite/gcc.target/aarch64/stack-check-12.c b/gcc/testsuite/gcc.target/aarch64/stack-check-12.c
-new file mode 100644
-index 00000000000..2ce38483b6b
---- /dev/null
-+++ b/gcc/testsuite/gcc.target/aarch64/stack-check-12.c
+--- gcc/testsuite/gcc.target/aarch64/stack-check-12.c
++++ gcc/testsuite/gcc.target/aarch64/stack-check-12.c
 @@ -0,0 +1,20 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O2 -fstack-clash-protection --param stack-clash-protection-guard-size=12" } */
@@ -2381,11 +2371,8 @@ index 00000000000..2ce38483b6b
 +
 +
 +
-diff --git a/gcc/testsuite/gcc.target/aarch64/stack-check-13.c b/gcc/testsuite/gcc.target/aarch64/stack-check-13.c
-new file mode 100644
-index 00000000000..d8886835989
---- /dev/null
-+++ b/gcc/testsuite/gcc.target/aarch64/stack-check-13.c
+--- gcc/testsuite/gcc.target/aarch64/stack-check-13.c
++++ gcc/testsuite/gcc.target/aarch64/stack-check-13.c
 @@ -0,0 +1,28 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O2 -fstack-clash-protection --param stack-clash-protection-guard-size=12" } */
@@ -2415,11 +2402,8 @@ index 00000000000..d8886835989
 +
 +
 +
-diff --git a/gcc/testsuite/gcc.target/aarch64/stack-check-14.c b/gcc/testsuite/gcc.target/aarch64/stack-check-14.c
-new file mode 100644
-index 00000000000..59ffe01376d
---- /dev/null
-+++ b/gcc/testsuite/gcc.target/aarch64/stack-check-14.c
+--- gcc/testsuite/gcc.target/aarch64/stack-check-14.c
++++ gcc/testsuite/gcc.target/aarch64/stack-check-14.c
 @@ -0,0 +1,25 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O2 -fstack-clash-protection --param stack-clash-protection-guard-size=12" } */
@@ -2446,11 +2430,8 @@ index 00000000000..59ffe01376d
 +
 +
 +
-diff --git a/gcc/testsuite/gcc.target/aarch64/stack-check-15.c b/gcc/testsuite/gcc.target/aarch64/stack-check-15.c
-new file mode 100644
-index 00000000000..e06db6dc2f0
---- /dev/null
-+++ b/gcc/testsuite/gcc.target/aarch64/stack-check-15.c
+--- gcc/testsuite/gcc.target/aarch64/stack-check-15.c
++++ gcc/testsuite/gcc.target/aarch64/stack-check-15.c
 @@ -0,0 +1,24 @@
 +/* { dg-do compile } */
 +/* { dg-options "-O2 -fstack-clash-protection --param stack-clash-protection-guard-size=12" } */
@@ -2476,10 +2457,8 @@ index 00000000000..e06db6dc2f0
 +
 +
 +
-diff --git a/gcc/testsuite/lib/target-supports.exp b/gcc/testsuite/lib/target-supports.exp
-index 02eb2066393..5431c236aa1 100644
---- a/gcc/testsuite/lib/target-supports.exp
-+++ b/gcc/testsuite/lib/target-supports.exp
+--- gcc/testsuite/lib/target-supports.exp
++++ gcc/testsuite/lib/target-supports.exp
 @@ -8384,14 +8384,9 @@ proc check_effective_target_arm_coproc4_ok { } {
  # 
  proc check_effective_target_supports_stack_clash_protection { } {

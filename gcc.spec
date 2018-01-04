@@ -1,10 +1,10 @@
-%global DATE 20180101
-%global SVNREV 256064
+%global DATE 20180104
+%global SVNREV 256255
 %global gcc_version 7.2.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -235,30 +235,13 @@ Patch8: gcc7-no-add-needed.patch
 Patch9: gcc7-aarch64-async-unw-tables.patch
 Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
-Patch12: gcc7-pr83556.patch
-Patch13: gcc7-aarch64-sanitizer-fix.patch
+Patch12: gcc7-aarch64-sanitizer-fix.patch
+Patch13: gcc7-rh1512529-aarch64.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
 Patch1002: nvptx-tools-glibc.patch
 
-Patch2001: gcc7-rh1512529-1.patch
-Patch2002: gcc7-rh1512529-2.patch
-Patch2003: gcc7-rh1512529-3.patch
-Patch2004: gcc7-rh1512529-4.patch
-Patch2005: gcc7-rh1512529-5.patch
-Patch2006: gcc7-rh1512529-6.patch
-Patch2007: gcc7-rh1512529-7.patch
-Patch2008: gcc7-rh1512529-8.patch
-Patch2009: gcc7-rh1512529-9.patch
-Patch2010: gcc7-rh1512529-10.patch
-Patch2011: gcc7-rh1512529-11.patch
-Patch2012: gcc7-rh1512529-12.patch
-Patch2013: gcc7-rh1512529-13.patch
-Patch2014: gcc7-rh1512529-14.patch
-Patch2015: gcc7-rh1512529-15.patch
-Patch2016: gcc7-rh1512529-16.patch
-Patch2017: gcc7-rh1512529-17.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -843,34 +826,16 @@ package or when debugging this package.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .pr83556~
 %if 0%{?fedora} > 27
-%patch13 -p0 -b .aarch64-sanitizer-fix~
+%patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
+%patch13 -p0 -b .rh1512529-aarch64~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
 %patch1001 -p1 -b .nvptx-tools-build~
 %patch1002 -p1 -b .nvptx-tools-glibc~
 cd ..
-
-%patch2001 -p1
-%patch2002 -p1
-%patch2003 -p1
-%patch2004 -p1
-%patch2005 -p1
-%patch2006 -p1
-%patch2007 -p1
-%patch2008 -p1
-%patch2009 -p1
-%patch2010 -p1
-%patch2011 -p1
-%patch2012 -p1
-%patch2013 -p1
-%patch2014 -p1
-%patch2015 -p1
-%patch2016 -p1
-%patch2017 -p1
 
 %if 0%{?_enable_debug_packages}
 mkdir dwz-wrapper
@@ -3282,6 +3247,14 @@ fi
 %endif
 
 %changelog
+* Thu Jan  4 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-6
+- update from the 7 branch
+  - PRs c++/83556, fortran/83650, libgfortran/83649
+- backport fixes for two -fstack-clash-protection bugs from the trunk
+  (PRs middle-end/83654, target/83641)
+- commit -fstack-clash-protection patches except aarch64 to
+  redhat/gcc-7-branch instead of applying them as patches in the spec file
+
 * Mon Jan  1 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-5
 - update from the 7 branch
   - PRs ada/82393, bootstrap/83439, c++/70029, c++/79650, c++/80259,
