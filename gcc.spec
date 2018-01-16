@@ -1,10 +1,10 @@
-%global DATE 20180104
-%global SVNREV 256255
+%global DATE 20180117
+%global SVNREV 256767
 %global gcc_version 7.2.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -774,6 +774,7 @@ NVidia PTX.  OpenMP and OpenACC programs linked with -fopenmp will
 by default add PTX code into the binaries, which can be offloaded
 to NVidia PTX capable devices if available.
 
+%if 0%{?fedora} > 27
 %if 0%{?_enable_debug_packages}
 %define debug_package %{nil}
 %global __debug_package 1
@@ -808,6 +809,7 @@ package or when debugging this package.
 
 %files base-debuginfo -f debugfiles-base.list
 %endif
+%endif
 
 %prep
 %setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
@@ -837,6 +839,7 @@ cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1002 -p1 -b .nvptx-tools-glibc~
 cd ..
 
+%if 0%{?fedora} > 27
 %if 0%{?_enable_debug_packages}
 mkdir dwz-wrapper
 if [ -f /usr/bin/dwz ]; then
@@ -936,6 +939,7 @@ if [ -f "${BUILDDIR}"/debugfiles.list \
 fi
 EOF
 chmod 755 split-debuginfo.sh
+%endif
 %endif
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
@@ -1945,7 +1949,15 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
+%if 0%{?fedora} > 27
+# Avoid stripping these libraries and binaries.
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
+chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
+chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
+%else
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
+%endif
 %endif
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.4.*
 
@@ -3100,10 +3112,10 @@ fi
 %if %{build_go}
 %files go
 %ghost %{_prefix}/bin/go
-%{_prefix}/bin/go.gcc
+%attr(755,root,root) %{_prefix}/bin/go.gcc
 %{_prefix}/bin/gccgo
 %ghost %{_prefix}/bin/gofmt
-%{_prefix}/bin/gofmt.gcc
+%attr(755,root,root) %{_prefix}/bin/gofmt.gcc
 %{_mandir}/man1/gccgo.1*
 %{_mandir}/man1/go.1*
 %{_mandir}/man1/gofmt.1*
@@ -3114,7 +3126,7 @@ fi
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/go1
-%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
+%attr(755,root,root) %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgo.so
@@ -3140,7 +3152,7 @@ fi
 %doc rpm.doc/go/*
 
 %files -n libgo
-%{_prefix}/%{_lib}/libgo.so.11*
+%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.11*
 %doc rpm.doc/libgo/*
 
 %files -n libgo-devel
@@ -3247,6 +3259,19 @@ fi
 %endif
 
 %changelog
+* Wed Jan 17 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-7
+- update from the 7 branch
+  - PRs fortran/78814, fortran/82367, fortran/82841, fortran/83093,
+	fortran/83679, libgfortran/83811, libstdc++/79283, libstdc++/83279,
+	libstdc++/83598, libstdc++/83600, libstdc++/83626, middle-end/83713,
+	preprocessor/83492, rtl-optimization/83424, rtl-optimization/83565,
+	target/81481, target/81819, target/81821, target/82975, target/83330,
+	target/83628, target/83629, target/83677, target/83839,
+	testsuite/77734
+  - x86 retpoline support
+- comment out gcc-debuginfo/gcc-base-debuginfo splitting hacks for f27 and
+  later (#1517259)
+
 * Thu Jan  4 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-6
 - update from the 7 branch
   - PRs c++/83556, fortran/83650, libgfortran/83649
