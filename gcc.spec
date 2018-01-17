@@ -774,7 +774,7 @@ NVidia PTX.  OpenMP and OpenACC programs linked with -fopenmp will
 by default add PTX code into the binaries, which can be offloaded
 to NVidia PTX capable devices if available.
 
-%if 0%{?fedora} > 27
+%if 0%{?fedora} < 27
 %if 0%{?_enable_debug_packages}
 %define debug_package %{nil}
 %global __debug_package 1
@@ -839,7 +839,7 @@ cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1002 -p1 -b .nvptx-tools-glibc~
 cd ..
 
-%if 0%{?fedora} > 27
+%if 0%{?fedora} < 27
 %if 0%{?_enable_debug_packages}
 mkdir dwz-wrapper
 if [ -f /usr/bin/dwz ]; then
@@ -1949,14 +1949,14 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
-%if 0%{?fedora} > 27
+%if 0%{?fedora} < 27
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
+%else
 # Avoid stripping these libraries and binaries.
 chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
-%else
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
 %endif
 %endif
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.4.*
