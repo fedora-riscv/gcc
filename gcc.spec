@@ -4,7 +4,7 @@
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -237,6 +237,7 @@ Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
+Patch14: gcc7-rh1536555.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -832,6 +833,7 @@ package or when debugging this package.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
+%patch14 -p0 -b .rh1537979~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3259,6 +3261,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 24 2018 Jeff Law <law@redhat.com> 7.2.1-8
+- Fix -fstack-clash-protection codegen issue on 32 bit x86 (#1536555)
+
 * Wed Jan 17 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-7
 - update from the 7 branch
   - PRs fortran/78814, fortran/82367, fortran/82841, fortran/83093,
