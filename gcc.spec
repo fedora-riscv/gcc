@@ -1,10 +1,10 @@
-%global DATE 20180117
-%global SVNREV 256767
-%global gcc_version 7.2.1
+%global DATE 20180125
+%global SVNREV 257047
+%global gcc_version 7.3.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3259,6 +3259,14 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-1
+- update from the 7 branch
+  - 7.3 release
+  - PRs c++/81843, c++/82331, c++/82760, fortran/80768, fortran/83864,
+	fortran/83874, fortran/83900, ipa/82352, ipa/83549, libstdc++/83834,
+	middle-end/81782, rtl-optimization/81443, target/80870, target/83687,
+	target/83946, tree-optimization/81877, tree-optimization/83552
+
 * Wed Jan 17 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-7
 - update from the 7 branch
   - PRs fortran/78814, fortran/82367, fortran/82841, fortran/83093,
