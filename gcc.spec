@@ -237,6 +237,7 @@ Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
+Patch14: gcc7-rh1536555.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -832,6 +833,7 @@ package or when debugging this package.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
+%patch14 -p0 -b .rh1537979~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3267,6 +3269,9 @@ fi
 	middle-end/81782, rtl-optimization/81443, target/80870, target/83687,
 	target/83946, tree-optimization/81877, tree-optimization/83552
 
+* Wed Jan 24 2018 Jeff Law <law@redhat.com> 7.2.1-8
+- fix -fstack-clash-protection codegen issue on 32 bit x86 (#1536555)
+
 * Wed Jan 17 2018 Jakub Jelinek <jakub@redhat.com> 7.2.1-7
 - update from the 7 branch
   - PRs fortran/78814, fortran/82367, fortran/82841, fortran/83093,
@@ -3344,12 +3349,12 @@ fi
   - fix power6 ICE in store_data_bypass_p (#1522675, PR target/80101)
 - fix replace_placeholders (PR c++/83556)
 
-* Wed Nov 29 2017 Jeff Law  <law@redhat.com> 7.2.1-4
-- Fix problem with large outgoing args and -fstack-clash-protection
+* Wed Nov 29 2017 Jeff Law <law@redhat.com> 7.2.1-4
+- fix problem with large outgoing args and -fstack-clash-protection
   on aarch64 (#1518823)
 
-* Tue Nov 28 2017 Jeff Law  <law@redhat.com> 7.2.1-3
-- Backport -fstack-clash-protection from development trunk (#1512529)
+* Tue Nov 28 2017 Jeff Law <law@redhat.com> 7.2.1-3
+- backport -fstack-clash-protection from development trunk (#1512529)
 
 * Fri Sep 15 2017 Jakub Jelinek <jakub@redhat.com> 7.2.1-2
 - update from the 7 branch
