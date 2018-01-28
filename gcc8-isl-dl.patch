@@ -27,7 +27,7 @@
  # and compile them.
 --- gcc/graphite.h.jj	2016-01-27 12:44:06.000000000 +0100
 +++ gcc/graphite.h	2016-01-27 13:26:38.309876856 +0100
-@@ -37,6 +37,586 @@ along with GCC; see the file COPYING3.
+@@ -37,6 +37,590 @@ along with GCC; see the file COPYING3.
  #include <isl/schedule.h>
  #include <isl/ast_build.h>
  #include <isl/schedule_node.h>
@@ -317,7 +317,9 @@
 +  DYNSYM (isl_val_get_abs_num_chunks); \
 +  DYNSYM (isl_val_int_from_chunks); \
 +  DYNSYM (isl_val_is_neg); \
-+  DYNSYM (isl_version);
++  DYNSYM (isl_version); \
++  DYNSYM (isl_options_get_on_error); \
++  DYNSYM (isl_ctx_reset_error);
 +
 +extern struct isl_pointers_s__
 +{
@@ -611,10 +613,12 @@
 +#define isl_val_int_from_chunks (*isl_pointers__.p_isl_val_int_from_chunks)
 +#define isl_val_is_neg (*isl_pointers__.p_isl_val_is_neg)
 +#define isl_version (*isl_pointers__.p_isl_version)
++#define isl_options_get_on_error (*isl_pointers__.p_isl_options_get_on_error)
++#define isl_ctx_reset_error (*isl_pointers__.p_isl_ctx_reset_error)
  
  typedef struct poly_dr *poly_dr_p;
  
-@@ -458,5 +1038,6 @@ extern void build_scops (vec<scop_p> *);
+@@ -461,5 +1045,6 @@ extern void build_scops (vec<scop_p> *);
  extern void dot_all_sese (FILE *, vec<sese_l> &);
  extern void dot_sese (sese_l &);
  extern void dot_cfg ();
@@ -623,8 +627,8 @@
  #endif
 --- gcc/graphite.c.jj	2015-11-04 14:15:32.000000000 +0100
 +++ gcc/graphite.c	2015-11-04 14:56:02.645536409 +0100
-@@ -55,6 +55,35 @@ along with GCC; see the file COPYING3.
- #include "tree-vectorizer.h"
+@@ -60,6 +60,35 @@ along with GCC; see the file COPYING3.
+ #include "tree-into-ssa.h"
  #include "graphite.h"
  
 +__typeof (isl_pointers__) isl_pointers__;
@@ -659,7 +663,7 @@
  /* Print global statistics to FILE.  */
  
  static void
-@@ -299,6 +328,15 @@ graphite_transform_loops (void)
+@@ -365,6 +394,15 @@ graphite_transform_loops (void)
    if (parallelized_function_p (cfun->decl))
      return;
  
@@ -672,11 +676,11 @@
 +      return;
 +    }
 +
-   ctx = isl_ctx_alloc ();
-   isl_options_set_on_error (ctx, ISL_ON_ERROR_ABORT);
-   if (!graphite_initialize (ctx))
-@@ -342,6 +380,14 @@ graphite_transform_loops (void)
-   isl_ctx_free (ctx);
+   calculate_dominance_info (CDI_DOMINATORS);
+ 
+   /* We rely on post-dominators during merging of SESE regions so those
+@@ -455,6 +493,14 @@ graphite_transform_loops (void)
+     }
  }
  
 +const char *

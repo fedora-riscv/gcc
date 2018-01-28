@@ -54,17 +54,6 @@
  
  # Rules to build gnatlib.
  .PHONY: gnatlib gnatlib-plain gnatlib-sjlj gnatlib-zcx gnatlib-shared osconstool
---- gcc/ada/sem_util.adb	(revision 161677)
-+++ gcc/ada/sem_util.adb	(working copy)
-@@ -5487,7 +5487,7 @@ package body Sem_Util is
-             Exp           : Node_Id;
-             Assn          : Node_Id;
-             Choice        : Node_Id;
--            Comp_Type     : Entity_Id;
-+            Comp_Type     : Entity_Id := Empty;
-             Is_Array_Aggr : Boolean;
- 
-          begin
 --- config-ml.in.jj	2010-06-30 09:50:44.000000000 +0200
 +++ config-ml.in	2010-07-02 21:24:17.994211151 +0200
 @@ -511,6 +511,8 @@ multi-do:
