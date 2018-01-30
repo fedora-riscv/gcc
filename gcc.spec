@@ -236,6 +236,7 @@ Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-aarch64-sanitizer-fix.patch
 Patch13: gcc8-rh1512529-aarch64.patch
+Patch14: gcc8-pr84131.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -777,6 +778,7 @@ to NVidia PTX capable devices if available.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
+%patch14 -p0 -b .pr84131~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3047,6 +3049,7 @@ fi
 	target/83828, target/84112, testsuite/81010, tree-optimization/81611,
 	tree-optimization/83008, tree-optimization/84057,
 	tree-optimization/84086, tree-optimization/84111
+- fix fortran debuginfo (PR debug/84131)
 
 * Sat Jan 27 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.6
 - update from the trunk
