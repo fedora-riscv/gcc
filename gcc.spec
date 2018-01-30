@@ -3266,7 +3266,7 @@ fi
   - PRs c++/82461, c++/82878, libstdc++/81076, libstdc++/83658,
 	libstdc++/83830, libstdc++/83833, rtl-optimization/83985, target/68467,
 	target/81763, target/83399, target/83862, target/83905, target/84033
-- fix -fstack-clash-protection ICE on i686 (#1538648, PR target/84064)
+- fix -fstack-clash-protection ICE with -mtune=i686 (#1538648, PR target/84064)
 
 * Thu Jan 25 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-1
 - update from the 7 branch
