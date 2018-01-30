@@ -1,10 +1,10 @@
-%global DATE 20180127
-%global SVNREV 257122
+%global DATE 20180130
+%global SVNREV 257210
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.6
+%global gcc_release 0.7
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3038,6 +3038,16 @@ fi
 %endif
 
 %changelog
+* Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.7
+- update from the trunk
+  - PRs bootstrap/80867, bootstrap/84017, c++/68810, c++/83924, c++/83942,
+	c++/83996, c++/84091, c++/84098, c/83966, fortran/84073,
+	fortran/84133, ipa/81360, ipa/83179, libgomp/84096, libstdc++/83658,
+	lto/83954, rtl-optimization/83986, target/40411, target/58684,
+	target/83828, target/84112, testsuite/81010, tree-optimization/81611,
+	tree-optimization/83008, tree-optimization/84057,
+	tree-optimization/84086, tree-optimization/84111
+
 * Sat Jan 27 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.6
 - update from the trunk
   - PRs c++/82249, c++/82514, c++/83921, c++/83947, c++/83956, c++/83974,
