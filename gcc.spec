@@ -1,10 +1,10 @@
-%global DATE 20180125
-%global SVNREV 257047
+%global DATE 20180130
+%global SVNREV 257180
 %global gcc_version 7.3.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -237,7 +237,7 @@ Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
-Patch14: gcc7-rh1536555.patch
+Patch14: gcc7-pr84064.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -833,7 +833,7 @@ package or when debugging this package.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
-%patch14 -p0 -b .rh1537979~
+%patch14 -p0 -b .pr84064~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3261,6 +3261,13 @@ fi
 %endif
 
 %changelog
+* Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-2
+- update from the 7 branch
+  - PRs c++/82461, c++/82878, libstdc++/81076, libstdc++/83658,
+	libstdc++/83830, libstdc++/83833, rtl-optimization/83985, target/68467,
+	target/81763, target/83399, target/83862, target/83905, target/84033
+- fix -fstack-clash-protection ICE on i686 (#1538648, PR target/84064)
+
 * Thu Jan 25 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-1
 - update from the 7 branch
   - 7.3 release
