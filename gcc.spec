@@ -1,10 +1,10 @@
-%global DATE 20180130
-%global SVNREV 257210
+%global DATE 20180131
+%global SVNREV 257268
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.7
+%global gcc_release 0.8
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -234,9 +234,8 @@ Patch8: gcc8-no-add-needed.patch
 Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
-Patch12: gcc8-aarch64-sanitizer-fix.patch
-Patch13: gcc8-rh1512529-aarch64.patch
-Patch14: gcc8-pr84131.patch
+Patch12: gcc8-rh1512529-aarch64.patch
+Patch13: gcc8-pr84146.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -774,11 +773,8 @@ to NVidia PTX capable devices if available.
 %patch9 -p0 -b .aarch64-async-unw-tables~
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
-%if 0%{?fedora} > 27
-%patch12 -p0 -b .aarch64-sanitizer-fix~
-%endif
-%patch13 -p0 -b .rh1512529-aarch64~
-%patch14 -p0 -b .pr84131~
+%patch12 -p0 -b .rh1512529-aarch64~
+%patch13 -p0 -b .pr84146~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3040,6 +3036,14 @@ fi
 %endif
 
 %changelog
+* Wed Jan 31 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.8
+- update from the trunk
+  - PRs c++/83993, c++/84092, c++/84138, c/84100, fortran/84088,
+	fortran/84116, fortran/84134, lto/84105, preprocessor/69869,
+	rtl-optimization/84071, target/82444, target/83618, target/84064,
+	tree-optimization/64946, tree-optimization/84132
+- fix ICE with CET and -g (PR target/84146)
+
 * Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.7
 - update from the trunk
   - PRs bootstrap/80867, bootstrap/84017, c++/68810, c++/83924, c++/83942,
