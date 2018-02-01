@@ -4,7 +4,7 @@
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.8
+%global gcc_release 0.9
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -236,6 +236,7 @@ Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
 Patch13: gcc8-pr84146.patch
+Patch14: gcc8-pr84128.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -775,6 +776,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
 %patch13 -p0 -b .pr84146~
+%patch14 -p0 -b .pr84128~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3036,6 +3038,10 @@ fi
 %endif
 
 %changelog
+* Thu Feb 1 2018 Jeff Law <law@redhat.com> 8.0.1-0.9
+- fix -fstack-clash-protection codegen issue on 32 bit x86
+  (#1540221, PR target/84128)
+
 * Wed Jan 31 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.8
 - update from the trunk
   - PRs c++/83993, c++/84092, c++/84138, c/84100, fortran/84088,
