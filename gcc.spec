@@ -4,7 +4,7 @@
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -1056,7 +1056,7 @@ CONFIGURE_OPTS="\
 %ifarch ppc64le
 	--enable-targets=powerpcle-linux \
 %endif
-%ifarch ppc64le %{mips}
+%ifarch ppc64le %{mips} riscv64
 	--disable-multilib \
 %else
 	--enable-multilib \
@@ -3263,6 +3263,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 5 2018 Richard W.M. Jones <rjones@redhat.com> 7.3.1-4
+- Disable multilib on riscv64.
+
 * Thu Feb 1 2018 Jeff Law <law@redhat.com> 7.3.1-3
 - fix -fstack-clash-protection codegen issue on 32 bit x86
   (#1540221, PR target/84128)
