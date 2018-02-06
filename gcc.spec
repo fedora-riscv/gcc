@@ -4,7 +4,7 @@
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.10
+%global gcc_release 0.11
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -986,7 +986,7 @@ CONFIGURE_OPTS="\
 %endif
 %endif
 %ifarch armv7hl
-	--with-tune=cortex-a8 --with-arch=armv7-a \
+	--with-tune=generic-armv7-a --with-arch=armv7-a \
 	--with-float=hard --with-fpu=vfpv3-d16 --with-abi=aapcs-linux \
 %endif
 %ifarch mips mipsel
@@ -3038,6 +3038,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb  6 2018 Florian Weimer <fweimer@redhat.com> - 8.0.1-0.11
+- Use generic tuning for armhfp
+
 * Mon Feb 5 2018 Richard W.M. Jones <rjones@redhat.com> 8.0.1-0.10
 - Disable multilib on riscv64.
 
