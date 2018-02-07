@@ -261,7 +261,7 @@ Patch1002: nvptx-tools-glibc.patch
 
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
-%global __os_install_post \
+%global __spec_install_post \
 chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
@@ -269,7 +269,7 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/buildid \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
-%__os_install_post \
+%__spec_install_post \
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
 chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
