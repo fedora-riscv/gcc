@@ -1,10 +1,10 @@
-%global DATE 20180131
-%global SVNREV 257268
+%global DATE 20180207
+%global SVNREV 257452
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.11
+%global gcc_release 0.12
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -235,8 +235,7 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
-Patch13: gcc8-pr84146.patch
-Patch14: gcc8-pr84128.patch
+Patch13: gcc8-pr84252.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -258,6 +257,27 @@ Patch1002: nvptx-tools-glibc.patch
 %endif
 %ifnarch sparcv9 ppc ppc64p7
 %global gcc_target_platform %{_target_platform}
+%endif
+
+%if %{build_go}
+# Avoid stripping these libraries and binaries.
+%global __os_install_post \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
+chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
+chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/buildid \
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
+%__os_install_post \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
+chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
+chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
+chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
+chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/buildid \
+chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
+chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
+%{nil}
 %endif
 
 %description
@@ -775,8 +795,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
-%patch13 -p0 -b .pr84146~
-%patch14 -p0 -b .pr84128~
+%patch13 -p0 -b .pr84252~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -1754,16 +1773,6 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
 %endif
 %if %{build_liblsan}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
-%endif
-%if %{build_go}
-# Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.*
-chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
-chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
-chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
-chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/buildid
-chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json
-chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet
 %endif
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.4.*
 
@@ -3038,13 +3047,34 @@ fi
 %endif
 
 %changelog
+* Wed Feb  7 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.12
+- update from the trunk
+  - PRs c++/71662, c++/82782, c++/83796, c++/84059, c++/84125, c++/84126,
+	c++/84160, c++/84181, c/81779, fortran/83344, fortran/83705,
+	fortran/83975, fortran/84094, fortran/84115, fortran/84141,
+	fortran/84155, gcov-profile/83879, gcov-profile/84137, libgomp/84217,
+	lto/81004, middle-end/79966, rtl-optimization/84123,
+	rtl-optimization/84157, target/56010, target/79975, target/82641,
+	target/83370, target/83743, target/84066, target/84089, target/84145,
+	target/84154, target/84209, target/84243, target/84248, tearget/83845,
+	testsuite/52641, testsuite/83846, testsuite/84243,
+	tree-optimization/81635, tree-optimization/81661,
+	tree-optimization/83369, tree-optimization/84117,
+	tree-optimization/84204, tree-optimization/84205,
+	tree-optimization/84223, tree-optimization/84225,
+	tree-optimization/84228,
+  - fix dom2 floating point miscompilation (#1542124,
+    PR tree-optimization/84235)
+- fix go provides/requires (#1541639)
+- fix var-tracking ICE on aarch64 (#1541670, PR debug/84252)
+
 * Tue Feb  6 2018 Florian Weimer <fweimer@redhat.com> - 8.0.1-0.11
-- Use generic tuning for armhfp
+- use generic tuning for armhfp
 
-* Mon Feb 5 2018 Richard W.M. Jones <rjones@redhat.com> 8.0.1-0.10
-- Disable multilib on riscv64.
+* Mon Feb  5 2018 Richard W.M. Jones <rjones@redhat.com> 8.0.1-0.10
+- disable multilib on riscv64.
 
-* Thu Feb 1 2018 Jeff Law <law@redhat.com> 8.0.1-0.9
+* Thu Feb  1 2018 Jeff Law <law@redhat.com> 8.0.1-0.9
 - fix -fstack-clash-protection codegen issue on 32 bit x86
   (#1540221, PR target/84128)
 
