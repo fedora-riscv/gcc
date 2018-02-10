@@ -1,10 +1,10 @@
-%global DATE 20180207
-%global SVNREV 257452
+%global DATE 20180210
+%global SVNREV 257551
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.12
+%global gcc_release 0.13
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -235,7 +235,7 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
-Patch13: gcc8-pr84252.patch
+Patch13: gcc8-lvu-revert.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -795,7 +795,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
-%patch13 -p0 -b .pr84252~
+%patch13 -p0 -b .lvu-revert~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3057,6 +3057,21 @@ fi
 %endif
 
 %changelog
+* Sat Feb 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.13
+- update from the trunk
+  - PRs c++/77522, c++/80567, c++/81610, c++/81917, c++/83204, c++/83659,
+	c++/83806, c++/84082, c++/84182, c++/84296, c/84293, fortran/56691,
+	fortran/68560, fortran/82049, fortran/82994, lto/84212, lto/84213,
+	middle-end/84237, rtl-optimization/57193, rtl-optimization/83459,
+	rtl-optimization/84068, rtl-optimization/84308, sanitizer/84285,
+	target/81143, target/83008, target/83926, target/84113, target/84226,
+	target/84300, target/PR84295, tree-optimization/84037,
+	tree-optimization/84136, tree-optimization/84224,
+	tree-optimization/84232, tree-optimization/84233,
+	tree-optimization/84238, tree-optimization/84265,
+	tree-optimization/84278
+- temporarily revert LVU stuff, until it settles down
+
 * Wed Feb  7 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.12
 - update from the trunk
   - PRs c++/71662, c++/82782, c++/83796, c++/84059, c++/84125, c++/84126,
