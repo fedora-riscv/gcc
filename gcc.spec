@@ -119,7 +119,6 @@ Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
 Source2: nvptx-newlib-%{nvptx_newlib_gitrev}.tar.xz
 %global isl_version 0.16.1
 URL: http://gcc.gnu.org
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Need binutils with -pie support >= 2.14.90.0.4-4
 # Need binutils which can omit dot symbols and overlap .opd on ppc64 >= 2.15.91.0.2-4
 # Need binutils which handle -msecure-plt on ppc >= 2.16.91.0.2-2
