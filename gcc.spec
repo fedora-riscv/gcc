@@ -1893,9 +1893,6 @@ tar cf - testlogs-%{_target_platform}-%{version}-%{release} | xz -9e \
   | uuencode testlogs-%{_target_platform}.tar.xz || :
 rm -rf testlogs-%{_target_platform}-%{version}-%{release}
 
-%clean
-rm -rf %{buildroot}
-
 %post
 if [ -f %{_infodir}/gcc.info.gz ]; then
   /sbin/install-info \
