@@ -1,10 +1,10 @@
-%global DATE 20180210
-%global SVNREV 257551
+%global DATE 20180218
+%global SVNREV 257796
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
-# %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 0.13
+# %%{release}, append them after %%{gcc_release} on Release: line.
+%global gcc_release 0.14
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -100,21 +100,21 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-8-branch@%{SVNREV} gcc-%{version}-%{DATE}
-# tar cf - gcc-%{version}-%{DATE} | xz -9e > gcc-%{version}-%{DATE}.tar.xz
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-8-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
+# tar cf - gcc-%%{version}-%%{DATE} | xz -9e > gcc-%%{version}-%%{DATE}.tar.xz
 Source0: gcc-%{version}-%{DATE}.tar.xz
 # The source for nvptx-tools package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
 # git clone https://github.com/MentorEmbedded/nvptx-tools.git
 # cd nvptx-tools
-# git archive origin/master --prefix=nvptx-tools-%{nvptx_tools_gitrev}/ | xz -9e > ../nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
+# git archive origin/master --prefix=nvptx-tools-%%{nvptx_tools_gitrev}/ | xz -9e > ../nvptx-tools-%%{nvptx_tools_gitrev}.tar.xz
 # cd ..; rm -rf nvptx-tools
 Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
 # The source for nvptx-newlib package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
 # git clone https://github.com/MentorEmbedded/nvptx-newlib.git
 # cd nvptx-newlib
-# git archive origin/master --prefix=nvptx-newlib-%{nvptx_newlib_gitrev}/ | xz -9 > ../nvptx-newlib-%{nvptx_newlib_gitrev}.tar.xz
+# git archive origin/master --prefix=nvptx-newlib-%%{nvptx_newlib_gitrev}/ | xz -9 > ../nvptx-newlib-%%{nvptx_newlib_gitrev}.tar.xz
 # cd ..; rm -rf nvptx-newlib
 Source2: nvptx-newlib-%{nvptx_newlib_gitrev}.tar.xz
 %global isl_version 0.16.1
@@ -126,7 +126,7 @@ URL: http://gcc.gnu.org
 # Need binutils which support --hash-style=gnu >= 2.17.50.0.2-7
 # Need binutils which support mffgpr and mftgpr >= 2.17.50.0.2-8
 # Need binutils which support --build-id >= 2.17.50.0.17-3
-# Need binutils which support %gnu_unique_object >= 2.19.51.0.14
+# Need binutils which support %%gnu_unique_object >= 2.19.51.0.14
 # Need binutils which support .cfi_sections >= 2.19.51.0.14-33
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
 # Need binutils which support -plugin
@@ -139,6 +139,7 @@ BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 BuildRequires: systemtap-sdt-devel >= 1.3
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 BuildRequires: python2-devel, python3-devel
+BuildRequires: gcc, gcc-c++
 %if %{build_go}
 BuildRequires: hostname, procps
 %endif
@@ -189,7 +190,7 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that supports --hash-style=gnu
 # Need binutils that support mffgpr/mftgpr
 # Need binutils that support --build-id
-# Need binutils that support %gnu_unique_object
+# Need binutils that support %%gnu_unique_object
 # Need binutils that support .cfi_sections
 # Need binutils that support --no-add-needed
 # Need binutils that support -plugin
@@ -234,7 +235,6 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
-Patch13: gcc8-lvu-revert.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -794,7 +794,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
-%patch13 -p0 -b .lvu-revert~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2752,8 +2751,8 @@ fi
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/itm.h
-#%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/itm_weak.h
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/include/itm.h
+#%%{_prefix}/lib/gcc/%%{gcc_target_platform}/%%{gcc_major}/include/itm_weak.h
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libitm.so
 %endif
@@ -3053,6 +3052,32 @@ fi
 %endif
 
 %changelog
+* Sun Feb 18 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.14
+- update from the trunk
+  - PRs ada/84277, bootstrap/82939, bootstrap/84405, c++/79064, c++/79626,
+	c++/81853, c++/82468, c++/82664, c++/82764, c++/83227, c++/83835,
+	c++/83990, c++/84045, c++/84080, c++/84151, c++/84192, c++/84263,
+	c++/84281, c++/84314, c++/84330, c++/84333, c++/84338, c++/84341,
+	c++/84350, c++/84364, c++/84368, c++/84375, c++/84376, c++/84420,
+	c++/84421, c/82210, c/84108, c/84305, debug/84319, debug/84342,
+	fortran/35299, fortran/54223, fortran/68746, fortran/80945,
+	fortran/84074, fortran/84270, fortran/84273, fortran/84276,
+	fortran/84313, fortran/84354, fortran/84381, fortran/84385,
+	fortran/84389, fortran/84409, fortran/84418, ipa/84425,
+	libgfortran/84389, libgfortran/84412, libstdc++/81797,
+	middle-end/83665, middle-end/84309, other/82368, preprocessor/83063,
+	preprocessor/83708, rtl-optimization/70023, rtl-optimization/81443,
+	rtl-optimization/83723, rtl-optimization/84169, sanitizer/84307,
+	sanitizer/84340, target/79242, target/81535, target/82862,
+	target/83758, target/83760, target/83831, target/83984, target/84220,
+	target/84239, target/84266, target/84272, target/84279, target/84335,
+	target/84336, target/84359, target/84365, target/84370, target/84372,
+	tree-optimization/83698, tree-optimization/84016,
+	tree-optimization/84190, tree-optimization/84321,
+	tree-optimization/84334, tree-optimization/84339,
+	tree-optimization/84357, tree-optimization/84383,
+	tree-optimization/84399, tree-optimization/84417
+
 * Sat Feb 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.13
 - update from the trunk
   - PRs c++/77522, c++/80567, c++/81610, c++/81917, c++/83204, c++/83659,
