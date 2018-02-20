@@ -1,10 +1,10 @@
-%global DATE 20180218
-%global SVNREV 257796
+%global DATE 20180220
+%global SVNREV 257865
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.14
+%global gcc_release 0.15
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -235,6 +235,7 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
+Patch13: gcc8-pr84478.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -794,6 +795,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
+%patch13 -p0 -b .pr84478~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3052,6 +3054,18 @@ fi
 %endif
 
 %changelog
+* Tue Feb 20 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.15
+- update from the trunk
+  - PRs c++/84348, c++/84429, c++/84430, c++/84444, c++/84445, c++/84446,
+	c++/84448, c++/84449, c++/84455, c++/84488, c/81272, c/84310,
+	driver/83193, fortran/35339, fortran/48890, fortran/83823,
+	middle-end/79257, middle-end/82004, middle-end/82123,
+	middle-end/84095, middle-end/84406, other/80589, sanitizer/82183,
+	target/79747, target/84148, target/84460, tree-optimization/81592,
+	tree-optimization/82491, tree-optimization/84419,
+	tree-optimization/84452
+- fix strlen value range computation (#1546964, PR tree-optimization/84478)
+
 * Sun Feb 18 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.14
 - update from the trunk
   - PRs ada/84277, bootstrap/82939, bootstrap/84405, c++/79064, c++/79626,
