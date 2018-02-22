@@ -1,10 +1,10 @@
-%global DATE 20180220
-%global SVNREV 257865
+%global DATE 20180222
+%global SVNREV 257897
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.15
+%global gcc_release 0.16
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -235,7 +235,6 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
-Patch13: gcc8-pr84478.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -795,7 +794,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
-%patch13 -p0 -b .pr84478~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3054,6 +3052,11 @@ fi
 %endif
 
 %changelog
+* Thu Feb 22 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.16
+- update from the trunk
+  - PRs c++/77655, c++/84454, c++/84496, c/84229, target/84502
+  - fix store-merging (#1547495, PR tree-optimization/84503)
+
 * Tue Feb 20 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.15
 - update from the trunk
   - PRs c++/84348, c++/84429, c++/84430, c++/84444, c++/84445, c++/84446,
