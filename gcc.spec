@@ -237,7 +237,7 @@ Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
-Patch14: gcc7-pr84064.patch
+Patch14: gcc7-pr84524.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -259,6 +259,23 @@ Patch1002: nvptx-tools-glibc.patch
 %endif
 %ifnarch sparcv9 ppc ppc64p7
 %global gcc_target_platform %{_target_platform}
+%endif
+
+%if %{?fedora} >= 27
+%if %{build_go}
+# Avoid stripping these libraries and binaries.
+%global __os_install_post \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.* \
+chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
+chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
+chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
+%__os_install_post \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.* \
+chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
+chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
+chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
+%{nil}
+%endif
 %endif
 
 %description
@@ -833,7 +850,7 @@ package or when debugging this package.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
-%patch14 -p0 -b .pr84064~
+%patch14 -p0 -b .pr84524~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -1951,15 +1968,7 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
-%if 0%{?fedora} < 27
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
-%else
-# Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.11.*
-chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
-chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
-chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
-%endif
 %endif
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.4.*
 
@@ -3261,6 +3270,36 @@ fi
 %endif
 
 %changelog
+* Sat Feb  3 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-3
+- update from the 7 branch
+  - PRs ada/84277, bootstrap/80867, bootstrap/82916, bootstrap/84017,
+	c++/71569, c++/71784, c++/81589, c++/81853, c++/81860, c++/82664,
+	c++/82764, c++/83227, c++/83659, c++/83817, c++/83824, c++/83835,
+	c++/83958, c++/83990, c++/83993, c++/84015, c++/84031, c++/84045,
+	c++/84082, c++/84151, c++/84192, c++/84341, c++/84420, c++/84430,
+	c++/84441, c++/84444, c++/84445, c++/84448, c++/84449, c++/84489,
+	c++/84496, c++/84520, c++/84556, c++/84557, c++/84558, c/82210,
+	fortran/30792, fortran/35299, fortran/54223, fortran/68560,
+	fortran/78238, fortran/81116, fortran/82007, fortran/82049,
+	fortran/82994, fortran/83633, fortran/84116, fortran/84270,
+	fortran/84276, fortran/84346, fortran/84418, fortran/84495,
+	fortran/84506, fortran/84511, inline-asm/84625, ipa/84425, ipa/84628,
+	libgfortran/84412, libgomp/84096, libstdc++/81797, libstdc++/84532,
+	libstdc++/84671, middle-end/83945, middle-end/83977, middle-end/84040,
+	preprocessor/69869, preprocessor/83722, rtl-optimization/83496,
+	rtl-optimization/83986, rtl-optimization/84071,
+	rtl-optimization/84123, rtl-optimization/84308, sanitizer/70875,
+	sanitizer/83987, sanitizer/84285, target/56010, target/79242,
+	target/79975, target/81228, target/82096, target/83370, target/83743,
+	target/83758, target/83790, target/83930, target/84039, target/84089,
+	target/84113, target/84154, target/84279, target/84388, target/84390,
+	target/84530, target/PR84295, tree-optimization/81661,
+	tree-optimization/82795, tree-optimization/83605,
+	tree-optimization/84117, tree-optimization/84190,
+	tree-optimization/84233, tree-optimization/84503
+- fix AVX512BW wrong-code bug (PR target/84524)
+- fix go provides/requires (#1545071)
+
 * Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-2
 - update from the 7 branch
   - PRs c++/82461, c++/82878, libstdc++/81076, libstdc++/83658,
