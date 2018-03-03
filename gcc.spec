@@ -4,7 +4,7 @@
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -238,6 +238,7 @@ Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
 Patch14: gcc7-pr84524.patch
+Patch15: gcc7-pr84128.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -851,6 +852,7 @@ package or when debugging this package.
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
 %patch14 -p0 -b .pr84524~
+%patch15 -p0 -b .pr84128~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -1071,7 +1073,7 @@ CONFIGURE_OPTS="\
 %ifarch ppc64le
 	--enable-targets=powerpcle-linux \
 %endif
-%ifarch ppc64le %{mips}
+%ifarch ppc64le %{mips} riscv64
 	--disable-multilib \
 %else
 	--enable-multilib \
@@ -3270,7 +3272,7 @@ fi
 %endif
 
 %changelog
-* Sat Feb  3 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-3
+* Sat Feb  3 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-5
 - update from the 7 branch
   - PRs ada/84277, bootstrap/80867, bootstrap/82916, bootstrap/84017,
 	c++/71569, c++/71784, c++/81589, c++/81853, c++/81860, c++/82664,
@@ -3299,6 +3301,13 @@ fi
 	tree-optimization/84233, tree-optimization/84503
 - fix AVX512BW wrong-code bug (PR target/84524)
 - fix go provides/requires (#1545071)
+
+* Mon Feb  5 2018 Richard W.M. Jones <rjones@redhat.com> 7.3.1-4
+- disable multilib on riscv64
+
+* Thu Feb  1 2018 Jeff Law <law@redhat.com> 7.3.1-3
+- fix -fstack-clash-protection codegen issue on 32 bit x86
+  (#1540221, PR target/84128)
 
 * Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-2
 - update from the 7 branch
