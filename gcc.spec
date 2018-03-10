@@ -1,10 +1,10 @@
-%global DATE 20180222
-%global SVNREV 257897
+%global DATE 20180310
+%global SVNREV 258420
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.16
+%global gcc_release 0.17
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -130,7 +130,12 @@ URL: http://gcc.gnu.org
 # Need binutils which support .cfi_sections >= 2.19.51.0.14-33
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
 # Need binutils which support -plugin
+# Need binutils which support .loc view >= 2.30
+%if %{?fedora} >= 29
+BuildRequires: binutils >= 2.30
+%else
 BuildRequires: binutils >= 2.24
+%endif
 # While gcc doesn't include statically linked binaries, during testing
 # -static is used several times.
 BuildRequires: glibc-static
@@ -194,7 +199,12 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support .cfi_sections
 # Need binutils that support --no-add-needed
 # Need binutils that support -plugin
+# Need binutils that support .loc view >= 2.30
+%if %{?fedora} >= 29
+Requires: binutils >= 2.30
+%else
 Requires: binutils >= 2.24
+%endif
 # Make sure gdb will understand DW_FORM_strp
 Conflicts: gdb < 5.1-2
 Requires: glibc-devel >= 2.2.90-12
@@ -3052,6 +3062,53 @@ fi
 %endif
 
 %changelog
+* Sat Mar 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.17
+- update from the trunk
+  - PRs c++/61135, c++/61358, c++/67370, c++/70468, c++/71169, c++/71464,
+	c++/71546, c++/71569, c++/71784, c++/71832, c++/79410, c++/80598,
+	c++/81812, c++/82022, c++/83503, c++/83692, c++/83871, c++/84015,
+	c++/84076, c++/84171, c++/84231, c++/84294, c++/84325, c++/84424,
+	c++/84426, c++/84434, c++/84441, c++/84447, c++/84489, c++/84492,
+	c++/84493, c++/84497, c++/84520, c++/84533, c++/84537, c++/84540,
+	c++/84551, c++/84556, c++/84557, c++/84558, c++/84559, c++/84560,
+	c++/84578, c++/84582, c++/84590, c++/84593, c++/84596, c++/84602,
+	c++/84609, c++/84618, c++/84639, c++/84662, c++/84663, c++/84664,
+	c++/84684, c++/84686, c++/84694, c++/84702, c++/84704, c++/84707,
+	c++/84708, c++/84724, c++/84726, c++/84733, c++/84752, c++/84767,
+	c++/84770, c++/84785, c/84721, debug/83917, debug/84404, debug/84408,
+	debug/84456, debug/84545, debug/84620, debug/84645, fortran/30792,
+	fortran/32957, fortran/51434, fortran/56667, fortran/59781,
+	fortran/64107, fortran/64124, fortran/66128, fortran/70409,
+	fortran/71085, fortran/78238, fortran/80965, fortran/83148,
+	fortran/83149, fortran/83633, fortran/83901, fortran/84219,
+	fortran/84346, fortran/84506, fortran/84509, fortran/84511,
+	fortran/84519, fortran/84523, fortran/84538, fortran/84565,
+	fortran/84697, fortran/84734, gcov-profile/84548, gcov-profile/84735,
+	inline-asm/84625, inline-asm/84683, inline-asm/84742, ipa/83983,
+	ipa/84628, jit/64089, jit/84288, libstdc++/84532, libstdc++/84601,
+	libstdc++/84671, libstdc++/84769, middle-end/84552, middle-end/84607,
+	middle-end/84723, preprocessor/84517, rtl-optimization/81611,
+	rtl-optimization/83327, rtl-optimization/83496,
+	rtl-optimization/84528, rtl-optimization/84682, sanitizer/70875,
+	sanitizer/82484, target/52991, target/56540, target/81572,
+	target/82005, target/82411, target/82851, target/83193, target/83335,
+	target/83399, target/83712, target/83969, target/84039, target/84176,
+	target/84264, target/84277, target/84521, target/84524, target/84530,
+	target/84534, target/84564, target/84575, target/84614, target/84700,
+	target/84710, target/84748, target/84763, target/84772, target/84807,
+	testsuite/80551, testsuite/84597, testsuite/84617, translation/84207,
+	tree-optimization/83519, tree-optimization/84114,
+	tree-optimization/84178, tree-optimization/84427,
+	tree-optimization/84466, tree-optimization/84468,
+	tree-optimization/84480, tree-optimization/84486,
+	tree-optimization/84512, tree-optimization/84526,
+	tree-optimization/84584, tree-optimization/84634,
+	tree-optimization/84650, tree-optimization/84670,
+	tree-optimization/84687, tree-optimization/84739,
+	tree-optimization/84740, tree-optimization/84746,
+	tree-optimization/84775
+- for f29+ require binutils >= 2.30 (#1552529)
+
 * Thu Feb 22 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.16
 - update from the trunk
   - PRs c++/77655, c++/84454, c++/84496, c/84229, target/84502
