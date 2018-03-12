@@ -2230,6 +2230,8 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/vpclmulqdqintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avx512vpopcntdqvlintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avx512bitalgintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/pconfigintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/wbnoinvdintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3062,6 +3064,8 @@ fi
 %endif
 
 %changelog
+- add pconfigintrin.h and wbnoinvdintrin.h headers (#1554279)
+
 * Sat Mar 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.17
 - update from the trunk
   - PRs c++/61135, c++/61358, c++/67370, c++/70468, c++/71169, c++/71464,
