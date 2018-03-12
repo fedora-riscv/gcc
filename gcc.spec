@@ -1,17 +1,17 @@
-%global DATE 20180310
-%global SVNREV 258420
+%global DATE 20180312
+%global SVNREV 258461
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.17
+%global gcc_release 0.18
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
 %undefine _hardened_build
-%if 0%{?fedora} > 27
+%if 0%{?fedora} > 27 || 0%{?rhel} >= 8
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
@@ -131,7 +131,7 @@ URL: http://gcc.gnu.org
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
-%if %{?fedora} >= 29
+%if %{?fedora} >= 29 || 0%{?rhel} >= 8
 BuildRequires: binutils >= 2.30
 %else
 BuildRequires: binutils >= 2.24
@@ -200,7 +200,7 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support --no-add-needed
 # Need binutils that support -plugin
 # Need binutils that support .loc view >= 2.30
-%if %{?fedora} >= 29
+%if %{?fedora} >= 29 || 0%{?rhel} >= 8
 Requires: binutils >= 2.30
 %else
 Requires: binutils >= 2.24
@@ -1886,7 +1886,7 @@ cd obj-%{gcc_target_platform}
 
 # run the tests.
 make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ \
-%if 0%{?fedora} >= 20
+%if 0%{?fedora} >= 20 || 0%{?rhel} >= 8
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector-strong}'" || :
 %else
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
@@ -3064,7 +3064,14 @@ fi
 %endif
 
 %changelog
+* Mon Mar 12 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.18
+- update from the trunk
+  - PRs c++/84355, c++/84802, c++/84813, debug/58150, fortran/83939,
+	fortran/84546, rtl-optimization/84780, tree-optimization/83456,
+	tree-optimization/84777, tree-optimization/84803
 - add pconfigintrin.h and wbnoinvdintrin.h headers (#1554279)
+- fix -march=knl from emitting AVX512VL instructions (PR target/84786)
+- fix C++ constexpr RANGE_EXPR splitting (PR c++/84808)
 
 * Sat Mar 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.17
 - update from the trunk

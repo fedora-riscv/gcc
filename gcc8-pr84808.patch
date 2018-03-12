@@ -1,0 +1,82 @@
+2018-03-12  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/84808
+	* constexpr.c (find_array_ctor_elt): Don't use elt reference after
+	first potential CONSTRUCTOR_ELTS reallocation.  Convert dindex to
+	sizetype.  Formatting fixes.
+
+	* g++.dg/cpp1y/constexpr-84808.C: New test.
+
+--- gcc/cp/constexpr.c.jj	2018-03-07 22:52:02.000000000 +0100
++++ gcc/cp/constexpr.c	2018-03-12 12:39:46.890321137 +0100
+@@ -2194,9 +2194,9 @@ find_array_ctor_elt (tree ary, tree dind
+      that the same is true of the other elements and index directly.  */
+   if (end > 0)
+     {
+-      tree cindex = (*elts)[end-1].index;
++      tree cindex = (*elts)[end - 1].index;
+       if (TREE_CODE (cindex) == INTEGER_CST
+-	  && compare_tree_int (cindex, end-1) == 0)
++	  && compare_tree_int (cindex, end - 1) == 0)
+ 	{
+ 	  if (i < end)
+ 	    return i;
+@@ -2225,6 +2225,8 @@ find_array_ctor_elt (tree ary, tree dind
+ 	      constructor_elt e;
+ 	      tree lo = TREE_OPERAND (idx, 0);
+ 	      tree hi = TREE_OPERAND (idx, 1);
++	      tree value = elt.value;
++	      dindex = fold_convert (sizetype, dindex);
+ 	      if (tree_int_cst_lt (lo, dindex))
+ 		{
+ 		  /* There are still some lower elts; shorten the range.  */
+@@ -2238,7 +2240,7 @@ find_array_ctor_elt (tree ary, tree dind
+ 		  /* Append the element we want to insert.  */
+ 		  ++middle;
+ 		  e.index = dindex;
+-		  e.value = unshare_constructor (elt.value);
++		  e.value = unshare_constructor (value);
+ 		  vec_safe_insert (CONSTRUCTOR_ELTS (ary), middle, e);
+ 		}
+ 	      else
+@@ -2254,8 +2256,8 @@ find_array_ctor_elt (tree ary, tree dind
+ 		    e.index = hi;
+ 		  else
+ 		    e.index = build2 (RANGE_EXPR, sizetype, new_lo, hi);
+-		  e.value = unshare_constructor (elt.value);
+-		  vec_safe_insert (CONSTRUCTOR_ELTS (ary), middle+1, e);
++		  e.value = unshare_constructor (value);
++		  vec_safe_insert (CONSTRUCTOR_ELTS (ary), middle + 1, e);
+ 		}
+ 	    }
+ 	  return middle;
+--- gcc/testsuite/g++.dg/cpp1y/constexpr-84808.C.jj	2018-03-12 12:45:29.472374837 +0100
++++ gcc/testsuite/g++.dg/cpp1y/constexpr-84808.C	2018-03-12 12:46:11.742381465 +0100
+@@ -0,0 +1,27 @@
++// PR c++/84808
++// { dg-do compile { target c++14 } }
++
++struct A { int i; constexpr A () : i() {} };
++struct B { A a[24]; };
++
++constexpr int
++foo (int n)
++{
++  B b;
++  ++b.a[n + 20].i;
++  ++b.a[n + 18].i;
++  ++b.a[n + 16].i;
++  ++b.a[n + 14].i;
++  ++b.a[n + 12].i;
++  ++b.a[n + 10].i;
++  ++b.a[n + 8].i;
++  ++b.a[n + 6].i;
++  ++b.a[n + 4].i;
++  ++b.a[n + 2].i;
++  ++b.a[n].i;
++  return b.a[2].i + b.a[4].i + b.a[6].i + b.a[8].i + b.a[10].i
++	 + b.a[12].i + b.a[14].i + b.a[16].i + b.a[18].i + b.a[20].i + b.a[22].i;
++}
++
++constexpr int i = foo (2);
++static_assert (i == 11, "");
