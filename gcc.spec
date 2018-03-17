@@ -1,10 +1,10 @@
-%global DATE 20180312
-%global SVNREV 258461
+%global DATE 20180317
+%global SVNREV 258622
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.18
+%global gcc_release 0.19
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -245,8 +245,6 @@ Patch9: gcc8-aarch64-async-unw-tables.patch
 Patch10: gcc8-foffload-default.patch
 Patch11: gcc8-Wno-format-security.patch
 Patch12: gcc8-rh1512529-aarch64.patch
-Patch13: gcc8-pr84786.patch
-Patch14: gcc8-pr84808.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -806,8 +804,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .foffload-default~
 %patch11 -p0 -b .Wno-format-security~
 %patch12 -p0 -b .rh1512529-aarch64~
-%patch13 -p0 -b .pr84786~
-%patch14 -p0 -b .pr84808~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3068,6 +3064,21 @@ fi
 %endif
 
 %changelog
+* Sat Mar 17 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.19
+- update from the trunk
+  - PRs ada/82813, c++/79085, c++/79937, c++/80227, c++/81236, c++/82336,
+	c++/82410, c++/82565, c++/83911, c++/83916, c++/83937, c++/84222,
+	c++/84720, c++/84798, c++/84801, c++/84820, c++/84839, c++/84843,
+	c++/84874, c++/84906, c/46921, c/84852, c/84853, c/84873, c/84909,
+	c/84910, fortran/61775, fortran/69395, fortran/78741, ipa/84658,
+	ipa/84722, ipa/8480, ipa/84833, libgfortran/84880, libstdc++/78420,
+	libstdc++/83662, libstdc++/84773, lto/84805, middle-end/84831,
+	middle-end/84834, sanitizer/83392, target/68256, target/78090,
+	target/83451, target/84574, target/84711, target/84743, target/84827,
+	target/84828, target/84844, target/84860, target/84876, target/84899,
+	target/84902, tree-optimization/84725, tree-optimization/84830,
+	tree-optimization/84841
+
 * Mon Mar 12 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.18
 - update from the trunk
   - PRs c++/84355, c++/84802, c++/84813, debug/58150, fortran/83939,
