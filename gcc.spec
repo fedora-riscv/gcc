@@ -1,10 +1,10 @@
-%global DATE 20180317
-%global SVNREV 258622
+%global DATE 20180324
+%global SVNREV 258832
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.19
+%global gcc_release 0.20
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -1003,14 +1003,19 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch s390 s390x
 %if 0%{?rhel} >= 7
-	--with-arch=z196 --with-tune=zEC12 --enable-decimal-float \
+%if 0%{?rhel} >= 8
+	--with-arch=zEC12 --with-tune=z13 \
+%else
+	--with-arch=z196 --with-tune=zEC12 \
+%endif
 %else
 %if 0%{?fedora} >= 26
-	--with-arch=zEC12 --with-tune=z13 --enable-decimal-float \
+	--with-arch=zEC12 --with-tune=z13 \
 %else
-	--with-arch=z9-109 --with-tune=z10 --enable-decimal-float \
+	--with-arch=z9-109 --with-tune=z10 \
 %endif
 %endif
+	--enable-decimal-float \
 %endif
 %ifarch armv7hl
 	--with-tune=generic-armv7-a --with-arch=armv7-a \
@@ -3064,6 +3069,32 @@ fi
 %endif
 
 %changelog
+* Sat Mar 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.20
+- update from the trunk
+  - PRs ada/85007, ada/85036, bootstrap/84856, c++/71251, c++/71638,
+	c++/71834, c++/71965, c++/78489, c++/81311, c++/84610, c++/84642,
+	c++/84729, c++/84789, c++/84804, c++/84812, c++/84835, c++/84836,
+	c++/84850, c++/84854, c++/84892, c++/84925, c++/84927, c++/84937,
+	c++/84942, c++/84961, c++/84962, c++/84970, c++/84972, c++/84978,
+	c++/84994, c++/85008, c++/85015, c++/85033, c++/85045, c/80778,
+	c/84953, c/84999, debug/84875, debug/85020, fortran/65453,
+	fortran/77414, fortran/79929, fortran/84615, fortran/84922,
+	fortran/84931, fortran/84957, fortran/85001, inline-asm/84941,
+	inline-asm/85022, inline-asm/85030, inline-asm/85034, ipa/84825,
+	ipa/84963, libstdc++/77691, libstdc++/84998, rtl-optimization/84635,
+	rtl-optimization/84643, rtl-optimization/84989, sanitizer/78651,
+	sanitizer/84761, sanitizer/85018, sanitizer/85029, target/81647,
+	target/82518, target/82989, target/83789, target/84760, target/84826,
+	target/84838, target/84845, target/84945, target/84952, target/84954,
+	target/84986, target/84988, target/84990, target/85025, target/85026,
+	tree-optimization/83126, tree-optimization/84811,
+	tree-optimization/84859, tree-optimization/84913,
+	tree-optimization/84929, tree-optimization/84933,
+	tree-optimization/84946, tree-optimization/84956,
+	tree-optimization/84960, tree-optimization/84969,
+	tree-optimization/84982
+  - fix std::less etc. (#1559171, PR libstdc++/85040)
+
 * Sat Mar 17 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.19
 - update from the trunk
   - PRs ada/82813, c++/79085, c++/79937, c++/80227, c++/81236, c++/82336,
@@ -3071,7 +3102,7 @@ fi
 	c++/84720, c++/84798, c++/84801, c++/84820, c++/84839, c++/84843,
 	c++/84874, c++/84906, c/46921, c/84852, c/84853, c/84873, c/84909,
 	c/84910, fortran/61775, fortran/69395, fortran/78741, ipa/84658,
-	ipa/84722, ipa/8480, ipa/84833, libgfortran/84880, libstdc++/78420,
+	ipa/84722, ipa/84805, ipa/84833, libgfortran/84880, libstdc++/78420,
 	libstdc++/83662, libstdc++/84773, lto/84805, middle-end/84831,
 	middle-end/84834, sanitizer/83392, target/68256, target/78090,
 	target/83451, target/84574, target/84711, target/84743, target/84827,
