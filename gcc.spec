@@ -1,10 +1,10 @@
-%global DATE 20180324
-%global SVNREV 258832
+%global DATE 20180410
+%global SVNREV 259284
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.20
+%global gcc_release 0.21
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -241,10 +241,10 @@ Patch5: gcc8-libtool-no-rpath.patch
 Patch6: gcc8-isl-dl.patch
 Patch7: gcc8-libstdc++-docs.patch
 Patch8: gcc8-no-add-needed.patch
-Patch9: gcc8-aarch64-async-unw-tables.patch
-Patch10: gcc8-foffload-default.patch
-Patch11: gcc8-Wno-format-security.patch
-Patch12: gcc8-rh1512529-aarch64.patch
+Patch9: gcc8-foffload-default.patch
+Patch10: gcc8-Wno-format-security.patch
+Patch11: gcc8-rh1512529-aarch64.patch
+Patch12: gcc8-pr85300.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -800,10 +800,10 @@ to NVidia PTX capable devices if available.
 %patch7 -p0 -b .libstdc++-docs~
 %endif
 %patch8 -p0 -b .no-add-needed~
-%patch9 -p0 -b .aarch64-async-unw-tables~
-%patch10 -p0 -b .foffload-default~
-%patch11 -p0 -b .Wno-format-security~
-%patch12 -p0 -b .rh1512529-aarch64~
+%patch9 -p0 -b .foffload-default~
+%patch10 -p0 -b .Wno-format-security~
+%patch11 -p0 -b .rh1512529-aarch64~
+%patch12 -p0 -b .pr85300~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3069,6 +3069,48 @@ fi
 %endif
 
 %changelog
+* Tue Apr 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.21
+- update from the trunk
+  - PRs c++/24314, c++/64095, c++/65923, c++/80026, c++/80956, c++/82152,
+	c++/83808, c++/84221, c++/84269, c++/84606, c++/84632, c++/84665,
+	c++/84768, c++/84791, c++/84792, c++/84936, c++/84938, c++/84943,
+	c++/84968, c++/84973, c++/84979, c++/85006, c++/85021, c++/85027,
+	c++/85028, c++/85049, c++/85060, c++/85061, c++/85062, c++/85067,
+	c++/85068, c++/85076, c++/85077, c++/85092, c++/85093, c++/85108,
+	c++/85110, c++/85113, c++/85118, c++/85133, c++/85134, c++/85135,
+	c++/85136, c++/85140, c++/85141, c++/85146, c++/85147, c++/85148,
+	c++/85149, c++/85194, c++/85200, c++/85208, c++/85209, c++/85210,
+	c++/85214, c++/85215, c++/85227, c++/85228, c++/85240, c++/85242,
+	c++/85256, c++/85262, c++/85264, c++/85277, c++/85279, c++/85285,
+	c++/85312, c/85094, debug/65821, debug/85252, fortran/42651,
+	fortran/51260, fortran/66709, fortran/69497, fortran/70068,
+	fortran/83064, fortran/84924, fortran/85083, fortran/85084,
+	fortran/85102, fortran/85111, fortran/85130, fortran/85313, gas/22318,
+	inline-asm/84985, inline-asm/85172, ipa/84947, libfortran/85166,
+	libfortran/85253, libstdc++/85183, libstdc++/85222, lto/84995,
+	lto/85078, lto/85176, lto/85248, middle-end/82976, middle-end/84067,
+	middle-end/85090, middle-end/85180, middle-end/85195,
+	middle-end/85244, other/84819, other/85161, rtl-optimization/80463,
+	rtl-optimization/83480, rtl-optimization/83530,
+	rtl-optimization/83913, rtl-optimization/83962,
+	rtl-optimization/83972, rtl-optimization/84058,
+	rtl-optimization/84872, rtl-optimization/84878,
+	rtl-optimization/85167, sanitizer/85081, sanitizer/85174,
+	sanitizer/85213, target/80546, target/81863, target/83009,
+	target/83315, target/83822, target/84041, target/84413, target/84912,
+	target/84914, target/85044, target/85056, target/85073, target/85095,
+	target/85100, target/85126, target/85169, target/85173, target/85177,
+	target/85193, target/85196, target/85203, target/85204, target/85255,
+	testsuite/82847, testsuite/83462, testsuite/84004, testsuite/85066,
+	testsuite/85154, testsuite/85189, testsuite/85190, testsuite/85191,
+	tree-optimization/80021, tree-optimization/82004,
+	tree-optimization/84005, tree-optimization/84818,
+	tree-optimization/85063, tree-optimization/85082,
+	tree-optimization/85156, tree-optimization/85168,
+	tree-optimization/85257, tree-optimization/85284,
+	tree-optimization/85286
+- fix combine ICE with -g (PR rtl-optimization/85300)
+
 * Sat Mar 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.20
 - update from the trunk
   - PRs ada/85007, ada/85036, bootstrap/84856, c++/71251, c++/71638,
