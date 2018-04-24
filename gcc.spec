@@ -1,10 +1,10 @@
-%global DATE 20180410
-%global SVNREV 259284
+%global DATE 20180424
+%global SVNREV 259617
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.21
+%global gcc_release 0.22
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -244,7 +244,8 @@ Patch8: gcc8-no-add-needed.patch
 Patch9: gcc8-foffload-default.patch
 Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
-Patch12: gcc8-pr85300.patch
+Patch12: gcc8-pr85437.patch
+Patch13: gcc8-mcet.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -803,7 +804,8 @@ to NVidia PTX capable devices if available.
 %patch9 -p0 -b .foffload-default~
 %patch10 -p0 -b .Wno-format-security~
 %patch11 -p0 -b .rh1512529-aarch64~
-%patch12 -p0 -b .pr85300~
+%patch12 -p0 -b .pr85437~
+%patch13 -p0 -b .mcet~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3069,6 +3071,36 @@ fi
 %endif
 
 %changelog
+* Tue Apr 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.22
+- update from the trunk
+  - PRs c++/69560, c++/70808, c++/80290, c++/84463, c++/84611, c++/84630,
+	c++/85032, c++/85039, c++/85112, c++/85258, c++/85356, c++/85385,
+	c++/85462, c++/85464, c++/85470, c/85365, debug/83157, debug/84637,
+	debug/85302, fortran/81773, fortran/83606, fortran/85387, ipa/84149,
+	ipa/85329, ipa/85391, ipa/85421, jit/85384, libgcc/85334,
+	libgcc/85379, libgomp/85463, libstdc++/84442, libstdc++/85442,
+	lto/71991, lto/81968, lto/85339, lto/85371, lto/85391, lto/85405,
+	middle-end/81657, middle-end/84955, middle-end/85414,
+	middle-end/85455, middle-end/85475, middle-end/85496, objc/85476,
+	rtl-optimization/79916, rtl-optimization/83852,
+	rtl-optimization/84566, rtl-optimization/84659,
+	rtl-optimization/85342, rtl-optimization/85354,
+	rtl-optimization/85376, rtl-optimization/85393,
+	rtl-optimization/85423, rtl-optimization/85431, sanitizer/85230,
+	sanitizer/85389, target/81084, target/83402, target/83660,
+	target/84301, target/84331, target/85080, target/85238, target/85261,
+	target/85281, target/85287, target/85291, target/85293, target/85296,
+	target/85321, target/85328, target/85347, target/85388, target/85397,
+	target/85403, target/85404, target/85417, target/85424, target/85430,
+	target/85445, target/85456, target/85469, target/85485, target/85489,
+	target/85491, target/85503, target/85508, target/85511,
+	testsuite/85326, testsuite/85346, testsuite/85483,
+	tree-optimization/82965, tree-optimization/83991,
+	tree-optimization/84737, tree-optimization/85331,
+	tree-optimization/85446, tree-optimization/85467,
+	tree-optimization/85478
+- temporarily readd -mcet as alias to -mshstk
+
 * Tue Apr 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.21
 - update from the trunk
   - PRs c++/24314, c++/64095, c++/65923, c++/80026, c++/80956, c++/82152,

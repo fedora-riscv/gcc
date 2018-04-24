@@ -1,0 +1,332 @@
+2018-04-24  Nathan Sidwell  <nathan@acm.org>
+
+	PR c++/85437
+	PR c++/49171
+	* cp-tree.h (REINTERPRET_CAST_P): New.
+	* constexpr.c (cxx_eval_constant_expression) <case NOP_EXPR>:
+	Reject REINTERPET_CAST_P conversions.  Use cplus_expand_constant
+	for non-trivial PTRMEM_CST cases.
+	* typeck.c (build_nop_reinterpret): New.
+	(build_reinterpret_cast_1): Use it.  Set REINTERPRET_CAST_P on
+	NOP_EXPRs returned by cp_convert.
+
+2018-04-24  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/85437
+	PR c++/49171
+	* g++.dg/cpp0x/addressof1.C: Make reinterpret cases runtime checks.
+	* g++.dg/cpp0x/constexpr-cast.C: Remove xfails
+	* g++.dg/cpp0x/constexpr-nullptr-2.C: Likewise.
+	* g++.dg/cpp0x/constexpr-pmf1.C: Check when optimized.
+	* g++.dg/cpp0x/pr85437-1.C: New.
+	* g++.dg/cpp0x/pr85437-2.C: New.
+	* g++.dg/cpp0x/pr85437-3.C: New.
+	* g++.dg/cpp0x/pr85437-4.C: New.
+
+--- gcc/cp/constexpr.c	(revision 259592)
++++ gcc/cp/constexpr.c	(working copy)
+@@ -1822,8 +1822,8 @@ reduced_constant_expression_p (tree t)
+ }
+ 
+ /* Some expressions may have constant operands but are not constant
+-   themselves, such as 1/0.  Call this function (or rather, the macro
+-   following it) to check for that condition.
++   themselves, such as 1/0.  Call this function to check for that
++   condition.
+ 
+    We only call this in places that require an arithmetic constant, not in
+    places where we might have a non-constant expression that can be a
+@@ -4579,9 +4579,18 @@ cxx_eval_constant_expression (const cons
+ 				       non_constant_p, overflow_p);
+       break;
+ 
++    case NOP_EXPR:
++      if (REINTERPRET_CAST_P (t))
++	{
++	  if (!ctx->quiet)
++	    error_at (EXPR_LOC_OR_LOC (t, input_location),
++		      "a reinterpret_cast is not a constant expression");
++	  *non_constant_p = true;
++	  return t;
++	}
++      /* FALLTHROUGH.  */
+     case CONVERT_EXPR:
+     case VIEW_CONVERT_EXPR:
+-    case NOP_EXPR:
+     case UNARY_PLUS_EXPR:
+       {
+ 	tree oldop = TREE_OPERAND (t, 0);
+@@ -4595,20 +4604,13 @@ cxx_eval_constant_expression (const cons
+ 	if (TREE_CODE (op) == PTRMEM_CST
+ 	    && !TYPE_PTRMEM_P (type))
+ 	  op = cplus_expand_constant (op);
++
+ 	if (TREE_CODE (op) == PTRMEM_CST && tcode == NOP_EXPR)
+ 	  {
+-	    if (same_type_ignoring_top_level_qualifiers_p (type,
+-							   TREE_TYPE (op))
+-		|| can_convert_qual (type, op))
+-	      return cp_fold_convert (type, op);
+-	    else
+-	      {
+-		if (!ctx->quiet)
+-		  error_at (EXPR_LOC_OR_LOC (t, input_location),
+-			    "a reinterpret_cast is not a constant expression");
+-		*non_constant_p = true;
+-		return t;
+-	      }
++	    if (!same_type_ignoring_top_level_qualifiers_p (type, TREE_TYPE (op))
++		&& !can_convert_qual (type, op))
++	      op = cplus_expand_constant (op);
++	    return cp_fold_convert (type, op);
+ 	  }
+ 
+ 	if (POINTER_TYPE_P (type) && TREE_CODE (op) == INTEGER_CST)
+@@ -4653,14 +4655,17 @@ cxx_eval_constant_expression (const cons
+ 		return t;
+ 	      }
+ 	  }
++
+ 	if (op == oldop && tcode != UNARY_PLUS_EXPR)
+ 	  /* We didn't fold at the top so we could check for ptr-int
+ 	     conversion.  */
+ 	  return fold (t);
++
+ 	if (tcode == UNARY_PLUS_EXPR)
+ 	  r = fold_convert (TREE_TYPE (t), op);
+ 	else
+ 	  r = fold_build1 (tcode, type, op);
++
+ 	/* Conversion of an out-of-range value has implementation-defined
+ 	   behavior; the language considers it different from arithmetic
+ 	   overflow, which is undefined.  */
+--- gcc/cp/cp-tree.h	(revision 259592)
++++ gcc/cp/cp-tree.h	(working copy)
+@@ -372,6 +372,7 @@ extern GTY(()) tree cp_global_trees[CPTI
+       TEMPLATE_TYPE_PARM_FOR_CLASS (TEMPLATE_TYPE_PARM)
+       DECL_NAMESPACE_INLINE_P (in NAMESPACE_DECL)
+       SWITCH_STMT_ALL_CASES_P (in SWITCH_STMT)
++      REINTERPRET_CAST_P (in NOP_EXPR)
+       ALIGNOF_EXPR_STD_P (in ALIGNOF_EXPR)
+    1: IDENTIFIER_KIND_BIT_1 (in IDENTIFIER_NODE)
+       TI_PENDING_TEMPLATE_FLAG.
+@@ -632,6 +633,11 @@ typedef struct ptrmem_cst * ptrmem_cst_t
+ #define COND_EXPR_IS_VEC_DELETE(NODE) \
+   TREE_LANG_FLAG_0 (COND_EXPR_CHECK (NODE))
+ 
++/* Nonzero if this NOP_EXPR is a reinterpret_cast.  Such conversions
++   are not constexprs.  Other NOP_EXPRs are.  */
++#define REINTERPRET_CAST_P(NODE)		\
++  TREE_LANG_FLAG_0 (NOP_EXPR_CHECK (NODE))
++
+ /* Returns nonzero iff TYPE1 and TYPE2 are the same type, in the usual
+    sense of `same'.  */
+ #define same_type_p(TYPE1, TYPE2) \
+--- gcc/cp/typeck.c	(revision 259592)
++++ gcc/cp/typeck.c	(working copy)
+@@ -7280,6 +7280,18 @@ convert_member_func_to_ptr (tree type, t
+   return build_nop (type, expr);
+ }
+ 
++/* Build a NOP_EXPR to TYPE, but mark it as a reinterpret_cast so that
++   constexpr evaluation knows to reject it.  */
++
++static tree
++build_nop_reinterpret (tree type, tree expr)
++{
++  tree ret = build_nop (type, expr);
++  if (ret != expr)
++    REINTERPRET_CAST_P (ret) = true;
++  return ret;
++}
++
+ /* Return a representation for a reinterpret_cast from EXPR to TYPE.
+    If C_CAST_P is true, this reinterpret cast is being done as part of
+    a C-style cast.  If VALID_P is non-NULL, *VALID_P is set to
+@@ -7414,7 +7426,7 @@ build_reinterpret_cast_1 (tree type, tre
+ 	warning (OPT_Wcast_function_type,
+ 		 "cast between incompatible function types"
+ 		 " from %qH to %qI", intype, type);
+-      return build_nop (type, expr);
++      return build_nop_reinterpret (type, expr);
+     }
+   else if (TYPE_PTRMEMFUNC_P (type) && TYPE_PTRMEMFUNC_P (intype))
+     {
+@@ -7425,7 +7437,7 @@ build_reinterpret_cast_1 (tree type, tre
+ 	warning (OPT_Wcast_function_type,
+ 		 "cast between incompatible pointer to member types"
+ 		 " from %qH to %qI", intype, type);
+-      return build_nop (type, expr);
++      return build_nop_reinterpret (type, expr);
+     }
+   else if ((TYPE_PTRDATAMEM_P (type) && TYPE_PTRDATAMEM_P (intype))
+ 	   || (TYPE_PTROBV_P (type) && TYPE_PTROBV_P (intype)))
+@@ -7451,7 +7463,7 @@ build_reinterpret_cast_1 (tree type, tre
+ 	/* strict_aliasing_warning STRIP_NOPs its expr.  */
+ 	strict_aliasing_warning (EXPR_LOCATION (expr), type, expr);
+ 
+-      return build_nop (type, expr);
++      return build_nop_reinterpret (type, expr);
+     }
+   else if ((TYPE_PTRFN_P (type) && TYPE_PTROBV_P (intype))
+ 	   || (TYPE_PTRFN_P (intype) && TYPE_PTROBV_P (type)))
+@@ -7462,7 +7474,7 @@ build_reinterpret_cast_1 (tree type, tre
+ 	warning (OPT_Wconditionally_supported,
+ 		 "casting between pointer-to-function and pointer-to-object "
+ 		 "is conditionally-supported");
+-      return build_nop (type, expr);
++      return build_nop_reinterpret (type, expr);
+     }
+   else if (VECTOR_TYPE_P (type))
+     return convert_to_vector (type, expr);
+@@ -7478,7 +7490,11 @@ build_reinterpret_cast_1 (tree type, tre
+       return error_mark_node;
+     }
+ 
+-  return cp_convert (type, expr, complain);
++  expr = cp_convert (type, expr, complain);
++  if (TREE_CODE (expr) == NOP_EXPR)
++    /* Mark any nop_expr that created as a reintepret_cast.  */
++    REINTERPRET_CAST_P (expr) = true;
++  return expr;
+ }
+ 
+ tree
+--- gcc/testsuite/g++.dg/cpp0x/addressof1.C	(revision 259592)
++++ gcc/testsuite/g++.dg/cpp0x/addressof1.C	(working copy)
+@@ -18,9 +18,7 @@ static_assert (addressof (j) == &i, "");
+ 
+ struct S { int s; } s;
+ static_assert (__builtin_addressof (s) == &s, "");
+-static_assert ((int *) __builtin_addressof (s) == &s.s, "");
+ static_assert (addressof (s) == &s, "");
+-static_assert ((int *) addressof (s) == &s.s, "");
+ 
+ struct T
+ {
+@@ -31,9 +29,7 @@ struct T
+ };
+ constexpr T t;
+ T T::tt;
+-static_assert (__builtin_addressof (t) == (const T *) &t.p, "");
+ static_assert (&t == __builtin_addressof (T::tt), "");
+-static_assert (addressof (t) == (const T *) &t.p, "");
+ static_assert (&t == addressof (T::tt), "");
+ 
+ struct S x, y;
+@@ -76,8 +72,6 @@ constexpr int a = 1;
+ static_assert (__builtin_addressof (a) == &a, "");
+ static_assert (addressof (a) == &a, "");
+ constexpr int c[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+-static_assert ((const int *) __builtin_addressof (c) == &c[0], "");
+-static_assert ((const int *) addressof (c) == &c[0], "");
+ 
+ void
+ baz ()
+@@ -93,4 +87,15 @@ main ()
+       || __builtin_addressof (baz) != baz
+       || addressof (baz) != baz)
+     __builtin_abort ();
++
++  // reinterpret casts are not constexprs
++  if (! (((int *) __builtin_addressof (s) == &s.s)
++	 && ((int *) addressof (s) == &s.s)
++	 && (__builtin_addressof (t) == (const T *) &t.p)
++	 && (addressof (t) == (const T *) &t.p)
++	 && ((const int *) __builtin_addressof (c) == &c[0])
++	 && ((const int *) addressof (c) == &c[0])))
++    __builtin_abort ();
++
++  return 0;
+ }
+--- gcc/testsuite/g++.dg/cpp0x/constexpr-cast.C	(revision 259592)
++++ gcc/testsuite/g++.dg/cpp0x/constexpr-cast.C	(working copy)
+@@ -4,8 +4,8 @@
+ 
+ int i;
+ 
+-// The following is accepted due to bug 49171.
+-constexpr void *q = reinterpret_cast<void*>(&i);    // { dg-error "" "bug c++/49171" { xfail *-*-* } }
++// The following was accepted due to bug 49171.
++constexpr void *q = reinterpret_cast<void*>(&i);    // { dg-error "not a constant expression" }
+ 
+ constexpr void *r0 = reinterpret_cast<void*>(1);    // { dg-error "not a constant expression|reinterpret_cast from integer to pointer" }
+ constexpr void *r1 = reinterpret_cast<void*>(sizeof 'x');  // { dg-error ".reinterpret_cast<void\\*>\\(1\[ul\]\*\\). is not a constant expression" }
+--- gcc/testsuite/g++.dg/cpp0x/constexpr-nullptr-2.C	(revision 259592)
++++ gcc/testsuite/g++.dg/cpp0x/constexpr-nullptr-2.C	(working copy)
+@@ -99,9 +99,8 @@ constexpr const volatile void* pv3 = p0;
+ constexpr void* pv4 = static_cast<void*>(p0);
+ constexpr const void* pv5 = static_cast<const void*>(p0);
+ 
+-// The following should be rejected but isn't because of bug c++/49171
+-// - [C++0x][constexpr] Constant expressions support reinterpret_cast
+-constexpr void* pv6 = reinterpret_cast<void*>(p0);   // { dg-error "" "bug c++/49171" { xfail *-*-* } }
++// The following was accepted due to bug c++/49171
++constexpr void* pv6 = reinterpret_cast<void*>(p0);   // { dg-error "not a constant expression" }
+ 
+ // Adding or subtracting zero from a null pointer is valid in C++.
+ constexpr int* p1 = p0 + 0;
+--- gcc/testsuite/g++.dg/cpp0x/constexpr-pmf1.C	(revision 259592)
++++ gcc/testsuite/g++.dg/cpp0x/constexpr-pmf1.C	(working copy)
+@@ -1,6 +1,6 @@
+ // PR c++/77775
+-// { dg-options -fdump-tree-gimple }
+-// { dg-final { scan-tree-dump "== viewAdded" "gimple" { target c++11 } } }
++// { dg-options "-fdump-tree-fre1 -O1" }
++// { dg-final { scan-tree-dump "== viewAdded" "fre1" { target c++11 } } }
+ 
+ namespace Sublime {
+ struct View;
+--- gcc/testsuite/g++.dg/cpp0x/pr85437-1.C	(revision 0)
++++ gcc/testsuite/g++.dg/cpp0x/pr85437-1.C	(working copy)
+@@ -0,0 +1,17 @@
++// PR c++/85437
++// { dg-do compile { target c++11 } }
++
++struct A { int a; constexpr A() : a(0) {} };
++struct B : A { int x; constexpr B() : x(0) {} };
++struct X { int z; constexpr X() : z(0) {} };
++struct C : X, B {};
++constexpr int C::*cbx = &B::x;
++constexpr int B::*bx = &B::x;
++constexpr int A::*abx = static_cast<int(A::*)>(&B::x);	// { dg-bogus "not a constant expression" }
++
++constexpr const C y;
++constexpr const B& yb = y;
++constexpr const A& ya = y;
++constexpr int const *pcbx = &(y.*cbx);
++constexpr int const *pbx = &(y.*bx);
++constexpr int const *pabx = &(ya.*abx);
+--- gcc/testsuite/g++.dg/cpp0x/pr85437-2.C	(revision 0)
++++ gcc/testsuite/g++.dg/cpp0x/pr85437-2.C	(working copy)
+@@ -0,0 +1,8 @@
++// PR c++/85437
++// { dg-do compile { target c++11 } }
++
++struct A { };
++struct B : A { int x; };
++
++constexpr int A::*abx
++= reinterpret_cast<int(A::*)>(&B::x); // { dg-error "reinterpret.*constant" }
+--- gcc/testsuite/g++.dg/cpp0x/pr85437-3.C	(revision 0)
++++ gcc/testsuite/g++.dg/cpp0x/pr85437-3.C	(working copy)
+@@ -0,0 +1,8 @@
++// PR c++/85437
++// { dg-do compile { target c++11 } }
++
++struct A { int y; };
++struct B { int x; };
++struct C : A, B {};
++constexpr int C::*pci = &B::x;
++constexpr int A::*pai = static_cast<int A::*>(static_cast<int C::*>(&B::x)); // { dg-bogus "not a constant expression" }
+--- gcc/testsuite/g++.dg/cpp0x/pr85437-4.C	(revision 0)
++++ gcc/testsuite/g++.dg/cpp0x/pr85437-4.C	(working copy)
+@@ -0,0 +1,8 @@
++// PR c++/85437
++// { dg-do compile { target c++11 } }
++
++struct A { };
++struct B { int x; };
++struct C : A, B {};
++constexpr int C::*pci = &B::x;
++constexpr int A::*pai = static_cast<int A::*>(pci);	// { dg-bogus "not a constant expression" }
