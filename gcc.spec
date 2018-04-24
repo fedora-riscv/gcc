@@ -131,7 +131,7 @@ URL: http://gcc.gnu.org
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
-%if %{?fedora} >= 29 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
 BuildRequires: binutils >= 2.30
 %else
 BuildRequires: binutils >= 2.24
@@ -200,7 +200,7 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support --no-add-needed
 # Need binutils that support -plugin
 # Need binutils that support .loc view >= 2.30
-%if %{?fedora} >= 29 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
 Requires: binutils >= 2.30
 %else
 Requires: binutils >= 2.24
