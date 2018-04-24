@@ -1,7 +1,7 @@
 --- libstdc++-v3/doc/html/index.html.jj	2011-01-03 12:53:21.282829010 +0100
 +++ libstdc++-v3/doc/html/index.html	2011-01-04 18:06:28.999851145 +0100
 @@ -5,6 +5,8 @@
-       <a class="link" href="http://www.fsf.org/" target="_top">FSF
+       <a class="link" href="https://www.fsf.org" target="_top">FSF
        </a>
      </p><p>
 +      Release 8.0.0
@@ -17,7 +17,7 @@
  </p><p>
 -  The API documentation, rendered into HTML, can be viewed online
 +  The API documentation, rendered into HTML, can be viewed locally
-+  <a class="link" href="api/index.html" target="_top">for the 8.0.0 release</a>,
++  <a class="link" href="api/index.html" target="_top">for the 8.0.1 release</a>,
 +  online
    <a class="link" href="http://gcc.gnu.org/onlinedocs/" target="_top">for each GCC release</a>
    and
