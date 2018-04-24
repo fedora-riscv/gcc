@@ -986,6 +986,7 @@ CONFIGURE_OPTS="\
 	--build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=default32
 %endif
 %ifarch %{ix86} x86_64
+	--enable-cet \
 	--with-tune=generic \
 %endif
 %if 0%{?rhel} >= 7
