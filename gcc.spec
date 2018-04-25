@@ -1,10 +1,10 @@
-%global DATE 20180424
-%global SVNREV 259617
+%global DATE 20180425
+%global SVNREV 259651
 %global gcc_version 8.0.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.22
+%global gcc_release 0.23
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -244,8 +244,7 @@ Patch8: gcc8-no-add-needed.patch
 Patch9: gcc8-foffload-default.patch
 Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
-Patch12: gcc8-pr85437.patch
-Patch13: gcc8-mcet.patch
+Patch12: gcc8-mcet.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -804,8 +803,7 @@ to NVidia PTX capable devices if available.
 %patch9 -p0 -b .foffload-default~
 %patch10 -p0 -b .Wno-format-security~
 %patch11 -p0 -b .rh1512529-aarch64~
-%patch12 -p0 -b .pr85437~
-%patch13 -p0 -b .mcet~
+%patch12 -p0 -b .mcet~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2240,6 +2238,7 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avx512bitalgintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/pconfigintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/wbnoinvdintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/movdirintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3072,6 +3071,12 @@ fi
 %endif
 
 %changelog
+* Wed Apr 25 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.23
+- update from the trunk and 8 branch
+  - GCC 8.1 rc1
+  - PR bootstrap/85490, c++/49171, c++/85437, fortran/85520, target/85512
+- include movdirintrin.h header on x86 (#1571808)
+
 * Tue Apr 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.22
 - update from the trunk
   - PRs c++/69560, c++/70808, c++/80290, c++/84463, c++/84611, c++/84630,
