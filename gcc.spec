@@ -1,10 +1,10 @@
-%global DATE 20180425
-%global SVNREV 259651
-%global gcc_version 8.0.1
+%global DATE 20180502
+%global SVNREV 259839
+%global gcc_version 8.1.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.23
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -21,6 +21,7 @@
 %else
 %global build_ada 0
 %endif
+%global build_objc 1
 %ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
 %global build_go 1
 %else
@@ -908,6 +909,10 @@ cd obj-%{gcc_target_platform}
 
 enablelgo=
 enablelada=
+enablelobjc=
+%if %{build_objc}
+enablelobjc=,objc,obj-c++
+%endif
 %if %{build_ada}
 enablelada=,ada
 %endif
@@ -1038,7 +1043,7 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 		  | sed 's/ -Wformat-security / -Wformat -Wformat-security /'`" \
 	XCFLAGS="$OPT_FLAGS" TCFLAGS="$OPT_FLAGS" \
 	../configure --enable-bootstrap \
-	--enable-languages=c,c++,objc,obj-c++,fortran${enablelada}${enablelgo},lto \
+	--enable-languages=c,c++,fortran${enablelobjc}${enablelada}${enablelgo},lto \
 	$CONFIGURE_OPTS
 
 %ifarch sparc sparcv9 sparc64
@@ -1104,9 +1109,11 @@ done)
 (cd libgfortran; for i in ChangeLog*; do
 	cp -p $i ../rpm.doc/gfortran/$i.libgfortran
 done)
+%if %{build_objc}
 (cd libobjc; for i in README*; do
 	cp -p $i ../rpm.doc/objc/$i.libobjc
 done)
+%endif
 %if %{build_libquadmath}
 (cd libquadmath; for i in ChangeLog* COPYING.LIB; do
 	cp -p $i ../rpm.doc/libquadmath/$i.libquadmath
@@ -1357,7 +1364,9 @@ gzip -9 %{buildroot}/%{_infodir}/libgccjit.info
 
 pushd $FULLPATH
 if [ "%{_lib}" = "lib" ]; then
+%if %{build_objc}
 ln -sf ../../../libobjc.so.4 libobjc.so
+%endif
 ln -sf ../../../libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../libgfortran.so.5.* libgfortran.so
 ln -sf ../../../libgomp.so.1.* libgomp.so
@@ -1385,7 +1394,9 @@ ln -sf ../../../libmpx.so.2.* libmpx.so
 ln -sf ../../../libmpxwrappers.so.2.* libmpxwrappers.so
 %endif
 else
+%if %{build_objc}
 ln -sf ../../../../%{_lib}/libobjc.so.4 libobjc.so
+%endif
 ln -sf ../../../../%{_lib}/libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../../%{_lib}/libgfortran.so.5.* libgfortran.so
 ln -sf ../../../../%{_lib}/libgomp.so.1.* libgomp.so
@@ -1427,7 +1438,9 @@ mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++fs.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libsupc++.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgfortran.*a $FULLLPATH/
+%if %{build_objc}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libobjc.*a .
+%endif
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.*a .
 %if %{build_libquadmath}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libquadmath.*a $FULLLPATH/
@@ -1500,7 +1513,9 @@ fi
 %endif
 
 %ifarch sparcv9 ppc
+%if %{build_objc}
 ln -sf ../../../../../lib64/libobjc.so.4 64/libobjc.so
+%endif
 ln -sf ../`echo ../../../../lib/libstdc++.so.6.*[0-9] | sed s~/lib/~/lib64/~` 64/libstdc++.so
 ln -sf ../`echo ../../../../lib/libgfortran.so.5.* | sed s~/lib/~/lib64/~` 64/libgfortran.so
 ln -sf ../`echo ../../../../lib/libgomp.so.1.* | sed s~/lib/~/lib64/~` 64/libgomp.so
@@ -1545,7 +1560,9 @@ echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libmpxwrappers.so.2.* | se
 %endif
 ln -sf lib32/libgfortran.a libgfortran.a
 ln -sf ../lib64/libgfortran.a 64/libgfortran.a
+%if %{build_objc}
 mv -f %{buildroot}%{_prefix}/lib64/libobjc.*a 64/
+%endif
 mv -f %{buildroot}%{_prefix}/lib64/libgomp.*a 64/
 ln -sf lib32/libstdc++.a libstdc++.a
 ln -sf ../lib64/libstdc++.a 64/libstdc++.a
@@ -1596,7 +1613,9 @@ ln -sf ../lib64/adalib 64/adalib
 %endif
 %ifarch %{multilib_64_archs}
 mkdir -p 32
+%if %{build_objc}
 ln -sf ../../../../libobjc.so.4 32/libobjc.so
+%endif
 ln -sf ../`echo ../../../../lib64/libstdc++.so.6.*[0-9] | sed s~/../lib64/~/~` 32/libstdc++.so
 ln -sf ../`echo ../../../../lib64/libgfortran.so.5.* | sed s~/../lib64/~/~` 32/libgfortran.so
 ln -sf ../`echo ../../../../lib64/libgomp.so.1.* | sed s~/../lib64/~/~` 32/libgomp.so
@@ -1639,7 +1658,9 @@ rm -f libmpxwrappers.so
 echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > libmpxwrappers.so
 echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > 32/libmpxwrappers.so
 %endif
+%if %{build_objc}
 mv -f %{buildroot}%{_prefix}/lib/libobjc.*a 32/
+%endif
 mv -f %{buildroot}%{_prefix}/lib/libgomp.*a 32/
 %endif
 %ifarch sparc64 ppc64 ppc64p7
@@ -1798,7 +1819,9 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet
 %endif
+%if %{build_objc}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libobjc.so.4.*
+%endif
 
 %if %{build_ada}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgnarl*so*
@@ -2539,6 +2562,7 @@ fi
 %doc rpm.doc/libstdc++-v3/html
 %endif
 
+%if %{build_objc}
 %files objc
 %dir %{_prefix}/lib/gcc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}
@@ -2572,6 +2596,7 @@ fi
 
 %files -n libobjc
 %{_prefix}/%{_lib}/libobjc.so.4*
+%endif
 
 %files gfortran
 %{_prefix}/bin/gfortran
@@ -3071,6 +3096,13 @@ fi
 %endif
 
 %changelog
+* Wed May  2 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-1
+- update from the 8 branch
+  - GCC 8.1 release
+  - PRs c++/85545, c++/85553, c++/85580, c++/85587, ipa/85549, libgcc/85532,
+	target/85473, target/85519, tree-optimization/85529,
+	tree-optimization/85586, web/85578
+
 * Wed Apr 25 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.23
 - update from the trunk and 8 branch
   - GCC 8.1 rc1
