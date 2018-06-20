@@ -1,10 +1,10 @@
-%global DATE 20180502
-%global SVNREV 259839
+%global DATE 20180620
+%global SVNREV 261822
 %global gcc_version 8.1.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -94,7 +94,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3096,8 +3096,48 @@ fi
 %endif
 
 %changelog
-* Tue Jun 19 2018 Miro Hrončok <mhroncok@redhat.com> - 8.1.1-1.1
-- Rebuilt for Python 3.7
+* Wed Jun 20 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-2
+- update from the 8 branch
+  - PRs ada/85540, ada/85635, bootstrap/85921, c++/61806, c++/80485,
+	c++/81060, c++/81420, c++/85305, c++/85618, c++/85634, c++/85646,
+	c++/85659, c++/85662, c++/85695, c++/85706, c++/85710, c++/85731,
+	c++/85739, c++/85761, c++/85764, c++/85765, c++/85782, c++/85792,
+	c++/85807, c++/85815, c++/85842, c++/85847, c++/85864, c++/85866,
+	c++/85873, c++/85912, c++/85952, c++/85963, c++/85976, c++/86025,
+	c++/86060, c++/86094, c++/86147, c++/86200, c++/86210, c/82063,
+	c/85623, c/85696, c/86093, debug/86194, fortran/38351, fortran/44491,
+	fortran/49636, fortran/63514, fortran/66694, fortran/68846,
+	fortran/70864, fortran/70870, fortran/78278, fortran/78571,
+	fortran/80657, fortran/82275, fortran/82617, fortran/82923,
+	fortran/85138, fortran/85507, fortran/85521, fortran/85542,
+	fortran/85543, fortran/85631, fortran/85641, fortran/85687,
+	fortran/85701, fortran/85702, fortran/85703, fortran/85742,
+	fortran/85779, fortran/85780, fortran/85786, fortran/85816,
+	fortran/85895, fortran/85975, fortran/85981, fortran/85996,
+	fortran/86045, fortran/86051, fortran/86059, fortran/86110, go/85630,
+	ipa/85655, libgfortran/85840, libgfortran/85906, libgfortran/86070,
+	libstdc++/67554, libstdc++/82644, libstdc++/82966, libstdc++/83891,
+	libstdc++/84159, libstdc++/85632, libstdc++/85642, libstdc++/85812,
+	libstdc++/85818, libstdc++/85930, libstdc++/85951, libstdc++/86008,
+	libstdc++/86169, middle-end/85567, middle-end/85588, middle-end/85627,
+	middle-end/85643, middle-end/85874, middle-end/85878,
+	middle-end/86095, middle-end/86122, middle-end/86123,
+	middle-end/86139, other/77609, rtl-optimization/85638,
+	rtl-optimization/86108, sanitizer/85556, sanitizer/85835,
+	sanitizer/86012, target/63177, target/81497, target/85345,
+	target/85591, target/85606, target/85658, target/85683, target/85684,
+	target/85698, target/85733, target/85755, target/85756, target/85829,
+	target/85900, target/85903, target/85945, target/85950, target/85984,
+	target/86003, target/86048, testsuite/85586, tree-optimization/85597,
+	tree-optimization/85615, tree-optimization/85712,
+	tree-optimization/85793, tree-optimization/85814,
+	tree-optimization/85822, tree-optimization/85863,
+	tree-optimization/85934, tree-optimization/85964,
+	tree-optimization/86038, tree-optimization/86114,
+	tree-optimization/86231
+
+* Tue Jun 19 2018 Miro Hrončok <mhroncok@redhat.com> 8.1.1-1.1
+- rebuilt for Python 3.7
 
 * Wed May  2 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-1
 - update from the 8 branch
