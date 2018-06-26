@@ -1,10 +1,10 @@
-%global DATE 20180620
-%global SVNREV 261822
+%global DATE 20180626
+%global SVNREV 262161
 %global gcc_version 8.1.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3096,6 +3096,14 @@ fi
 %endif
 
 %changelog
+* Tue Jun 26 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-3
+- update from the 8 branch
+  - PRs c++/86182, c++/86219, c++/86291, fortran/82972, fortran/83088,
+	fortran/83118, fortran/85851, libgcc/86213, libstdc++/81092,
+	libstdc++/86112, libstdc++/86138, rtl-optimization/85645,
+	target/85358, target/85657, target/85994, target/86197, target/86222,
+	target/86314, tree-optimization/85989
+
 * Wed Jun 20 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-2
 - update from the 8 branch
   - PRs ada/85540, ada/85635, bootstrap/85921, c++/61806, c++/80485,
