@@ -4,7 +4,7 @@
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -815,6 +815,8 @@ cd ..
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
+
+echo 'TM_H += $(srcdir)/config/rs6000/rs6000-modes.h' >> gcc/config/rs6000/t-rs6000
 
 ./contrib/gcc_update --touch
 
@@ -3096,6 +3098,9 @@ fi
 %endif
 
 %changelog
+* Fri Jun 29 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-4
+- make sure rs6000-modes.h is installed for plugins (#1596407)
+
 * Tue Jun 26 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-3
 - update from the 8 branch
   - PRs c++/86182, c++/86219, c++/86291, fortran/82972, fortran/83088,
