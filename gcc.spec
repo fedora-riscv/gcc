@@ -1,10 +1,10 @@
-%global DATE 20180303
-%global SVNREV 258210
+%global DATE 20180712
+%global SVNREV 262599
 %global gcc_version 7.3.1
 %global gcc_major 7
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %{release}, append them after %{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -237,8 +237,7 @@ Patch10: gcc7-foffload-default.patch
 Patch11: gcc7-Wno-format-security.patch
 Patch12: gcc7-aarch64-sanitizer-fix.patch
 Patch13: gcc7-rh1512529-aarch64.patch
-Patch14: gcc7-pr84524.patch
-Patch15: gcc7-pr84128.patch
+Patch14: gcc7-pr84128.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -851,8 +850,7 @@ package or when debugging this package.
 %patch12 -p0 -b .aarch64-sanitizer-fix~
 %endif
 %patch13 -p0 -b .rh1512529-aarch64~
-%patch14 -p0 -b .pr84524~
-%patch15 -p0 -b .pr84128~
+%patch14 -p0 -b .pr84128~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3272,6 +3270,68 @@ fi
 %endif
 
 %changelog
+* Thu Jul 12 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-6
+- update from the 7 branch
+  - PRs ada/82813, c++/64095, c++/71638, c++/71834, c++/78489, c++/79085,
+	c++/80227, c++/80290, c++/80598, c++/82152, c++/82336, c++/84076,
+	c++/84222, c++/84355, c++/84463, c++/84662, c++/84665, c++/84684,
+	c++/84686, c++/84767, c++/84783, c++/84791, c++/84798, c++/84839,
+	c++/84854, c++/84874, c++/84927, c++/84937, c++/84961, c++/85006,
+	c++/85060, c++/85068, c++/85076, c++/85113, c++/85118, c++/85140,
+	c++/85147, c++/85148, c++/85208, c++/85210, c++/85279, c++/85464,
+	c++/85470, c++/85646, c++/85659, c++/85662, c++/85815, c++/85952,
+	c++/86025, c++/86060, c++/86210, c++/86291, c++/86378, c/84229,
+	c/84310, c/84853, c/84873, c/84953, c/84999, c/85696, debug/84875,
+	debug/85252, fortran/38351, fortran/44491, fortran/51434,
+	fortran/56667, fortran/63514, fortran/64124, fortran/65453,
+	fortran/66694, fortran/68846, fortran/70409, fortran/70864,
+	fortran/70870, fortran/71085, fortran/77414, fortran/78278,
+	fortran/78741, fortran/78990, fortran/80657, fortran/80965,
+	fortran/81773, fortran/82275, fortran/82617, fortran/82814,
+	fortran/82923, fortran/82969, fortran/82972, fortran/83076,
+	fortran/83088, fortran/83118, fortran/83149, fortran/83319,
+	fortran/83606, fortran/83898, fortran/83939, fortran/84546,
+	fortran/84734, fortran/84931, fortran/85001, fortran/85084,
+	fortran/85138, fortran/85313, fortran/85507, fortran/85520,
+	fortran/85521, fortran/85542, fortran/85543, fortran/85641,
+	fortran/85687, fortran/85779, fortran/85780, fortran/85851,
+	fortran/85895, fortran/85981, fortran/85996, fortran/86045,
+	fortran/86051, fortran/86059, fortran/86110, fortran/86242,
+	gcov-profile/83879, gcov-profile/84137, hsa/86371, inline-asm/84941,
+	inline-asm/85022, inline-asm/85034, inline-asm/85172, ipa/81360,
+	ipa/84658, ipa/84963, ipa/85655, jit/85384, libgfortran/85840,
+	libgfortran/86070, libstdc++/67554, libstdc++/68397, libstdc++/77691,
+	libstdc++/80506, libstdc++/82966, libstdc++/83662, libstdc++/83982,
+	libstdc++/84087, libstdc++/84769, libstdc++/84773, libstdc++/85098,
+	libstdc++/85222, libstdc++/85442, libstdc++/85632, libstdc++/85671,
+	libstdc++/85812, libstdc++/86127, libstdc++/86138, libstdc++/86169,
+	libstdc++/86272, libstdc++/pr66689, lto/81004, lto/81440, lto/83954,
+	lto/85248, lto/85405, middle-end/82063, middle-end/84607,
+	middle-end/84834, middle-end/84955, middle-end/85244,
+	middle-end/85496, middle-end/85567, middle-end/85588,
+	middle-end/85878, rtl-optimization/82675, rtl-optimization/84878,
+	rtl-optimization/85167, rtl-optimization/85300,
+	rtl-optimization/85431, sanitizer/78651, sanitizer/84761,
+	sanitizer/85018, sanitizer/85081, sanitizer/85389, sanitizer/85835,
+	sanitizer/86012, target/63177, target/79747, target/80546,
+	target/81143, target/81572, target/81647, target/82411, target/82518,
+	target/82989, target/83451, target/83660, target/83789, target/83969,
+	target/83984, target/84209, target/84371, target/84574, target/84700,
+	target/84748, target/84772, target/84786, target/84826, target/84827,
+	target/84860, target/84899, target/84912, target/84990, target/85026,
+	target/85056, target/85095, target/85100, target/85193, target/85196,
+	target/85203, target/85261, target/85424, target/85430, target/85436,
+	target/85698, target/85755, target/85903, target/85904, target/85945,
+	target/86314, testsuite/79455, testsuite/80551,
+	tree-optimization/84485, tree-optimization/84486,
+	tree-optimization/84739, tree-optimization/84841,
+	tree-optimization/84956, tree-optimization/85168,
+	tree-optimization/85257, tree-optimization/85284,
+	tree-optimization/85446, tree-optimization/85529,
+	tree-optimization/85597, tree-optimization/85712,
+	tree-optimization/85989, tree-optimization/86231, web/85578
+  - fix ICE with alias template and default targs (#1598912, PR c++/84785)
+
 * Sat Mar  3 2018 Jakub Jelinek <jakub@redhat.com> 7.3.1-5
 - update from the 7 branch
   - PRs ada/84277, bootstrap/80867, bootstrap/82916, bootstrap/84017,
