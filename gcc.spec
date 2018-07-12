@@ -1,10 +1,10 @@
-%global DATE 20180626
-%global SVNREV 262161
+%global DATE 20180712
+%global SVNREV 262581
 %global gcc_version 8.1.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -94,7 +94,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3098,8 +3098,13 @@ fi
 %endif
 
 %changelog
-* Mon Jul 02 2018 Miro Hrončok <mhroncok@redhat.com> - 8.1.1-4.1
-- Rebuilt for Python 3.7
+* Thu Jul 12 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-5
+- update from the 8 branch
+  - PRs c++/86320, c++/86378, c++/86398, c++/86400, debug/86064,
+	fortran/82865, fortran/82969, fortran/86242, hsa/86371,
+	libstdc++/83982, libstdc++/84087, libstdc++/85098, libstdc++/85671,
+	libstdc++/86127, libstdc++/86272, libstdc++/86292, libstdc++/86398,
+	sanitizer/86406, target/85904, target/86285, tree-optimization/86492
 
 * Fri Jun 29 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-4
 - make sure rs6000-modes.h is installed for plugins (#1596407)
