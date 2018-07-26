@@ -1,10 +1,10 @@
-%global DATE 20180712
-%global SVNREV 262581
-%global gcc_version 8.1.1
+%global DATE 20180726
+%global SVNREV 263019
+%global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -15,6 +15,11 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+%if 0%{?rhel} >= 8
+%global build_ada 0
+%global build_objc 0
+%global build_go 0
+%else
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64
 %global build_ada 1
@@ -26,6 +31,7 @@
 %global build_go 1
 %else
 %global build_go 0
+%endif
 %endif
 %ifarch %{ix86} x86_64 ia64 ppc64le
 %global build_libquadmath 1
@@ -62,10 +68,14 @@
 %else
 %global build_libitm 0
 %endif
+%if 0%{?rhel} >= 8
+%global build_libmpx 0
+%else
 %ifarch %{ix86} x86_64
 %global build_libmpx 1
 %else
 %global build_libmpx 0
+%endif
 %endif
 %global build_isl 1
 %global build_libstdcxx_docs 1
@@ -132,8 +142,9 @@ URL: http://gcc.gnu.org
 # Need binutils which support --no-add-needed >= 2.20.51.0.2-12
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
+# Need binutils which support --generate-missing-build-notes=yes >= 2.31
 %if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
-BuildRequires: binutils >= 2.30
+BuildRequires: binutils >= 2.31
 %else
 BuildRequires: binutils >= 2.24
 %endif
@@ -201,8 +212,9 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support --no-add-needed
 # Need binutils that support -plugin
 # Need binutils that support .loc view >= 2.30
+# Need binutils which support --generate-missing-build-notes=yes >= 2.31
 %if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
-Requires: binutils >= 2.30
+Requires: binutils >= 2.31
 %else
 Requires: binutils >= 2.24
 %endif
@@ -246,6 +258,7 @@ Patch9: gcc8-foffload-default.patch
 Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
 Patch12: gcc8-mcet.patch
+Patch13: gcc8-rh1574936.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -474,7 +487,11 @@ This package contains shared library with GCC JIT front-end.
 %package -n libgccjit-devel
 Summary: Support for embedding GCC inside programs and libraries
 Group: Development/Libraries
+%if 0%{?fedora} > 27 || 0%{?rhel} >= 8
+BuildRequires: python3-sphinx
+%else
 BuildRequires: python-sphinx
+%endif
 Requires: libgccjit = %{version}-%{release}
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
@@ -804,7 +821,12 @@ to NVidia PTX capable devices if available.
 %patch9 -p0 -b .foffload-default~
 %patch10 -p0 -b .Wno-format-security~
 %patch11 -p0 -b .rh1512529-aarch64~
+%if 0%{?fedora} == 28
 %patch12 -p0 -b .mcet~
+%endif
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+%patch13 -p0 -b .rh1574936~
+%endif
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3098,6 +3120,19 @@ fi
 %endif
 
 %changelog
+* Thu Jul 26 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-1
+- update from the 8 branch
+  - GCC 8.2 release
+  - PRs c++/3698, c++/86208, c++/86374, c++/86480, c/86453, debug/86452,
+	debug/86457, fortran/83183, fortran/83184, fortran/86325,
+	fortran/86417, fortran/86421, middle-end/85602, middle-end/85974,
+	middle-end/86076, middle-end/86202, middle-end/86539,
+	middle-end/86542, middle-end/86627, middle-end/86660, target/84829,
+	target/86414, tree-optimization/85935, tree-optimization/86274,
+	tree-optimization/86514
+- add annobin notes to crt*.o and libgcc (#1574936)
+- drop -mcet option alias hack for f29+
+
 * Thu Jul 12 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-5
 - update from the 8 branch
   - PRs c++/86320, c++/86378, c++/86398, c++/86400, debug/86064,
