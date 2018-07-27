@@ -11,12 +11,12 @@
 %global _performance_build 1
 # Hardening slows the compiler way too much.
 %undefine _hardened_build
-%if 0%{?fedora} > 27 || 0%{?rhel} >= 8
+%if 0%{?fedora} > 27 || 0%{?rhel} > 7
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} > 7
 %global build_ada 0
 %global build_objc 0
 %global build_go 0
@@ -68,7 +68,7 @@
 %else
 %global build_libitm 0
 %endif
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} > 7
 %global build_libmpx 0
 %else
 %ifarch %{ix86} x86_64
@@ -143,7 +143,7 @@ URL: http://gcc.gnu.org
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
 # Need binutils which support --generate-missing-build-notes=yes >= 2.31
-%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 BuildRequires: binutils >= 2.31
 %else
 BuildRequires: binutils >= 2.24
@@ -213,7 +213,7 @@ Requires: cpp = %{version}-%{release}
 # Need binutils that support -plugin
 # Need binutils that support .loc view >= 2.30
 # Need binutils which support --generate-missing-build-notes=yes >= 2.31
-%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 Requires: binutils >= 2.31
 %else
 Requires: binutils >= 2.24
@@ -487,7 +487,7 @@ This package contains shared library with GCC JIT front-end.
 %package -n libgccjit-devel
 Summary: Support for embedding GCC inside programs and libraries
 Group: Development/Libraries
-%if 0%{?fedora} > 27 || 0%{?rhel} >= 8
+%if 0%{?fedora} > 27 || 0%{?rhel} > 7
 BuildRequires: python3-sphinx
 %else
 BuildRequires: python-sphinx
@@ -824,7 +824,7 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} == 28
 %patch12 -p0 -b .mcet~
 %endif
-%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch13 -p0 -b .rh1574936~
 %endif
 
@@ -1033,7 +1033,7 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch s390 s390x
 %if 0%{?rhel} >= 7
-%if 0%{?rhel} >= 8
+%if 0%{?rhel} > 7
 	--with-arch=zEC12 --with-tune=z13 \
 %else
 	--with-arch=z196 --with-tune=zEC12 \
@@ -1939,7 +1939,7 @@ cd obj-%{gcc_target_platform}
 
 # run the tests.
 make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ \
-%if 0%{?fedora} >= 20 || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 20 || 0%{?rhel} > 7
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector-strong}'" || :
 %else
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
