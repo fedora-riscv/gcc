@@ -15,12 +15,12 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+%global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %if 0%{?rhel} >= 8
 %global build_ada 0
 %global build_objc 0
 %global build_go 0
 %else
-%global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64
 %global build_ada 1
 %else
