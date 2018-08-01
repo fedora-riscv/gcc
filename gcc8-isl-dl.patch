@@ -27,10 +27,10 @@
  # and compile them.
 --- gcc/graphite.h.jj	2016-01-27 12:44:06.000000000 +0100
 +++ gcc/graphite.h	2016-01-27 13:26:38.309876856 +0100
-@@ -37,6 +37,590 @@ along with GCC; see the file COPYING3.
- #include <isl/schedule.h>
- #include <isl/ast_build.h>
+@@ -39,6 +39,590 @@ along with GCC; see the file COPYING3.
  #include <isl/schedule_node.h>
+ #include <isl/id.h>
+ #include <isl/space.h>
 +#include <isl/version.h>
 +#include <dlfcn.h>
 +
