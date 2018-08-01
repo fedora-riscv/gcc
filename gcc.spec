@@ -1,10 +1,10 @@
-%global DATE 20180726
-%global SVNREV 263019
+%global DATE 20180801
+%global SVNREV 263232.
 %global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3120,6 +3120,12 @@ fi
 %endif
 
 %changelog
+* Wed Aug  1 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-2
+- update from the 8 branch
+  - PRs bootstrap/86724, c/85704, c/86617, libstdc++/84654, libstdc++/85672,
+	libstdc++/86734, sanitizer/86759, target/86511, target/86612,
+	target/86651
+
 * Thu Jul 26 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-1
 - update from the 8 branch
   - GCC 8.2 release
