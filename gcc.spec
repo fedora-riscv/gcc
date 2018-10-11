@@ -1,10 +1,10 @@
-%global DATE 20180905
-%global SVNREV 264110
+%global DATE 20181011
+%global SVNREV 265051
 %global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3120,6 +3120,19 @@ fi
 %endif
 
 %changelog
+* Thu Oct 11 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-4
+- update from the 8 branch
+  - PRs bootstrap/87225, c++/84940, c++/85070, c++/86881, c++/87093,
+	c++/87137, c++/87185, c++/87582, fortran/83999, fortran/85395,
+	fortran/85954, fortran/86111, fortran/86116, fortran/86372,
+	fortran/86830, fortran/87277, fortran/87284, gcov-profile/85871,
+	gcov-profile/86109, libstdc++/87278, libstdc++/87538,
+	middle-end/87188, middle-end/87248, other/87353,
+	rtl-optimization/86771, rtl-optimization/86882, sanitizer/85774,
+	target/82699, target/85666, target/86731, target/86989, target/87033,
+	target/87224, target/87370, target/87414, target/87467, target/87517,
+	target/87522, target/87550, tree-optimization/86844
+
 * Wed Sep  5 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-3
 - update from the 8 branch
   - PRs c++/86190, c++/86706, c++/86728, c++/86738, c++/86763, c++/86767,
