@@ -1,10 +1,10 @@
-%global DATE 20181011
-%global SVNREV 265051
+%global DATE 20181105
+%global SVNREV 265809
 %global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3120,6 +3120,21 @@ fi
 %endif
 
 %changelog
+* Mon Nov  5 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-5
+- update from the 8 branch
+  - PRs ada/81878, bootstrap/81033, c++/86288, debug/86687, debug/87362,
+	debug/87428, fortran/87597, fortran/87725, libstdc++/70966,
+	libstdc++/77854, libstdc++/78595, libstdc++/86751, libstdc++/87061,
+	libstdc++/87641, libstdc++/87704, libstdc++/87749, libstdc++/87809,
+	libstdc++/87822, middle-end/63155, middle-end/85488, middle-end/87087,
+	middle-end/87610, middle-end/87623, middle-end/87645,
+	middle-end/87647, middle-end/87649, other/86198, sanitizer/87837,
+	target/52795, target/81733, target/85669, target/87511,
+	tree-optimization/63155, tree-optimization/87465,
+	tree-optimization/87473, tree-optimization/87665,
+	tree-optimization/87700, tree-optimization/87745
+  - fix store merging regression (PR tree-optimization/87859, #1645400)
+
 * Thu Oct 11 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-4
 - update from the 8 branch
   - PRs bootstrap/87225, c++/84940, c++/85070, c++/86881, c++/87093,
