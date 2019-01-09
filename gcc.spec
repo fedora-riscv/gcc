@@ -3128,7 +3128,7 @@ fi
 %endif
 
 %changelog
-* Wed Jan  9 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-7
+* Wed Jan  9 2019 Jakub Jelinek <jakub@redhat.com> 8.2.1-7
 - update from the 8 branch
   - PRs c++/60994, c++/82294, c++/86669, c++/86900, c++/87380, c++/87436,
 	c++/87506, c++/87539, c++/87934, c++/88103, c++/88122, c++/88180,
