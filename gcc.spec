@@ -1,10 +1,10 @@
-%global DATE 20181215
-%global SVNREV 267173
+%global DATE 20190109
+%global SVNREV 267776
 %global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -2300,6 +2300,14 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/vec_types.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/htmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/htmxlintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/bmi2intrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/bmiintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/xmmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/mm_malloc.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/emmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/mmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/x86intrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/amo.h
 %endif
 %ifarch %{arm}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/unwind-arm-common.h
@@ -3120,6 +3128,29 @@ fi
 %endif
 
 %changelog
+* Wed Jan  9 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-7
+- update from the 8 branch
+  - PRs c++/60994, c++/82294, c++/86669, c++/86900, c++/87380, c++/87436,
+	c++/87506, c++/87539, c++/87934, c++/88103, c++/88122, c++/88180,
+	c++/88181, c++/88215, c++/88410, debug/85550, debug/87039,
+	debug/88644, fortran/77325, fortran/77703, fortran/85544,
+	fortran/85798, fortran/87359, fortran/88116, fortran/88138,
+	fortran/88169, fortran/88377, fortran/88463, fortran/88467,
+	inline-asm/55681, ipa/88561, libstdc++/64883, libstdc++/87855,
+	lto/86517, lto/88130, lto/88185, middle-end/82564, middle-end/85594,
+	middle-end/88553, rtl-optimization/87475, rtl-optimization/88018,
+	rtl-optimization/88253, rtl-optimization/88416,
+	rtl-optimization/88470, rtl-optimization/88563, sanitizer/88426,
+	target/60563, target/78444, target/81210, target/81693, target/84010,
+	target/85593, target/85644, target/86832, target/87598, target/88213,
+	target/88234, target/88343, target/88418, target/88522, target/88541,
+	target/88594, target/88620, testsuite/67974, tree-optimization/68356,
+	tree-optimization/71109, tree-optimization/85794,
+	tree-optimization/87320, tree-optimization/87360,
+	tree-optimization/87895, tree-optimization/87898,
+	tree-optimization/88071
+- include forgotten ppc* intrinsic headers
+
 * Sat Dec 15 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-6
 - update from the 8 branch
   - PRs c++/86246, c++/87531, c++/87989, c++/88120, debug/87462, debug/88006,
