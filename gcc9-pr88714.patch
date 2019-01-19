@@ -1,0 +1,122 @@
+2019-01-17  Jakub Jelinek  <jakub@redhat.com>
+
+	PR bootstrap/88714
+	* config/arm/ldrdstrd.md: If alias sets on the SImode MEMs are
+	different, clear alias set on the DImode MEM.  Clear MEM_EXPR.
+
+	* gcc.c-torture/execute/pr88714.c: New test.
+
+--- gcc/config/arm/ldrdstrd.md.jj	2019-01-16 09:35:03.851334889 +0100
++++ gcc/config/arm/ldrdstrd.md	2019-01-17 17:37:40.860791779 +0100
+@@ -39,6 +39,10 @@ (define_peephole2 ; ldrd
+     /* In ARM state, the destination registers of LDRD/STRD must be
+        consecutive. We emit DImode access.  */
+     operands[0] = gen_rtx_REG (DImode, REGNO (operands[0]));
++    if (MEM_ALIAS_SET (operands[2])
++	&& MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++      set_mem_alias_set (operands[2], 0);
++    set_mem_expr (operands[2], NULL_TREE);
+     operands[2] = adjust_address (operands[2], DImode, 0);
+     /* Emit [(set (match_dup 0) (match_dup 2))] */
+     emit_insn (gen_rtx_SET (operands[0], operands[2]));
+@@ -71,6 +75,10 @@ (define_peephole2 ; strd
+     /* In ARM state, the destination registers of LDRD/STRD must be
+        consecutive. We emit DImode access.  */
+     operands[0] = gen_rtx_REG (DImode, REGNO (operands[0]));
++    if (MEM_ALIAS_SET (operands[2])
++	&& MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++      set_mem_alias_set (operands[2], 0);
++    set_mem_expr (operands[2], NULL_TREE);
+     operands[2] = adjust_address (operands[2], DImode, 0);
+     /* Emit [(set (match_dup 2) (match_dup 0))]  */
+     emit_insn (gen_rtx_SET (operands[2], operands[0]));
+@@ -106,6 +114,10 @@ (define_peephole2 ; strd of constants
+   else if (TARGET_ARM)
+   {
+    rtx tmp = gen_rtx_REG (DImode, REGNO (operands[0]));
++    if (MEM_ALIAS_SET (operands[2])
++	&& MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++      set_mem_alias_set (operands[2], 0);
++    set_mem_expr (operands[2], NULL_TREE);
+    operands[2] = adjust_address (operands[2], DImode, 0);
+    /* Emit the pattern:
+       [(set (match_dup 0) (match_dup 4))
+@@ -149,6 +161,10 @@ (define_peephole2 ; strd of constants
+   else if (TARGET_ARM)
+   {
+    rtx tmp = gen_rtx_REG (DImode, REGNO (operands[0]));
++    if (MEM_ALIAS_SET (operands[2])
++	&& MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++      set_mem_alias_set (operands[2], 0);
++    set_mem_expr (operands[2], NULL_TREE);
+    operands[2] = adjust_address (operands[2], DImode, 0);
+    /* Emit the pattern
+       [(set (match_dup 0) (match_dup 4))
+@@ -203,6 +219,10 @@ (define_peephole2 ; swap the destination
+     else
+      {
+         operands[0] = gen_rtx_REG (DImode, REGNO (operands[0]));
++	if (MEM_ALIAS_SET (operands[2])
++	    && MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++	  set_mem_alias_set (operands[2], 0);
++	set_mem_expr (operands[2], NULL_TREE);
+         operands[2] = adjust_address (operands[2], DImode, 0);
+      }
+    }
+@@ -238,6 +258,10 @@ (define_peephole2 ; swap the destination
+     else
+      {
+         operands[0] = gen_rtx_REG (DImode, REGNO (operands[0]));
++	if (MEM_ALIAS_SET (operands[2])
++	    && MEM_ALIAS_SET (operands[2]) != MEM_ALIAS_SET (operands[3]))
++	  set_mem_alias_set (operands[2], 0);
++	set_mem_expr (operands[2], NULL_TREE);
+         operands[2] = adjust_address (operands[2], DImode, 0);
+      }
+    }
+--- gcc/testsuite/gcc.c-torture/execute/pr88714.c.jj	2019-01-17 17:39:42.074828164 +0100
++++ gcc/testsuite/gcc.c-torture/execute/pr88714.c	2019-01-17 17:21:26.810575783 +0100
+@@ -0,0 +1,43 @@
++/* PR bootstrap/88714 */
++
++struct S { int a, b, c; int *d; };
++struct T { int *e, *f, *g; } *t = 0;
++int *o = 0;
++
++__attribute__((noipa))
++void bar (int *x, int y, int z, int w)
++{
++  if (w == -1)
++    {
++      if (x != 0 || y != 0 || z != 0)
++	__builtin_abort ();
++    }
++  else if (w != 0 || x != t->g || y != 0 || z != 12)
++    __builtin_abort ();
++}
++
++__attribute__((noipa)) void
++foo (struct S *x, struct S *y, int *z, int w)
++{
++  *o = w;
++  if (w)
++    bar (0, 0, 0, -1);
++  x->d = z;
++  if (y->d)
++    y->c = y->c + y->d[0];
++  bar (t->g, 0, y->c, 0);
++}
++
++int
++main ()
++{
++  int a[4] = { 8, 9, 10, 11 };
++  struct S s = { 1, 2, 3, &a[0] };
++  struct T u = { 0, 0, &a[3] };
++  o = &a[2];
++  t = &u;
++  foo (&s, &s, &a[1], 5);
++  if (s.c != 12 || s.d != &a[1])
++    __builtin_abort ();
++  return 0;
++}

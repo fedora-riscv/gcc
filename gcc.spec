@@ -1,10 +1,10 @@
-%global DATE 20190109
-%global SVNREV 267776
-%global gcc_version 8.2.1
-%global gcc_major 8
+%global DATE 20190119
+%global SVNREV 268094
+%global gcc_version 9.0.0
+%global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 0.3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -20,6 +20,7 @@
 %global build_ada 0
 %global build_objc 0
 %global build_go 0
+%global build_d 0
 %else
 %ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64
 %global build_ada 1
@@ -31,6 +32,11 @@
 %global build_go 1
 %else
 %global build_go 0
+%endif
+%ifarch %{ix86} x86_64 %{arm} %{mips}
+%global build_d 1
+%else
+%global build_d 0
 %endif
 %endif
 %ifarch %{ix86} x86_64 ia64 ppc64le
@@ -68,15 +74,6 @@
 %else
 %global build_libitm 0
 %endif
-%if 0%{?rhel} > 7
-%global build_libmpx 0
-%else
-%ifarch %{ix86} x86_64
-%global build_libmpx 1
-%else
-%global build_libmpx 0
-%endif
-%endif
 %global build_isl 1
 %global build_libstdcxx_docs 1
 %ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
@@ -111,7 +108,7 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-8-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-9-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
 # tar cf - gcc-%%{version}-%%{DATE} | xz -9e > gcc-%%{version}-%%{DATE}.tar.xz
 Source0: gcc-%{version}-%{DATE}.tar.xz
 # The source for nvptx-tools package was pulled from upstream's vcs.  Use the
@@ -239,6 +236,8 @@ Obsoletes: gcc-java < %{version}-%{release}
 %ifarch %{ix86} x86_64
 Obsoletes: libcilkrts
 Obsoletes: libcilkrts-static
+Obsoletes: libmpx
+Obsoletes: libmpx-static
 %endif
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
@@ -246,19 +245,22 @@ AutoReq: true
 Provides: bundled(libiberty)
 Provides: gcc(major) = %{gcc_major}
 
-Patch0: gcc8-hack.patch
-Patch2: gcc8-i386-libgomp.patch
-Patch3: gcc8-sparc-config-detection.patch
-Patch4: gcc8-libgomp-omp_h-multilib.patch
-Patch5: gcc8-libtool-no-rpath.patch
-Patch6: gcc8-isl-dl.patch
-Patch7: gcc8-libstdc++-docs.patch
-Patch8: gcc8-no-add-needed.patch
-Patch9: gcc8-foffload-default.patch
-Patch10: gcc8-Wno-format-security.patch
-Patch11: gcc8-rh1512529-aarch64.patch
-Patch12: gcc8-mcet.patch
-Patch13: gcc8-rh1574936.patch
+Patch0: gcc9-hack.patch
+Patch1: gcc9-i386-libgomp.patch
+Patch2: gcc9-sparc-config-detection.patch
+Patch3: gcc9-libgomp-omp_h-multilib.patch
+Patch4: gcc9-libtool-no-rpath.patch
+Patch5: gcc9-isl-dl.patch
+Patch6: gcc9-libstdc++-docs.patch
+Patch7: gcc9-no-add-needed.patch
+Patch8: gcc9-foffload-default.patch
+Patch9: gcc9-Wno-format-security.patch
+Patch10: gcc9-rh1574936.patch
+Patch11: gcc9-d-shared-libphobos.patch
+Patch12: gcc9-pr88714.patch
+Patch13: gcc9-pr88901.patch
+Patch14: gcc9-pr88044.patch
+Patch15: gcc9-utf-array-test.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -285,7 +287,7 @@ Patch1002: nvptx-tools-glibc.patch
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
 %global __os_install_post \
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.14.* \
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -293,7 +295,7 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
 %__os_install_post \
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.* \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.14.* \
 chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -304,11 +306,11 @@ chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 %endif
 
 %description
-The gcc package contains the GNU Compiler Collection version 8.
+The gcc package contains the GNU Compiler Collection version 9.
 You'll need this package in order to compile C code.
 
 %package -n libgcc
-Summary: GCC version 8 shared support library
+Summary: GCC version 9 shared support library
 Group: System Environment/Libraries
 Autoreq: false
 %if !%{build_ada}
@@ -447,6 +449,37 @@ Requires: libquadmath-static = %{version}-%{release}
 
 %description -n libgfortran-static
 This package contains static Fortran libraries.
+
+%package gdc
+Summary: D support
+Group: Development/Languages
+Requires: gcc = %{version}-%{release}
+Requires: libgphobos = %{version}-%{release}
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
+Autoreq: true
+
+%description gdc
+The gcc-gdc package provides support for compiling D
+programs with the GNU Compiler Collection.
+
+%package -n libgphobos
+Summary: D runtime
+Group: System Environment/Libraries
+Autoreq: true
+
+%description -n libgphobos
+This package contains D shared library which is needed to run
+D dynamically linked programs.
+
+%package -n libgphobos-static
+Summary: Static D libraries
+Group: Development/Libraries
+Requires: libghobos = %{version}-%{release}
+Requires: gcc-gdc = %{version}-%{release}
+
+%description -n libgphobos-static
+This package contains static D libraries.
 
 %package -n libgomp
 Summary: GCC OpenMP v4.5 shared support library
@@ -647,24 +680,6 @@ Requires: liblsan = %{version}-%{release}
 %description -n liblsan-static
 This package contains Leak Sanitizer static runtime library.
 
-%package -n libmpx
-Summary: The Memory Protection Extensions runtime libraries
-Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
-
-%description -n libmpx
-This package contains the Memory Protection Extensions runtime libraries
-which is used for -fcheck-pointer-bounds -mmpx instrumented programs.
-
-%package -n libmpx-static
-Summary: The Memory Protection Extensions static libraries
-Group: Development/Libraries
-Requires: libmpx = %{version}-%{release}
-
-%description -n libmpx-static
-This package contains the Memory Protection Extensions static runtime libraries.
-
 %package -n cpp
 Summary: The C Preprocessor
 Group: Development/Languages
@@ -807,26 +822,27 @@ to NVidia PTX capable devices if available.
 %prep
 %setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %patch0 -p0 -b .hack~
-%patch2 -p0 -b .i386-libgomp~
-%patch3 -p0 -b .sparc-config-detection~
-%patch4 -p0 -b .libgomp-omp_h-multilib~
-%patch5 -p0 -b .libtool-no-rpath~
+%patch1 -p0 -b .i386-libgomp~
+%patch2 -p0 -b .sparc-config-detection~
+%patch3 -p0 -b .libgomp-omp_h-multilib~
+%patch4 -p0 -b .libtool-no-rpath~
 %if %{build_isl}
-%patch6 -p0 -b .isl-dl~
+%patch5 -p0 -b .isl-dl~
 %endif
 %if %{build_libstdcxx_docs}
-%patch7 -p0 -b .libstdc++-docs~
+%patch6 -p0 -b .libstdc++-docs~
 %endif
-%patch8 -p0 -b .no-add-needed~
-%patch9 -p0 -b .foffload-default~
-%patch10 -p0 -b .Wno-format-security~
-%patch11 -p0 -b .rh1512529-aarch64~
-%if 0%{?fedora} == 28
-%patch12 -p0 -b .mcet~
-%endif
+%patch7 -p0 -b .no-add-needed~
+%patch8 -p0 -b .foffload-default~
+%patch9 -p0 -b .Wno-format-security~
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
-%patch13 -p0 -b .rh1574936~
+%patch10 -p0 -b .rh1574936~
 %endif
+%patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr88714~
+%patch13 -p0 -b .pr88901~
+%patch14 -p0 -b .pr88044~
+%patch15 -p0 -b .utf-array-test~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -837,8 +853,6 @@ cd ..
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
 cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
-
-echo 'TM_H += $(srcdir)/config/rs6000/rs6000-modes.h' >> gcc/config/rs6000/t-rs6000
 
 ./contrib/gcc_update --touch
 
@@ -934,6 +948,7 @@ cd obj-%{gcc_target_platform}
 enablelgo=
 enablelada=
 enablelobjc=
+enableld=
 %if %{build_objc}
 enablelobjc=,objc,obj-c++
 %endif
@@ -942,6 +957,9 @@ enablelada=,ada
 %endif
 %if %{build_go}
 enablelgo=,go
+%endif
+%if %{build_d}
+enableld=,d
 %endif
 CONFIGURE_OPTS="\
 	--prefix=%{_prefix} --mandir=%{_mandir} --infodir=%{_infodir} \
@@ -965,11 +983,6 @@ CONFIGURE_OPTS="\
 	--with-isl \
 %else
 	--without-isl \
-%endif
-%if %{build_libmpx}
-	--enable-libmpx \
-%else
-	--disable-libmpx \
 %endif
 %if %{build_offload_nvptx}
 	--enable-offload-targets=nvptx-none \
@@ -1067,7 +1080,7 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 		  | sed 's/ -Wformat-security / -Wformat -Wformat-security /'`" \
 	XCFLAGS="$OPT_FLAGS" TCFLAGS="$OPT_FLAGS" \
 	../configure --enable-bootstrap \
-	--enable-languages=c,c++,fortran${enablelobjc}${enablelada}${enablelgo},lto \
+	--enable-languages=c,c++,fortran${enablelobjc}${enablelada}${enablelgo}${enableld},lto \
 	$CONFIGURE_OPTS
 
 %ifarch sparc sparcv9 sparc64
@@ -1119,11 +1132,11 @@ cd ../..
 
 # Copy various doc files here and there
 cd ..
-mkdir -p rpm.doc/gfortran rpm.doc/objc
+mkdir -p rpm.doc/gfortran rpm.doc/objc rpm.doc/gdc rpm.doc/libphobos
 mkdir -p rpm.doc/go rpm.doc/libgo rpm.doc/libquadmath rpm.doc/libitm
-mkdir -p rpm.doc/changelogs/{gcc/cp,gcc/ada,gcc/jit,libstdc++-v3,libobjc,libgomp,libcc1,libatomic,libsanitizer,libmpx}
+mkdir -p rpm.doc/changelogs/{gcc/cp,gcc/ada,gcc/jit,libstdc++-v3,libobjc,libgomp,libcc1,libatomic,libsanitizer}
 
-for i in {gcc,gcc/cp,gcc/ada,gcc/jit,libstdc++-v3,libobjc,libgomp,libcc1,libatomic,libsanitizer,libmpx}/ChangeLog*; do
+for i in {gcc,gcc/cp,gcc/ada,gcc/jit,libstdc++-v3,libobjc,libgomp,libcc1,libatomic,libsanitizer}/ChangeLog*; do
 	cp -p $i rpm.doc/changelogs/$i
 done
 
@@ -1137,6 +1150,15 @@ done)
 (cd libobjc; for i in README*; do
 	cp -p $i ../rpm.doc/objc/$i.libobjc
 done)
+%endif
+%if %{build_d}
+(cd gcc/d; for i in ChangeLog*; do
+	cp -p $i ../../rpm.doc/gdc/$i.gdc
+done)
+(cd libphobos; for i in ChangeLog*; do
+	cp -p $i ../rpm.doc/libphobos/$i.libphobos
+done
+cp -a src/LICENSE*.txt libdruntime/LICENSE ../rpm.doc/libphobos/)
 %endif
 %if %{build_libquadmath}
 (cd libquadmath; for i in ChangeLog* COPYING.LIB; do
@@ -1303,14 +1325,14 @@ fi
 find %{buildroot} -name \*.la | xargs rm -f
 
 mv %{buildroot}%{_prefix}/%{_lib}/libgfortran.spec $FULLPATH/
+%if %{build_d}
+mv %{buildroot}%{_prefix}/%{_lib}/libgphobos.spec $FULLPATH/
+%endif
 %if %{build_libitm}
 mv %{buildroot}%{_prefix}/%{_lib}/libitm.spec $FULLPATH/
 %endif
 %if %{build_libasan}
 mv %{buildroot}%{_prefix}/%{_lib}/libsanitizer.spec $FULLPATH/
-%endif
-%if %{build_libmpx}
-mv %{buildroot}%{_prefix}/%{_lib}/libmpx.spec $FULLPATH/
 %endif
 
 mkdir -p %{buildroot}/%{_lib}
@@ -1395,10 +1417,14 @@ ln -sf ../../../libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../libgfortran.so.5.* libgfortran.so
 ln -sf ../../../libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../libgo.so.13.* libgo.so
+ln -sf ../../../libgo.so.14.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../libquadmath.so.0.* libquadmath.so
+%endif
+%if %{build_d}
+ln -sf ../../../libgdruntime.so.76.* libgdruntime.so
+ln -sf ../../../libgphobos.so.76.* libgphobos.so
 %endif
 %if %{build_libitm}
 ln -sf ../../../libitm.so.1.* libitm.so
@@ -1413,10 +1439,6 @@ mv ../../../libasan_preinit.o libasan_preinit.o
 %if %{build_libubsan}
 ln -sf ../../../libubsan.so.1.* libubsan.so
 %endif
-%if %{build_libmpx}
-ln -sf ../../../libmpx.so.2.* libmpx.so
-ln -sf ../../../libmpxwrappers.so.2.* libmpxwrappers.so
-%endif
 else
 %if %{build_objc}
 ln -sf ../../../../%{_lib}/libobjc.so.4 libobjc.so
@@ -1425,10 +1447,14 @@ ln -sf ../../../../%{_lib}/libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../../%{_lib}/libgfortran.so.5.* libgfortran.so
 ln -sf ../../../../%{_lib}/libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../../%{_lib}/libgo.so.13.* libgo.so
+ln -sf ../../../../%{_lib}/libgo.so.14.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../../%{_lib}/libquadmath.so.0.* libquadmath.so
+%endif
+%if %{build_d}
+ln -sf ../../../../%{_lib}/libgdruntime.so.76.* libgdruntime.so
+ln -sf ../../../../%{_lib}/libgphobos.so.76.* libgphobos.so
 %endif
 %if %{build_libitm}
 ln -sf ../../../../%{_lib}/libitm.so.1.* libitm.so
@@ -1442,10 +1468,6 @@ mv ../../../../%{_lib}/libasan_preinit.o libasan_preinit.o
 %endif
 %if %{build_libubsan}
 ln -sf ../../../../%{_lib}/libubsan.so.1.* libubsan.so
-%endif
-%if %{build_libmpx}
-ln -sf ../../../../%{_lib}/libmpx.so.2.* libmpx.so
-ln -sf ../../../../%{_lib}/libmpxwrappers.so.2.* libmpxwrappers.so
 %endif
 %if %{build_libtsan}
 rm -f libtsan.so
@@ -1469,6 +1491,10 @@ mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.*a .
 %if %{build_libquadmath}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libquadmath.*a $FULLLPATH/
 %endif
+%if %{build_d}
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgdruntime.*a $FULLLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libgphobos.*a $FULLLPATH/
+%endif
 %if %{build_libitm}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libitm.*a $FULLLPATH/
 %endif
@@ -1480,10 +1506,6 @@ mv -f %{buildroot}%{_prefix}/%{_lib}/libasan.*a $FULLLPATH/
 %endif
 %if %{build_libubsan}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libubsan.*a $FULLLPATH/
-%endif
-%if %{build_libmpx}
-mv -f %{buildroot}%{_prefix}/%{_lib}/libmpx.*a $FULLLPATH/
-mv -f %{buildroot}%{_prefix}/%{_lib}/libmpxwrappers.*a $FULLLPATH/
 %endif
 %if %{build_libtsan}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libtsan.*a $FULLPATH/
@@ -1509,28 +1531,28 @@ mv -f $FULLPATH/ada{include,lib} $FULLLPATH/
 pushd $FULLLPATH/adalib
 if [ "%{_lib}" = "lib" ]; then
 ln -sf ../../../../../libgnarl-*.so libgnarl.so
-ln -sf ../../../../../libgnarl-*.so libgnarl-8.so
+ln -sf ../../../../../libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../../libgnat-*.so libgnat.so
-ln -sf ../../../../../libgnat-*.so libgnat-8.so
+ln -sf ../../../../../libgnat-*.so libgnat-9.so
 else
 ln -sf ../../../../../../%{_lib}/libgnarl-*.so libgnarl.so
-ln -sf ../../../../../../%{_lib}/libgnarl-*.so libgnarl-8.so
+ln -sf ../../../../../../%{_lib}/libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../../../%{_lib}/libgnat-*.so libgnat.so
-ln -sf ../../../../../../%{_lib}/libgnat-*.so libgnat-8.so
+ln -sf ../../../../../../%{_lib}/libgnat-*.so libgnat-9.so
 fi
 popd
 else
 pushd $FULLPATH/adalib
 if [ "%{_lib}" = "lib" ]; then
 ln -sf ../../../../libgnarl-*.so libgnarl.so
-ln -sf ../../../../libgnarl-*.so libgnarl-8.so
+ln -sf ../../../../libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../libgnat-*.so libgnat.so
-ln -sf ../../../../libgnat-*.so libgnat-8.so
+ln -sf ../../../../libgnat-*.so libgnat-9.so
 else
 ln -sf ../../../../../%{_lib}/libgnarl-*.so libgnarl.so
-ln -sf ../../../../../%{_lib}/libgnarl-*.so libgnarl-8.so
+ln -sf ../../../../../%{_lib}/libgnarl-*.so libgnarl-9.so
 ln -sf ../../../../../%{_lib}/libgnat-*.so libgnat.so
-ln -sf ../../../../../%{_lib}/libgnat-*.so libgnat-8.so
+ln -sf ../../../../../%{_lib}/libgnat-*.so libgnat-9.so
 fi
 popd
 fi
@@ -1545,13 +1567,20 @@ ln -sf ../`echo ../../../../lib/libgfortran.so.5.* | sed s~/lib/~/lib64/~` 64/li
 ln -sf ../`echo ../../../../lib/libgomp.so.1.* | sed s~/lib/~/lib64/~` 64/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.13.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.13.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.14.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.14.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
 echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libquadmath.so.0.* | sed 's,^.*libq,libq,'`' )' > libquadmath.so
 echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libquadmath.so.0.* | sed 's,^.*libq,libq,'`' )' > 64/libquadmath.so
+%endif
+%if %{build_d}
+rm -f libgdruntime.so libgphobos.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > 64/libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > 64/libgphobos.so
 %endif
 %if %{build_libitm}
 rm -f libitm.so
@@ -1574,14 +1603,6 @@ rm -f libubsan.so
 echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libubsan.so.1.* | sed 's,^.*libu,libu,'`' )' > libubsan.so
 echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libubsan.so.1.* | sed 's,^.*libu,libu,'`' )' > 64/libubsan.so
 %endif
-%if %{build_libmpx}
-rm -f libmpx.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libmpx.so.2.* | sed 's,^.*libm,libm,'`' )' > libmpx.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libmpx.so.2.* | sed 's,^.*libm,libm,'`' )' > 64/libmpx.so
-rm -f libmpxwrappers.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > libmpxwrappers.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > 64/libmpxwrappers.so
-%endif
 ln -sf lib32/libgfortran.a libgfortran.a
 ln -sf ../lib64/libgfortran.a 64/libgfortran.a
 %if %{build_objc}
@@ -1598,6 +1619,12 @@ ln -sf ../lib64/libsupc++.a 64/libsupc++.a
 ln -sf lib32/libquadmath.a libquadmath.a
 ln -sf ../lib64/libquadmath.a 64/libquadmath.a
 %endif
+%if %{build_d}
+ln -sf lib32/libgdruntime.a libgdruntime.a
+ln -sf ../lib64/libgdruntime.a 64/libgdruntime.a
+ln -sf lib32/libgphobos.a libgphobos.a
+ln -sf ../lib64/libgphobos.a 64/libgphobos.a
+%endif
 %if %{build_libitm}
 ln -sf lib32/libitm.a libitm.a
 ln -sf ../lib64/libitm.a 64/libitm.a
@@ -1613,12 +1640,6 @@ ln -sf ../lib64/libasan.a 64/libasan.a
 %if %{build_libubsan}
 ln -sf lib32/libubsan.a libubsan.a
 ln -sf ../lib64/libubsan.a 64/libubsan.a
-%endif
-%if %{build_libmpx}
-ln -sf lib32/libmpx.a libmpx.a
-ln -sf ../lib64/libmpx.a 64/libmpx.a
-ln -sf lib32/libmpxwrappers.a libmpxwrappers.a
-ln -sf ../lib64/libmpxwrappers.a 64/libmpxwrappers.a
 %endif
 %if %{build_go}
 ln -sf lib32/libgo.a libgo.a
@@ -1645,13 +1666,20 @@ ln -sf ../`echo ../../../../lib64/libgfortran.so.5.* | sed s~/../lib64/~/~` 32/l
 ln -sf ../`echo ../../../../lib64/libgomp.so.1.* | sed s~/../lib64/~/~` 32/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.13.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.13.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.14.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.14.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
 echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libquadmath.so.0.* | sed 's,^.*libq,libq,'`' )' > libquadmath.so
 echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libquadmath.so.0.* | sed 's,^.*libq,libq,'`' )' > 32/libquadmath.so
+%endif
+%if %{build_d}
+rm -f libgdruntime.so libgphobos.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > 32/libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > 32/libgphobos.so
 %endif
 %if %{build_libitm}
 rm -f libitm.so
@@ -1674,14 +1702,6 @@ rm -f libubsan.so
 echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libubsan.so.1.* | sed 's,^.*libu,libu,'`' )' > libubsan.so
 echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libubsan.so.1.* | sed 's,^.*libu,libu,'`' )' > 32/libubsan.so
 %endif
-%if %{build_libmpx}
-rm -f libmpx.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libmpx.so.2.* | sed 's,^.*libm,libm,'`' )' > libmpx.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libmpx.so.2.* | sed 's,^.*libm,libm,'`' )' > 32/libmpx.so
-rm -f libmpxwrappers.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > libmpxwrappers.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libmpxwrappers.so.2.* | sed 's,^.*libm,libm,'`' )' > 32/libmpxwrappers.so
-%endif
 %if %{build_objc}
 mv -f %{buildroot}%{_prefix}/lib/libobjc.*a 32/
 %endif
@@ -1700,6 +1720,12 @@ ln -sf lib64/libsupc++.a libsupc++.a
 ln -sf ../lib32/libquadmath.a 32/libquadmath.a
 ln -sf lib64/libquadmath.a libquadmath.a
 %endif
+%if %{build_d}
+ln -sf ../lib32/libgdruntime.a 32/libgdruntime.a
+ln -sf lib64/libgdruntime.a libgdruntime.a
+ln -sf ../lib32/libgphobos.a 32/libgphobos.a
+ln -sf lib64/libgphobos.a libgphobos.a
+%endif
 %if %{build_libitm}
 ln -sf ../lib32/libitm.a 32/libitm.a
 ln -sf lib64/libitm.a libitm.a
@@ -1715,12 +1741,6 @@ ln -sf lib64/libasan.a libasan.a
 %if %{build_libubsan}
 ln -sf ../lib32/libubsan.a 32/libubsan.a
 ln -sf lib64/libubsan.a libubsan.a
-%endif
-%if %{build_libmpx}
-ln -sf ../lib32/libmpx.a 32/libmpx.a
-ln -sf lib64/libmpx.a libmpx.a
-ln -sf ../lib32/libmpxwrappers.a 32/libmpxwrappers.a
-ln -sf lib64/libmpxwrappers.a libmpxwrappers.a
 %endif
 %if %{build_go}
 ln -sf ../lib32/libgo.a 32/libgo.a
@@ -1745,6 +1765,10 @@ ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libsup
 %if %{build_libquadmath}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libquadmath.a 32/libquadmath.a
 %endif
+%if %{build_d}
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libgdruntime.a 32/libgdruntime.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libgphobos.a 32/libgphobos.a
+%endif
 %if %{build_libitm}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libitm.a 32/libitm.a
 %endif
@@ -1756,10 +1780,6 @@ ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libasa
 %endif
 %if %{build_libubsan}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libubsan.a 32/libubsan.a
-%endif
-%if %{build_libmpx}
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libmpx.a 32/libmpx.a
-ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libmpxwrappers.a 32/libmpxwrappers.a
 %endif
 %if %{build_go}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libgo.a 32/libgo.a
@@ -1786,8 +1806,7 @@ for d in . $FULLLSUBDIR; do
 		-o -name libgo.a -o -name libgobegin.a \
 		-o -name libgolibbegin.a -o -name libgomp.a \
 		-o -name libitm.a -o -name liblsan.a \
-		-o -name libmpx.a -o -name libmpxwrappers.a \
-		-o -name libobjc.a \
+		-o -name libobjc.a -o -name libgdruntime.a -o -name libgphobos.a \
 		-o -name libquadmath.a -o -name libstdc++.a \
 		-o -name libstdc++fs.a -o -name libsupc++.a \
 		-o -name libtsan.a -o -name libubsan.a \) -a -type f`; do
@@ -1799,10 +1818,10 @@ done
 # Strip debug info from Fortran/ObjC/Java static libraries
 strip -g `find . \( -name libgfortran.a -o -name libobjc.a -o -name libgomp.a \
 		    -o -name libgcc.a -o -name libgcov.a -o -name libquadmath.a \
+		    -o -name libgdruntime.a -o -name libgphobos.a \
 		    -o -name libitm.a -o -name libgo.a -o -name libcaf\*.a \
 		    -o -name libatomic.a -o -name libasan.a -o -name libtsan.a \
-		    -o -name libubsan.a -o -name liblsan.a \
-		    -o -name libmpx.a -o -name libmpxwrappers.a -o -name libcc1.a \) \
+		    -o -name libubsan.a -o -name liblsan.a -o -name libcc1.a \) \
 		 -a -type f`
 popd
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgfortran.so.5.*
@@ -1810,6 +1829,10 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgomp.so.1.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libcc1.so.0.*
 %if %{build_libquadmath}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libquadmath.so.0.*
+%endif
+%if %{build_d}
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgdruntime.so.76.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgphobos.so.76.*
 %endif
 %if %{build_libitm}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libitm.so.1.*
@@ -1823,10 +1846,6 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libasan.so.5.*
 %if %{build_libubsan}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libubsan.so.1.*
 %endif
-%if %{build_libmpx}
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libmpx.so.2.*
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libmpxwrappers.so.2.*
-%endif
 %if %{build_libtsan}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
 %endif
@@ -1835,7 +1854,7 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.13.*
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.14.*
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
@@ -1899,13 +1918,13 @@ rm -f $FULLEPATH/install-tools/{mkheaders,fixincl}
 rm -f %{buildroot}%{_prefix}/lib/{32,64}/libiberty.a
 rm -f %{buildroot}%{_prefix}/%{_lib}/libssp*
 rm -f %{buildroot}%{_prefix}/%{_lib}/libvtv* || :
-rm -f %{buildroot}%{_prefix}/bin/gappletviewer || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gfortran || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gccgo || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gcj || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gcc-ar || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gcc-nm || :
 rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gcc-ranlib || :
+rm -f %{buildroot}%{_prefix}/bin/%{_target_platform}-gdc || :
 
 %ifarch %{multilib_64_archs}
 # Remove libraries for the other arch on multilib arches
@@ -1991,6 +2010,18 @@ if [ $1 = 0 -a -f %{_infodir}/gfortran.info.gz ]; then
     --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
 fi
 
+%post gdc
+if [ -f %{_infodir}/gdc.info.gz ]; then
+  /sbin/install-info \
+    --info-dir=%{_infodir} %{_infodir}/gdc.info.gz || :
+fi
+
+%preun gdc
+if [ $1 = 0 -a -f %{_infodir}/gdc.info.gz ]; then
+  /sbin/install-info --delete \
+    --info-dir=%{_infodir} %{_infodir}/gdc.info.gz || :
+fi
+
 %post gnat
 if [ -f %{_infodir}/gnat_rm.info.gz ]; then
   /sbin/install-info \
@@ -2055,6 +2086,10 @@ end
 %post -n libgfortran -p /sbin/ldconfig
 
 %postun -n libgfortran -p /sbin/ldconfig
+
+%post -n libgphobos -p /sbin/ldconfig
+
+%postun -n libgphobos -p /sbin/ldconfig
 
 %post -n libgnat -p /sbin/ldconfig
 
@@ -2144,10 +2179,6 @@ fi
 %post -n liblsan -p /sbin/ldconfig
 
 %postun -n liblsan -p /sbin/ldconfig
-
-%post -n libmpx -p /sbin/ldconfig
-
-%postun -n libmpx -p /sbin/ldconfig
 
 %post -n libgo -p /sbin/ldconfig
 
@@ -2286,6 +2317,8 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/pconfigintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/wbnoinvdintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/movdirintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/waitpkgintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/cldemoteintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -2293,7 +2326,6 @@ fi
 %ifarch ppc ppc64 ppc64le ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ppc-asm.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/altivec.h
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/paired.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ppu_intrinsics.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/si2vmx.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/spu2vmx.h
@@ -2307,6 +2339,9 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/emmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/mmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/x86intrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/pmmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/tmmintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/smmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/amo.h
 %endif
 %ifarch %{arm}
@@ -2330,9 +2365,6 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/htmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/htmxlintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/vecintrin.h
-%endif
-%if %{build_libmpx}
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpx.spec
 %endif
 %if %{build_libasan}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/sanitizer
@@ -2382,12 +2414,6 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libubsan.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libubsan.so
 %endif
-%if %{build_libmpx}
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libmpx.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libmpxwrappers.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libmpxwrappers.so
-%endif
 %endif
 %ifarch %{multilib_64_archs}
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32
@@ -2419,12 +2445,6 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libubsan.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libubsan.so
 %endif
-%if %{build_libmpx}
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libmpx.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libmpxwrappers.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libmpxwrappers.so
-%endif
 %endif
 %ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %if %{build_libquadmath}
@@ -2448,12 +2468,6 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libubsan.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libubsan.so
 %endif
-%if %{build_libmpx}
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpx.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpxwrappers.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpxwrappers.so
-%endif
 %else
 %if %{build_libatomic}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libatomic.so
@@ -2464,10 +2478,6 @@ fi
 %endif
 %if %{build_libubsan}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libubsan.so
-%endif
-%if %{build_libmpx}
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpx.so
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpxwrappers.so
 %endif
 %endif
 %if %{build_libtsan}
@@ -2641,7 +2651,9 @@ fi
 %dir %{_prefix}/libexec/gcc
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.f90
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/finclude/omp_lib.mod
@@ -2694,6 +2706,68 @@ fi
 %endif
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgfortran.a
+%endif
+
+%if %{build_d}
+%files gdc
+%{_prefix}/bin/gdc
+%{_mandir}/man1/gdc.1*
+%{_infodir}/gdc*
+%dir %{_prefix}/lib/gcc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
+%dir %{_prefix}/libexec/gcc
+%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
+%dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/d
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/d21
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgphobos.spec
+%ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgphobos.a
+%endif
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgdruntime.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgphobos.so
+%ifarch sparcv9 ppc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgphobos.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgdruntime.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libgphobos.so
+%endif
+%ifarch %{multilib_64_archs}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgphobos.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgdruntime.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libgphobos.so
+%endif
+%doc rpm.doc/gdc/*
+
+%files -n libgphobos
+%{_prefix}/%{_lib}/libgdruntime.so.76*
+%{_prefix}/%{_lib}/libgphobos.so.76*
+%doc rpm.doc/libphobos/*
+
+%files -n libgphobos-static
+%dir %{_prefix}/lib/gcc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
+%ifarch sparcv9 ppc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libgphobos.a
+%endif
+%ifarch sparc64 ppc64 ppc64p7
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libgphobos.a
+%endif
+%ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgdruntime.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libgphobos.a
+%endif
 %endif
 
 %if %{build_ada}
@@ -2949,32 +3023,6 @@ fi
 %license libsanitizer/LICENSE.TXT
 %endif
 
-%if %{build_libmpx}
-%files -n libmpx
-%{_prefix}/%{_lib}/libmpx.so.2*
-%{_prefix}/%{_lib}/libmpxwrappers.so.2*
-
-%files -n libmpx-static
-%dir %{_prefix}/lib/gcc
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
-%ifarch sparcv9 ppc
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libmpxwrappers.a
-%endif
-%ifarch sparc64 ppc64 ppc64p7
-%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libmpxwrappers.a
-%endif
-%ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpx.a
-%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libmpxwrappers.a
-%endif
-%doc rpm.doc/changelogs/libmpx/ChangeLog*
-%endif
-
 %if %{build_go}
 %files go
 %ghost %{_prefix}/bin/go
@@ -3021,7 +3069,7 @@ fi
 %doc rpm.doc/go/*
 
 %files -n libgo
-%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.13*
+%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.14*
 %doc rpm.doc/libgo/*
 
 %files -n libgo-devel
@@ -3128,512 +3176,39 @@ fi
 %endif
 
 %changelog
-* Wed Jan  9 2019 Jakub Jelinek <jakub@redhat.com> 8.2.1-7
-- update from the 8 branch
-  - PRs c++/60994, c++/82294, c++/86669, c++/86900, c++/87380, c++/87436,
-	c++/87506, c++/87539, c++/87934, c++/88103, c++/88122, c++/88180,
-	c++/88181, c++/88215, c++/88410, debug/85550, debug/87039,
-	debug/88644, fortran/77325, fortran/77703, fortran/85544,
-	fortran/85798, fortran/87359, fortran/88116, fortran/88138,
-	fortran/88169, fortran/88377, fortran/88463, fortran/88467,
-	inline-asm/55681, ipa/88561, libstdc++/64883, libstdc++/87855,
-	lto/86517, lto/88130, lto/88185, middle-end/82564, middle-end/85594,
-	middle-end/88553, rtl-optimization/87475, rtl-optimization/88018,
-	rtl-optimization/88253, rtl-optimization/88416,
-	rtl-optimization/88470, rtl-optimization/88563, sanitizer/88426,
-	target/60563, target/78444, target/81210, target/81693, target/84010,
-	target/85593, target/85644, target/86832, target/87598, target/88213,
-	target/88234, target/88343, target/88418, target/88522, target/88541,
-	target/88594, target/88620, testsuite/67974, tree-optimization/68356,
-	tree-optimization/71109, tree-optimization/85794,
-	tree-optimization/87320, tree-optimization/87360,
-	tree-optimization/87895, tree-optimization/87898,
-	tree-optimization/88071
-- include forgotten ppc* intrinsic headers
+* Sat Jan 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
+- update from trunk
+  - PRs c++/86205, c++/86740, c++/86926, c++/88699, c++/88875, c/88664,
+	fortran/88871, fortran/88898, fortran/88902, libbacktrace/88890,
+	libstdc++/87514, libstdc++/87520, libstdc++/88782, middle-end/88273,
+	middle-end/88587, target/85596, target/88799, target/88892,
+	tree-optimization/88800, tree-optimization/88903
+- fix transfer_intrinsic_3.f90 miscompilation on ppc64le and s390x
+  (PR tree-optimization/88044)
+- fix -fsanitize=pointer-{compare,subtract} in C++ templates
+  (PR sanitizer/88901)
+- add Obsoletes for libmpx and libmpx-static
 
-* Sat Dec 15 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-6
-- update from the 8 branch
-  - PRs c++/86246, c++/87531, c++/87989, c++/88120, debug/87462, debug/88006,
-	fortran/87922, fortran/88025, fortran/88048, fortran/88073,
-	fortran/88143, fortran/88155, fortran/88205, fortran/88206,
-	fortran/88228, fortran/88249, fortran/88269, fortran/97922,
-	gcov-profile/88045, libfortran/78351, libfortran/88137,
-	libstdc++/70694, libstdc++/87520, libstdc++/88199, lto/88077,
-	middle-end/58372, rtl-optimization/85925, rtl-optimization/88001,
-	target/81685, target/85968, target/87496, target/87853, target/87867,
-	target/87928, target/88051, target/88224, testsuite/78544,
-	tree-optimization/79351, tree-optimization/87288,
-	tree-optimization/88229
+* Thu Jan 17 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.2
+- update from trunk
+  - PRs c++/78244, c++/86610, c++/86648, c++/87768, c++/87882, c++/88114,
+	c++/88146, c++/88312, c++/88613, c++/88692, c++/88795, c++/88825,
+	c++/88830, c++/88866, c/51628, d/87824, debug/88046, fortran/35031,
+	fortran/43136, fortran/57992, fortran/59345, fortran/61765,
+	fortran/81849, fortran/88803, gcov-profile/88263, inline-asm/52813,
+	ipa/88788, libbacktrace/82857, libfortran/88776, libfortran/88807,
+	libstdc++/83306, libstdc++/88738, libstdc++/88802, libstdc++/88811,
+	libstdc++/88881, libstdc++/88884, lto/86736, lto/88733,
+	middle-end/85956, middle-end/88703, rtl-optimization/87305,
+	rtl-optimization/88796, rtl-optimization/88870, target/80547,
+	target/85381, target/85486, target/88614, target/86891, target/87306,
+	target/88489, target/88638, target/88682, target/88777, target/88794,
+	target/88850, target/88851, target/88861, tree-optimization/86214,
+	tree-optimization/88693, tree-optimization/88775,
+	tree-optimization/88855
+- fix arm bootstrap failure (PR bootstrap/88714)
+- fix <arm_neon.h> on aarch64 and arm (PR target/88734)
+- default to -shared-libphobos for gdc
 
-* Mon Nov  5 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-5
-- update from the 8 branch
-  - PRs ada/81878, bootstrap/81033, c++/86288, debug/86687, debug/87362,
-	debug/87428, fortran/87597, fortran/87725, libstdc++/70966,
-	libstdc++/77854, libstdc++/78595, libstdc++/86751, libstdc++/87061,
-	libstdc++/87641, libstdc++/87704, libstdc++/87749, libstdc++/87809,
-	libstdc++/87822, middle-end/63155, middle-end/85488, middle-end/87087,
-	middle-end/87610, middle-end/87623, middle-end/87645,
-	middle-end/87647, middle-end/87649, other/86198, sanitizer/87837,
-	target/52795, target/81733, target/85669, target/87511,
-	tree-optimization/63155, tree-optimization/87465,
-	tree-optimization/87473, tree-optimization/87665,
-	tree-optimization/87700, tree-optimization/87745
-  - fix store merging regression (PR tree-optimization/87859, #1645400)
-
-* Thu Oct 11 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-4
-- update from the 8 branch
-  - PRs bootstrap/87225, c++/84940, c++/85070, c++/86881, c++/87093,
-	c++/87137, c++/87185, c++/87582, fortran/83999, fortran/85395,
-	fortran/85954, fortran/86111, fortran/86116, fortran/86372,
-	fortran/86830, fortran/87277, fortran/87284, gcov-profile/85871,
-	gcov-profile/86109, libstdc++/87278, libstdc++/87538,
-	middle-end/87188, middle-end/87248, other/87353,
-	rtl-optimization/86771, rtl-optimization/86882, sanitizer/85774,
-	target/82699, target/85666, target/86731, target/86989, target/87033,
-	target/87224, target/87370, target/87414, target/87467, target/87517,
-	target/87522, target/87550, tree-optimization/86844
-
-* Wed Sep  5 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-3
-- update from the 8 branch
-  - PRs c++/86190, c++/86706, c++/86728, c++/86738, c++/86763, c++/86767,
-	c++/86836, c++/87095, c++/87122, c++/87155, fortran/86328,
-	fortran/86760, fortran/86837, fortran/86906, gcov-profile/86817,
-	libfortran/86704, libstdc++/60555, libstdc++/84535, libstdc++/86597,
-	libstdc++/86861, libstdc++/86874, libstdc++/87116, lto/86456,
-	middle-end/86505, middle-end/86705, middle-end/87024,
-	middle-end/87099, middle-end/87138, other/86992,
-	rtl-optimization/87065, sanitizer/86022, target/86386, target/86640,
-	target/86662, target/86820, target/87014, target/87198,
-	testsuite/86153, tree-optimization/80925, tree-optimization/85859,
-	tree-optimization/86816, tree-optimization/86835,
-	tree-optimization/86871, tree-optimization/86914,
-	tree-optimization/86927, tree-optimization/86945,
-	tree-optimization/87074
-
-* Wed Aug  1 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-2
-- update from the 8 branch
-  - PRs bootstrap/86724, c/85704, c/86617, libstdc++/84654, libstdc++/85672,
-	libstdc++/86734, sanitizer/86759, target/86511, target/86612,
-	target/86651
-
-* Thu Jul 26 2018 Jakub Jelinek <jakub@redhat.com> 8.2.1-1
-- update from the 8 branch
-  - GCC 8.2 release
-  - PRs c++/3698, c++/86208, c++/86374, c++/86480, c/86453, debug/86452,
-	debug/86457, fortran/83183, fortran/83184, fortran/86325,
-	fortran/86417, fortran/86421, middle-end/85602, middle-end/85974,
-	middle-end/86076, middle-end/86202, middle-end/86539,
-	middle-end/86542, middle-end/86627, middle-end/86660, target/84829,
-	target/86414, tree-optimization/85935, tree-optimization/86274,
-	tree-optimization/86514
-- add annobin notes to crt*.o and libgcc (#1574936)
-- drop -mcet option alias hack for f29+
-
-* Thu Jul 12 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-5
-- update from the 8 branch
-  - PRs c++/86320, c++/86378, c++/86398, c++/86400, debug/86064,
-	fortran/82865, fortran/82969, fortran/86242, hsa/86371,
-	libstdc++/83982, libstdc++/84087, libstdc++/85098, libstdc++/85671,
-	libstdc++/86127, libstdc++/86272, libstdc++/86292, libstdc++/86398,
-	sanitizer/86406, target/85904, target/86285, tree-optimization/86492
-
-* Fri Jun 29 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-4
-- make sure rs6000-modes.h is installed for plugins (#1596407)
-
-* Tue Jun 26 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-3
-- update from the 8 branch
-  - PRs c++/86182, c++/86219, c++/86291, fortran/82972, fortran/83088,
-	fortran/83118, fortran/85851, libgcc/86213, libstdc++/81092,
-	libstdc++/86112, libstdc++/86138, rtl-optimization/85645,
-	target/85358, target/85657, target/85994, target/86197, target/86222,
-	target/86314, tree-optimization/85989
-
-* Wed Jun 20 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-2
-- update from the 8 branch
-  - PRs ada/85540, ada/85635, bootstrap/85921, c++/61806, c++/80485,
-	c++/81060, c++/81420, c++/85305, c++/85618, c++/85634, c++/85646,
-	c++/85659, c++/85662, c++/85695, c++/85706, c++/85710, c++/85731,
-	c++/85739, c++/85761, c++/85764, c++/85765, c++/85782, c++/85792,
-	c++/85807, c++/85815, c++/85842, c++/85847, c++/85864, c++/85866,
-	c++/85873, c++/85912, c++/85952, c++/85963, c++/85976, c++/86025,
-	c++/86060, c++/86094, c++/86147, c++/86200, c++/86210, c/82063,
-	c/85623, c/85696, c/86093, debug/86194, fortran/38351, fortran/44491,
-	fortran/49636, fortran/63514, fortran/66694, fortran/68846,
-	fortran/70864, fortran/70870, fortran/78278, fortran/78571,
-	fortran/80657, fortran/82275, fortran/82617, fortran/82923,
-	fortran/85138, fortran/85507, fortran/85521, fortran/85542,
-	fortran/85543, fortran/85631, fortran/85641, fortran/85687,
-	fortran/85701, fortran/85702, fortran/85703, fortran/85742,
-	fortran/85779, fortran/85780, fortran/85786, fortran/85816,
-	fortran/85895, fortran/85975, fortran/85981, fortran/85996,
-	fortran/86045, fortran/86051, fortran/86059, fortran/86110, go/85630,
-	ipa/85655, libgfortran/85840, libgfortran/85906, libgfortran/86070,
-	libstdc++/67554, libstdc++/82644, libstdc++/82966, libstdc++/83891,
-	libstdc++/84159, libstdc++/85632, libstdc++/85642, libstdc++/85812,
-	libstdc++/85818, libstdc++/85930, libstdc++/85951, libstdc++/86008,
-	libstdc++/86169, middle-end/85567, middle-end/85588, middle-end/85627,
-	middle-end/85643, middle-end/85874, middle-end/85878,
-	middle-end/86095, middle-end/86122, middle-end/86123,
-	middle-end/86139, other/77609, rtl-optimization/85638,
-	rtl-optimization/86108, sanitizer/85556, sanitizer/85835,
-	sanitizer/86012, target/63177, target/81497, target/85345,
-	target/85591, target/85606, target/85658, target/85683, target/85684,
-	target/85698, target/85733, target/85755, target/85756, target/85829,
-	target/85900, target/85903, target/85945, target/85950, target/85984,
-	target/86003, target/86048, testsuite/85586, tree-optimization/85597,
-	tree-optimization/85615, tree-optimization/85712,
-	tree-optimization/85793, tree-optimization/85814,
-	tree-optimization/85822, tree-optimization/85863,
-	tree-optimization/85934, tree-optimization/85964,
-	tree-optimization/86038, tree-optimization/86114,
-	tree-optimization/86231
-
-* Tue Jun 19 2018 Miro Hrončok <mhroncok@redhat.com> 8.1.1-1.1
-- rebuilt for Python 3.7
-
-* Wed May  2 2018 Jakub Jelinek <jakub@redhat.com> 8.1.1-1
-- update from the 8 branch
-  - GCC 8.1 release
-  - PRs c++/85545, c++/85553, c++/85580, c++/85587, ipa/85549, libgcc/85532,
-	target/85473, target/85519, tree-optimization/85529,
-	tree-optimization/85586, web/85578
-
-* Wed Apr 25 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.23
-- update from the trunk and 8 branch
-  - GCC 8.1 rc1
-  - PR bootstrap/85490, c++/49171, c++/85437, fortran/85520, target/85512
-- include movdirintrin.h header on x86 (#1571808)
-
-* Tue Apr 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.22
-- update from the trunk
-  - PRs c++/69560, c++/70808, c++/80290, c++/84463, c++/84611, c++/84630,
-	c++/85032, c++/85039, c++/85112, c++/85258, c++/85356, c++/85385,
-	c++/85462, c++/85464, c++/85470, c/85365, debug/83157, debug/84637,
-	debug/85302, fortran/81773, fortran/83606, fortran/85387, ipa/84149,
-	ipa/85329, ipa/85391, ipa/85421, jit/85384, libgcc/85334,
-	libgcc/85379, libgomp/85463, libstdc++/84442, libstdc++/85442,
-	lto/71991, lto/81968, lto/85339, lto/85371, lto/85391, lto/85405,
-	middle-end/81657, middle-end/84955, middle-end/85414,
-	middle-end/85455, middle-end/85475, middle-end/85496, objc/85476,
-	rtl-optimization/79916, rtl-optimization/83852,
-	rtl-optimization/84566, rtl-optimization/84659,
-	rtl-optimization/85342, rtl-optimization/85354,
-	rtl-optimization/85376, rtl-optimization/85393,
-	rtl-optimization/85423, rtl-optimization/85431, sanitizer/85230,
-	sanitizer/85389, target/81084, target/83402, target/83660,
-	target/84301, target/84331, target/85080, target/85238, target/85261,
-	target/85281, target/85287, target/85291, target/85293, target/85296,
-	target/85321, target/85328, target/85347, target/85388, target/85397,
-	target/85403, target/85404, target/85417, target/85424, target/85430,
-	target/85445, target/85456, target/85469, target/85485, target/85489,
-	target/85491, target/85503, target/85508, target/85511,
-	testsuite/85326, testsuite/85346, testsuite/85483,
-	tree-optimization/82965, tree-optimization/83991,
-	tree-optimization/84737, tree-optimization/85331,
-	tree-optimization/85446, tree-optimization/85467,
-	tree-optimization/85478
-- temporarily readd -mcet as alias to -mshstk
-
-* Tue Apr 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.21
-- update from the trunk
-  - PRs c++/24314, c++/64095, c++/65923, c++/80026, c++/80956, c++/82152,
-	c++/83808, c++/84221, c++/84269, c++/84606, c++/84632, c++/84665,
-	c++/84768, c++/84791, c++/84792, c++/84936, c++/84938, c++/84943,
-	c++/84968, c++/84973, c++/84979, c++/85006, c++/85021, c++/85027,
-	c++/85028, c++/85049, c++/85060, c++/85061, c++/85062, c++/85067,
-	c++/85068, c++/85076, c++/85077, c++/85092, c++/85093, c++/85108,
-	c++/85110, c++/85113, c++/85118, c++/85133, c++/85134, c++/85135,
-	c++/85136, c++/85140, c++/85141, c++/85146, c++/85147, c++/85148,
-	c++/85149, c++/85194, c++/85200, c++/85208, c++/85209, c++/85210,
-	c++/85214, c++/85215, c++/85227, c++/85228, c++/85240, c++/85242,
-	c++/85256, c++/85262, c++/85264, c++/85277, c++/85279, c++/85285,
-	c++/85312, c/85094, debug/65821, debug/85252, fortran/42651,
-	fortran/51260, fortran/66709, fortran/69497, fortran/70068,
-	fortran/83064, fortran/84924, fortran/85083, fortran/85084,
-	fortran/85102, fortran/85111, fortran/85130, fortran/85313, gas/22318,
-	inline-asm/84985, inline-asm/85172, ipa/84947, libfortran/85166,
-	libfortran/85253, libstdc++/85183, libstdc++/85222, lto/84995,
-	lto/85078, lto/85176, lto/85248, middle-end/82976, middle-end/84067,
-	middle-end/85090, middle-end/85180, middle-end/85195,
-	middle-end/85244, other/84819, other/85161, rtl-optimization/80463,
-	rtl-optimization/83480, rtl-optimization/83530,
-	rtl-optimization/83913, rtl-optimization/83962,
-	rtl-optimization/83972, rtl-optimization/84058,
-	rtl-optimization/84872, rtl-optimization/84878,
-	rtl-optimization/85167, sanitizer/85081, sanitizer/85174,
-	sanitizer/85213, target/80546, target/81863, target/83009,
-	target/83315, target/83822, target/84041, target/84413, target/84912,
-	target/84914, target/85044, target/85056, target/85073, target/85095,
-	target/85100, target/85126, target/85169, target/85173, target/85177,
-	target/85193, target/85196, target/85203, target/85204, target/85255,
-	testsuite/82847, testsuite/83462, testsuite/84004, testsuite/85066,
-	testsuite/85154, testsuite/85189, testsuite/85190, testsuite/85191,
-	tree-optimization/80021, tree-optimization/82004,
-	tree-optimization/84005, tree-optimization/84818,
-	tree-optimization/85063, tree-optimization/85082,
-	tree-optimization/85156, tree-optimization/85168,
-	tree-optimization/85257, tree-optimization/85284,
-	tree-optimization/85286
-- fix combine ICE with -g (PR rtl-optimization/85300)
-
-* Sat Mar 24 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.20
-- update from the trunk
-  - PRs ada/85007, ada/85036, bootstrap/84856, c++/71251, c++/71638,
-	c++/71834, c++/71965, c++/78489, c++/81311, c++/84610, c++/84642,
-	c++/84729, c++/84789, c++/84804, c++/84812, c++/84835, c++/84836,
-	c++/84850, c++/84854, c++/84892, c++/84925, c++/84927, c++/84937,
-	c++/84942, c++/84961, c++/84962, c++/84970, c++/84972, c++/84978,
-	c++/84994, c++/85008, c++/85015, c++/85033, c++/85045, c/80778,
-	c/84953, c/84999, debug/84875, debug/85020, fortran/65453,
-	fortran/77414, fortran/79929, fortran/84615, fortran/84922,
-	fortran/84931, fortran/84957, fortran/85001, inline-asm/84941,
-	inline-asm/85022, inline-asm/85030, inline-asm/85034, ipa/84825,
-	ipa/84963, libstdc++/77691, libstdc++/84998, rtl-optimization/84635,
-	rtl-optimization/84643, rtl-optimization/84989, sanitizer/78651,
-	sanitizer/84761, sanitizer/85018, sanitizer/85029, target/81647,
-	target/82518, target/82989, target/83789, target/84760, target/84826,
-	target/84838, target/84845, target/84945, target/84952, target/84954,
-	target/84986, target/84988, target/84990, target/85025, target/85026,
-	tree-optimization/83126, tree-optimization/84811,
-	tree-optimization/84859, tree-optimization/84913,
-	tree-optimization/84929, tree-optimization/84933,
-	tree-optimization/84946, tree-optimization/84956,
-	tree-optimization/84960, tree-optimization/84969,
-	tree-optimization/84982
-  - fix std::less etc. (#1559171, PR libstdc++/85040)
-
-* Sat Mar 17 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.19
-- update from the trunk
-  - PRs ada/82813, c++/79085, c++/79937, c++/80227, c++/81236, c++/82336,
-	c++/82410, c++/82565, c++/83911, c++/83916, c++/83937, c++/84222,
-	c++/84720, c++/84798, c++/84801, c++/84820, c++/84839, c++/84843,
-	c++/84874, c++/84906, c/46921, c/84852, c/84853, c/84873, c/84909,
-	c/84910, fortran/61775, fortran/69395, fortran/78741, ipa/84658,
-	ipa/84722, ipa/84805, ipa/84833, libgfortran/84880, libstdc++/78420,
-	libstdc++/83662, libstdc++/84773, lto/84805, middle-end/84831,
-	middle-end/84834, sanitizer/83392, target/68256, target/78090,
-	target/83451, target/84574, target/84711, target/84743, target/84827,
-	target/84828, target/84844, target/84860, target/84876, target/84899,
-	target/84902, tree-optimization/84725, tree-optimization/84830,
-	tree-optimization/84841
-
-* Mon Mar 12 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.18
-- update from the trunk
-  - PRs c++/84355, c++/84802, c++/84813, debug/58150, fortran/83939,
-	fortran/84546, rtl-optimization/84780, tree-optimization/83456,
-	tree-optimization/84777, tree-optimization/84803
-- add pconfigintrin.h and wbnoinvdintrin.h headers (#1554279)
-- fix -march=knl from emitting AVX512VL instructions (PR target/84786)
-- fix C++ constexpr RANGE_EXPR splitting (PR c++/84808)
-
-* Sat Mar 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.17
-- update from the trunk
-  - PRs c++/61135, c++/61358, c++/67370, c++/70468, c++/71169, c++/71464,
-	c++/71546, c++/71569, c++/71784, c++/71832, c++/79410, c++/80598,
-	c++/81812, c++/82022, c++/83503, c++/83692, c++/83871, c++/84015,
-	c++/84076, c++/84171, c++/84231, c++/84294, c++/84325, c++/84424,
-	c++/84426, c++/84434, c++/84441, c++/84447, c++/84489, c++/84492,
-	c++/84493, c++/84497, c++/84520, c++/84533, c++/84537, c++/84540,
-	c++/84551, c++/84556, c++/84557, c++/84558, c++/84559, c++/84560,
-	c++/84578, c++/84582, c++/84590, c++/84593, c++/84596, c++/84602,
-	c++/84609, c++/84618, c++/84639, c++/84662, c++/84663, c++/84664,
-	c++/84684, c++/84686, c++/84694, c++/84702, c++/84704, c++/84707,
-	c++/84708, c++/84724, c++/84726, c++/84733, c++/84752, c++/84767,
-	c++/84770, c++/84785, c/84721, debug/83917, debug/84404, debug/84408,
-	debug/84456, debug/84545, debug/84620, debug/84645, fortran/30792,
-	fortran/32957, fortran/51434, fortran/56667, fortran/59781,
-	fortran/64107, fortran/64124, fortran/66128, fortran/70409,
-	fortran/71085, fortran/78238, fortran/80965, fortran/83148,
-	fortran/83149, fortran/83633, fortran/83901, fortran/84219,
-	fortran/84346, fortran/84506, fortran/84509, fortran/84511,
-	fortran/84519, fortran/84523, fortran/84538, fortran/84565,
-	fortran/84697, fortran/84734, gcov-profile/84548, gcov-profile/84735,
-	inline-asm/84625, inline-asm/84683, inline-asm/84742, ipa/83983,
-	ipa/84628, jit/64089, jit/84288, libstdc++/84532, libstdc++/84601,
-	libstdc++/84671, libstdc++/84769, middle-end/84552, middle-end/84607,
-	middle-end/84723, preprocessor/84517, rtl-optimization/81611,
-	rtl-optimization/83327, rtl-optimization/83496,
-	rtl-optimization/84528, rtl-optimization/84682, sanitizer/70875,
-	sanitizer/82484, target/52991, target/56540, target/81572,
-	target/82005, target/82411, target/82851, target/83193, target/83335,
-	target/83399, target/83712, target/83969, target/84039, target/84176,
-	target/84264, target/84277, target/84521, target/84524, target/84530,
-	target/84534, target/84564, target/84575, target/84614, target/84700,
-	target/84710, target/84748, target/84763, target/84772, target/84807,
-	testsuite/80551, testsuite/84597, testsuite/84617, translation/84207,
-	tree-optimization/83519, tree-optimization/84114,
-	tree-optimization/84178, tree-optimization/84427,
-	tree-optimization/84466, tree-optimization/84468,
-	tree-optimization/84480, tree-optimization/84486,
-	tree-optimization/84512, tree-optimization/84526,
-	tree-optimization/84584, tree-optimization/84634,
-	tree-optimization/84650, tree-optimization/84670,
-	tree-optimization/84687, tree-optimization/84739,
-	tree-optimization/84740, tree-optimization/84746,
-	tree-optimization/84775
-- for f29+ require binutils >= 2.30 (#1552529)
-
-* Thu Feb 22 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.16
-- update from the trunk
-  - PRs c++/77655, c++/84454, c++/84496, c/84229, target/84502
-  - fix store-merging (#1547495, PR tree-optimization/84503)
-
-* Tue Feb 20 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.15
-- update from the trunk
-  - PRs c++/84348, c++/84429, c++/84430, c++/84444, c++/84445, c++/84446,
-	c++/84448, c++/84449, c++/84455, c++/84488, c/81272, c/84310,
-	driver/83193, fortran/35339, fortran/48890, fortran/83823,
-	middle-end/79257, middle-end/82004, middle-end/82123,
-	middle-end/84095, middle-end/84406, other/80589, sanitizer/82183,
-	target/79747, target/84148, target/84460, tree-optimization/81592,
-	tree-optimization/82491, tree-optimization/84419,
-	tree-optimization/84452
-- fix strlen value range computation (#1546964, PR tree-optimization/84478)
-
-* Sun Feb 18 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.14
-- update from the trunk
-  - PRs ada/84277, bootstrap/82939, bootstrap/84405, c++/79064, c++/79626,
-	c++/81853, c++/82468, c++/82664, c++/82764, c++/83227, c++/83835,
-	c++/83990, c++/84045, c++/84080, c++/84151, c++/84192, c++/84263,
-	c++/84281, c++/84314, c++/84330, c++/84333, c++/84338, c++/84341,
-	c++/84350, c++/84364, c++/84368, c++/84375, c++/84376, c++/84420,
-	c++/84421, c/82210, c/84108, c/84305, debug/84319, debug/84342,
-	fortran/35299, fortran/54223, fortran/68746, fortran/80945,
-	fortran/84074, fortran/84270, fortran/84273, fortran/84276,
-	fortran/84313, fortran/84354, fortran/84381, fortran/84385,
-	fortran/84389, fortran/84409, fortran/84418, ipa/84425,
-	libgfortran/84389, libgfortran/84412, libstdc++/81797,
-	middle-end/83665, middle-end/84309, other/82368, preprocessor/83063,
-	preprocessor/83708, rtl-optimization/70023, rtl-optimization/81443,
-	rtl-optimization/83723, rtl-optimization/84169, sanitizer/84307,
-	sanitizer/84340, target/79242, target/81535, target/82862,
-	target/83758, target/83760, target/83831, target/83984, target/84220,
-	target/84239, target/84266, target/84272, target/84279, target/84335,
-	target/84336, target/84359, target/84365, target/84370, target/84372,
-	tree-optimization/83698, tree-optimization/84016,
-	tree-optimization/84190, tree-optimization/84321,
-	tree-optimization/84334, tree-optimization/84339,
-	tree-optimization/84357, tree-optimization/84383,
-	tree-optimization/84399, tree-optimization/84417
-
-* Sat Feb 10 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.13
-- update from the trunk
-  - PRs c++/77522, c++/80567, c++/81610, c++/81917, c++/83204, c++/83659,
-	c++/83806, c++/84082, c++/84182, c++/84296, c/84293, fortran/56691,
-	fortran/68560, fortran/82049, fortran/82994, lto/84212, lto/84213,
-	middle-end/84237, rtl-optimization/57193, rtl-optimization/83459,
-	rtl-optimization/84068, rtl-optimization/84308, sanitizer/84285,
-	target/81143, target/83008, target/83926, target/84113, target/84226,
-	target/84300, target/PR84295, tree-optimization/84037,
-	tree-optimization/84136, tree-optimization/84224,
-	tree-optimization/84232, tree-optimization/84233,
-	tree-optimization/84238, tree-optimization/84265,
-	tree-optimization/84278
-- temporarily revert LVU stuff, until it settles down
-
-* Wed Feb  7 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.12
-- update from the trunk
-  - PRs c++/71662, c++/82782, c++/83796, c++/84059, c++/84125, c++/84126,
-	c++/84160, c++/84181, c/81779, fortran/83344, fortran/83705,
-	fortran/83975, fortran/84094, fortran/84115, fortran/84141,
-	fortran/84155, gcov-profile/83879, gcov-profile/84137, libgomp/84217,
-	lto/81004, middle-end/79966, rtl-optimization/84123,
-	rtl-optimization/84157, target/56010, target/79975, target/82641,
-	target/83370, target/83743, target/84066, target/84089, target/84145,
-	target/84154, target/84209, target/84243, target/84248, tearget/83845,
-	testsuite/52641, testsuite/83846, testsuite/84243,
-	tree-optimization/81635, tree-optimization/81661,
-	tree-optimization/83369, tree-optimization/84117,
-	tree-optimization/84204, tree-optimization/84205,
-	tree-optimization/84223, tree-optimization/84225,
-	tree-optimization/84228,
-  - fix dom2 floating point miscompilation (#1542124,
-    PR tree-optimization/84235)
-- fix go provides/requires (#1541639)
-- fix var-tracking ICE on aarch64 (#1541670, PR debug/84252)
-
-* Tue Feb  6 2018 Florian Weimer <fweimer@redhat.com> - 8.0.1-0.11
-- use generic tuning for armhfp
-
-* Mon Feb  5 2018 Richard W.M. Jones <rjones@redhat.com> 8.0.1-0.10
-- disable multilib on riscv64.
-
-* Thu Feb  1 2018 Jeff Law <law@redhat.com> 8.0.1-0.9
-- fix -fstack-clash-protection codegen issue on 32 bit x86
-  (#1540221, PR target/84128)
-
-* Wed Jan 31 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.8
-- update from the trunk
-  - PRs c++/83993, c++/84092, c++/84138, c/84100, fortran/84088,
-	fortran/84116, fortran/84134, lto/84105, preprocessor/69869,
-	rtl-optimization/84071, target/82444, target/83618, target/84064,
-	tree-optimization/64946, tree-optimization/84132
-- fix ICE with CET and -g (PR target/84146)
-
-* Tue Jan 30 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.7
-- update from the trunk
-  - PRs bootstrap/80867, bootstrap/84017, c++/68810, c++/83924, c++/83942,
-	c++/83996, c++/84091, c++/84098, c/83966, fortran/84073,
-	fortran/84133, ipa/81360, ipa/83179, libgomp/84096, libstdc++/83658,
-	lto/83954, rtl-optimization/83986, target/40411, target/58684,
-	target/83828, target/84112, testsuite/81010, tree-optimization/81611,
-	tree-optimization/83008, tree-optimization/84057,
-	tree-optimization/84086, tree-optimization/84111
-- fix fortran debuginfo (PR debug/84131)
-
-* Sat Jan 27 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.6
-- update from the trunk
-  - PRs c++/82249, c++/82514, c++/83921, c++/83947, c++/83956, c++/83974,
-	c++/84031, c++/84036, c/83989, diagnostic/84034, fortran/37577,
-	fortran/83866, fortran/83898, fortran/83998, fortran/84065, jit/81672,
-	jit/82846, libstdc++/81076, middle-end/83055, middle-end/83977,
-	middle-end/84000, middle-end/84040, other/68239,
-	rtl-optimization/83985, rtl-optimization/84003, sanitizer/83987,
-	target/68467, target/81352, target/81550, target/81763, target/83013,
-	target/83589, target/83905, target/83994, target/84014, target/84028,
-	target/84033, testsuite/83889, tree-optimization/81082,
-	tree-optimization/82819, tree-optimization/83176,
-	tree-optimization/83979
-
-* Tue Jan 23 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.5
-- update from the trunk
-  - PRs c++/81933, c++/82882, c++/83720, c++/83895, c++/83918, c++/83958,
-	c++/83978, c++/83988, fortran/78534, fortran/83704, lto/81440,
-	lto/83452, target/80870, target/83862, target/83946, testsuite/77734,
-	testsuite/83888, tree-optimization/69452, tree-optimization/82604,
-	tree-optimization/83081, tree-optimization/83510,
-	tree-optimization/83940, tree-optimization/83957,
-	tree-optimization/83963, tree-optimization/83965
-- fix strlen pass ICE (PR tree-optimization/83896)
-
-* Sat Jan 20 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.4
-- update from the trunk
-  - PRs c++/78344, c++/81013, c++/81054, c++/81167, c++/82461, c++/83160,
-	c++/83287, c++/83824, c++/83897, c++/83919, c/61240, debug/81570,
-	debug/83728, fortran/80768, fortran/83864, fortran/83874,
-	fortran/83900, ipa/82256, ipa/83051, ipa/83619, middle-end/83945,
-	middle_end/79538, other/70268, rtl-optimization/83147,
-	sanitizer/81715, sanitizer/82825, target/65578, target/83790,
-	target/83920, target/83930, testsuite/83882, testsuite/83883,
-	testsuite/83934, tree-optimization/83887, tree-optimization/83914,
-	tree-optimization/83922
-- aarch64 -fstack-clash-protection support
-
-* Wed Jan 17 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.3
-- update from the trunk
-  - PRs c++/72801, c++/81067, c++/81843, c++/83714, c++/83739, c++/83799,
-	c++/83814, c++/83902, lto/83121, middle-end/83884,
-	rtl-optimization/80481, rtl-optimization/83771, target/79041,
-	target/82964, target/83546, testsuite/77734, tree-optimization/81184
-
-* Tue Jan 16 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.2
-- update from the trunk
-  - PRs c++/83588, c++/83817, c++/83825, c/83844, fortran/54613,
-	fortran/82257, libgomp/83590, libstdc++/83833, libstdc++/83834,
-	middle-end/83837, rtl-optimization/83213, rtl-optimization/86620,
-	target/83839, target/83858, testsuite/82132, testsuite/83869,
-	tree-optimization/83843, tree-optimization/83847,
-	tree-optimization/83857, tree-optimization/83867
-
-* Mon Jan 15 2018 Jakub Jelinek <jakub@redhat.com> 8.0.1-0.1
+* Fri Jan 11 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.1
 - new package

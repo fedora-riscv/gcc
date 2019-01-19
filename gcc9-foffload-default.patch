@@ -1,14 +1,15 @@
-2017-01-20  Jakub Jelinek  <jakub@redhat.com>
+2019-01-17  Jakub Jelinek  <jakub@redhat.com>
 
 	* gcc.c (offload_targets_default): New variable.
 	(process_command): Set it if -foffload is defaulted.
 	(driver::maybe_putenv_OFFLOAD_TARGETS): Add OFFLOAD_TARGET_DEFAULT=1
 	into environment if -foffload has been defaulted.
 	* lto-wrapper.c (OFFLOAD_TARGET_DEFAULT_ENV): Define.
-	(compile_images_for_offload_targets): If OFFLOAD_TARGET_DEFAULT
+	(compile_offload_image): If OFFLOAD_TARGET_DEFAULT
 	is in the environment, don't fail if corresponding mkoffload
-	can't be found.  Free and clear offload_names if no valid offload
-	is found.
+	can't be found.
+	(compile_images_for_offload_targets): Likewise.  Free and clear
+	offload_names if no valid offload is found.
 libgomp/
 	* target.c (gomp_load_plugin_for_device): If a plugin can't be
 	dlopened, assume it has no devices silently.
@@ -57,18 +58,28 @@ libgomp/
  
  enum lto_mode_d {
    LTO_MODE_NONE,			/* Not doing LTO.  */
-@@ -790,8 +791,10 @@ compile_images_for_offload_targets (unsi
-   if (!target_names)
-     return;
+@@ -820,6 +821,12 @@ compile_offload_image (const char *targe
+ 	break;
+       }
+ 
++  if (!compiler && getenv (OFFLOAD_TARGET_DEFAULT_ENV))
++    {
++      free_array_of_ptrs ((void **) paths, n_paths);
++      return NULL;
++    }
++
+   if (!compiler)
+     fatal_error (input_location,
+ 		 "could not find %s in %s (consider using '-B')\n", suffix + 1,
+@@ -883,6 +890,7 @@ compile_images_for_offload_targets (unsi
    unsigned num_targets = parse_env_var (target_names, &names, NULL);
-+  const char *target_names_default = getenv (OFFLOAD_TARGET_DEFAULT_ENV);
  
    int next_name_entry = 0;
 +  bool hsa_seen = false;
    const char *compiler_path = getenv ("COMPILER_PATH");
    if (!compiler_path)
      goto out;
-@@ -804,18 +807,32 @@ compile_images_for_offload_targets (unsi
+@@ -895,18 +903,26 @@ compile_images_for_offload_targets (unsi
        /* HSA does not use LTO-like streaming and a different compiler, skip
  	 it. */
        if (strcmp (names[i], "hsa") == 0)
@@ -85,13 +96,7 @@ libgomp/
        if (!offload_names[next_name_entry])
 -	fatal_error (input_location,
 -		     "problem with building target image for %s\n", names[i]);
-+	{
-+	  if (target_names_default != NULL)
-+	    continue;
-+	  fatal_error (input_location,
-+		       "problem with building target image for %s\n",
-+		       names[i]);
-+	}
++	continue;
        next_name_entry++;
      }
  

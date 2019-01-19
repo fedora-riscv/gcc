@@ -1,8 +1,6 @@
 2010-02-08  Roland McGrath  <roland@redhat.com>
 
-	* config/rs6000/sysv4.h (LINK_EH_SPEC): Pass --no-add-needed to the
-	linker.
-	* config/gnu-user.h (LINK_EH_SPEC): Likewise.
+	* config/gnu-user.h (LINK_EH_SPEC): Pass --no-add-needed to the linker.
 	* config/alpha/elf.h (LINK_EH_SPEC): Likewise.
 	* config/ia64/linux.h (LINK_EH_SPEC): Likewise.
 
@@ -28,7 +26,7 @@
  #define TARGET_INIT_LIBFUNCS ia64_soft_fp_init_libfuncs
 --- gcc/config/gnu-user.h.jj	2011-01-03 12:53:03.739057299 +0100
 +++ gcc/config/gnu-user.h	2011-01-04 18:14:10.932814884 +0100
-@@ -133,7 +133,7 @@ see the files COPYING3 and COPYING.RUNTI
+@@ -106,7 +106,7 @@ see the files COPYING3 and COPYING.RUNTI
  #define LIB_SPEC GNU_USER_TARGET_LIB_SPEC
  
  #if defined(HAVE_LD_EH_FRAME_HDR)
@@ -36,15 +34,4 @@
 +#define LINK_EH_SPEC "--no-add-needed %{!static|static-pie:--eh-frame-hdr} "
  #endif
  
- #undef LINK_GCC_C_SEQUENCE_SPEC
---- gcc/config/rs6000/sysv4.h.jj	2011-01-03 13:02:18.255994215 +0100
-+++ gcc/config/rs6000/sysv4.h	2011-01-04 18:14:10.933888871 +0100
-@@ -816,7 +816,7 @@ ENDIAN_SELECT(" -mbig", " -mlittle", DEF
-   -dynamic-linker " GNU_USER_DYNAMIC_LINKER "}}"
- 
- #if defined(HAVE_LD_EH_FRAME_HDR)
--# define LINK_EH_SPEC "%{!static|static-pie:--eh-frame-hdr} "
-+# define LINK_EH_SPEC "--no-add-needed %{!static|static-pie:--eh-frame-hdr} "
- #endif
- 
- #define CPP_OS_LINUX_SPEC "-D__unix__ -D__gnu_linux__ -D__linux__ \
+ #define GNU_USER_TARGET_LINK_GCC_C_SEQUENCE_SPEC \
