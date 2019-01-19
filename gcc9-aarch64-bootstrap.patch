@@ -1,0 +1,47 @@
+2019-01-19  Jakub Jelinek  <jakub@redhat.com>
+
+	* config/aarch64/aarch64.c (aarch64_stack_protect_guard): Move
+	outside of #if CHECKING_P code.
+
+--- gcc/config/aarch64/aarch64.c.jj	2019-01-19 09:39:18.859831024 +0100
++++ gcc/config/aarch64/aarch64.c	2019-01-19 18:25:18.037239167 +0100
+@@ -18662,6 +18662,19 @@ aarch64_simd_clone_usable (struct cgraph
+     }
+ }
+ 
++/* Implement TARGET_STACK_PROTECT_GUARD. In case of a
++   global variable based guard use the default else
++   return a null tree.  */
++static tree
++aarch64_stack_protect_guard (void)
++{
++  if (aarch64_stack_protector_guard == SSP_GLOBAL)
++    return default_stack_protect_guard ();
++
++  return NULL_TREE;
++}
++
++
+ /* Target-specific selftests.  */
+ 
+ #if CHECKING_P
+@@ -18706,19 +18719,6 @@ aarch64_run_selftests (void)
+ 
+ } // namespace selftest
+ 
+-/* Implement TARGET_STACK_PROTECT_GUARD. In case of a
+-   global variable based guard use the default else
+-   return a null tree.  */
+-static tree
+-aarch64_stack_protect_guard (void)
+-{
+-  if (aarch64_stack_protector_guard == SSP_GLOBAL)
+-    return default_stack_protect_guard ();
+-
+-  return NULL_TREE;
+-}
+-
+-
+ #endif /* #if CHECKING_P */
+ 
+ #undef TARGET_STACK_PROTECT_GUARD
