@@ -262,6 +262,7 @@ Patch13: gcc9-pr88901.patch
 Patch14: gcc9-pr88044.patch
 Patch15: gcc9-utf-array-test.patch
 Patch16: gcc9-aarch64-bootstrap.patch
+Patch17: gcc9-pr88927.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -845,6 +846,7 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .pr88044~
 %patch15 -p0 -b .utf-array-test~
 %patch16 -p0 -b .aarch64-bootstrap~
+%patch17 -p0 -b .pr88927~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
