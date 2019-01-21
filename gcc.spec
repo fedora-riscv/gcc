@@ -3180,7 +3180,7 @@ fi
 %endif
 
 %changelog
-* Sat Jan 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
+* Sat Jan 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.3
 - update from trunk
   - PRs c++/86205, c++/86740, c++/86926, c++/88699, c++/88875, c/88664,
 	fortran/88871, fortran/88898, fortran/88902, libbacktrace/88890,
@@ -3193,7 +3193,7 @@ fi
   (PR sanitizer/88901)
 - add Obsoletes for libmpx and libmpx-static
 
-* Thu Jan 17 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.2
+* Thu Jan 17 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.2
 - update from trunk
   - PRs c++/78244, c++/86610, c++/86648, c++/87768, c++/87882, c++/88114,
 	c++/88146, c++/88312, c++/88613, c++/88692, c++/88795, c++/88825,
@@ -3214,5 +3214,5 @@ fi
 - fix <arm_neon.h> on aarch64 and arm (PR target/88734)
 - default to -shared-libphobos for gdc
 
-* Fri Jan 11 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.1
+* Fri Jan 11 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.1
 - new package
