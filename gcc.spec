@@ -1,10 +1,10 @@
-%global DATE 20190119
-%global SVNREV 268094
+%global DATE 20190121
+%global SVNREV 268128
 %global gcc_version 9.0.0
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.3
+%global gcc_release 0.4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -258,11 +258,12 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr88714.patch
-Patch13: gcc9-pr88901.patch
-Patch14: gcc9-pr88044.patch
-Patch15: gcc9-utf-array-test.patch
-Patch16: gcc9-aarch64-bootstrap.patch
-Patch17: gcc9-pr88927.patch
+Patch13: gcc9-pr88044.patch
+Patch14: gcc9-pr88927.patch
+Patch15: gcc9-pr87064.patch
+Patch16: gcc9-pr88904.patch
+Patch17: gcc9-pr88905.patch
+Patch18: gcc9-pr88906.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -842,11 +843,12 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr88714~
-%patch13 -p0 -b .pr88901~
-%patch14 -p0 -b .pr88044~
-%patch15 -p0 -b .utf-array-test~
-%patch16 -p0 -b .aarch64-bootstrap~
-%patch17 -p0 -b .pr88927~
+%patch13 -p0 -b .pr88044~
+%patch14 -p0 -b .pr88927~
+%patch15 -p0 -b .pr87064~
+%patch16 -p0 -b .pr88904~
+%patch17 -p0 -b .pr88905~
+%patch18 -p0 -b .pr88906~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3180,6 +3182,17 @@ fi
 %endif
 
 %changelog
+* Mon Jan 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.4
+- update from trunk
+  - PRs c++/88949, c/88928, fortran/37835, fortran/56789, fortran/77960,
+	ipa/87615, libstdc++/86590, target/71659, target/88938,
+	tree-optimization/88934
+- fix up min/max reduction on ppc64le (PR target/87064)
+- fix up thread_jump on thumb1 (PR rtl-optimization/88904)
+- fix up doubleword unop REG_EQUAL notes with const args (PR target/88905)
+- fix up DSE on memcpy/memmove/memcmp libcalls (PR rtl-optimization/49429,
+  PR target/49454, PR rtl-optimization/86334, PR target/88906)
+
 * Sat Jan 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.3
 - update from trunk
   - PRs c++/86205, c++/86740, c++/86926, c++/88699, c++/88875, c/88664,

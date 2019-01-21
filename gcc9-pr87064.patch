@@ -1,0 +1,17 @@
+2019-01-21  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/87064
+	* config/rs6000/vsx.md (*vsx_reduc_<VEC_reduc_name>_v2df_scalar):
+	Disable for little endian.
+
+--- gcc/config/rs6000/vsx.md.jj	2019-01-19 09:39:13.224924063 +0100
++++ gcc/config/rs6000/vsx.md	2019-01-21 23:39:27.527774247 +0100
+@@ -4351,7 +4351,7 @@ (define_insn_and_split "*vsx_reduc_<VEC_
+ 	  (match_dup 1))
+ 	 (parallel [(const_int 1)])))
+    (clobber (match_scratch:DF 2 "=0,0,&wd,&wa"))]
+-  "VECTOR_UNIT_VSX_P (V2DFmode)"
++  "BYTES_BIG_ENDIAN && VECTOR_UNIT_VSX_P (V2DFmode)"
+   "#"
+   ""
+   [(const_int 0)]

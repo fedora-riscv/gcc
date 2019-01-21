@@ -1,0 +1,94 @@
+2019-01-21  Jakub Jelinek  <jakub@redhat.com>
+
+	PR rtl-optimization/49429
+	PR target/49454
+	PR rtl-optimization/86334
+	PR target/88906
+	* expr.c (emit_block_move_hints): Move marking of MEM_EXPRs
+	addressable from here...
+	(emit_block_op_via_libcall): ... to here.
+
+	* gcc.target/i386/pr86334.c: New test.
+	* gcc.target/i386/pr88906.c: New test.
+
+--- gcc/expr.c.jj	2019-01-10 11:43:08.958466880 +0100
++++ gcc/expr.c	2019-01-21 12:06:41.782406169 +0100
+@@ -1631,14 +1631,6 @@ emit_block_move_hints (rtx x, rtx y, rtx
+       if (may_use_call < 0)
+ 	return pc_rtx;
+ 
+-      /* Since x and y are passed to a libcall, mark the corresponding
+-	 tree EXPR as addressable.  */
+-      tree y_expr = MEM_EXPR (y);
+-      tree x_expr = MEM_EXPR (x);
+-      if (y_expr)
+-	mark_addressable (y_expr);
+-      if (x_expr)
+-	mark_addressable (x_expr);
+       retval = emit_block_copy_via_libcall (x, y, size,
+ 					    method == BLOCK_OP_TAILCALL);
+     }
+@@ -1884,6 +1876,15 @@ emit_block_op_via_libcall (enum built_in
+   tree call_expr, dst_tree, src_tree, size_tree;
+   machine_mode size_mode;
+ 
++  /* Since dst and src are passed to a libcall, mark the corresponding
++     tree EXPR as addressable.  */
++  tree dst_expr = MEM_EXPR (dst);
++  tree src_expr = MEM_EXPR (src);
++  if (dst_expr)
++    mark_addressable (dst_expr);
++  if (src_expr)
++    mark_addressable (src_expr);
++
+   dst_addr = copy_addr_to_reg (XEXP (dst, 0));
+   dst_addr = convert_memory_address (ptr_mode, dst_addr);
+   dst_tree = make_tree (ptr_type_node, dst_addr);
+--- gcc/testsuite/gcc.target/i386/pr86334.c.jj	2019-01-21 17:52:04.408370956 +0100
++++ gcc/testsuite/gcc.target/i386/pr86334.c	2019-01-21 17:52:58.504482908 +0100
+@@ -0,0 +1,21 @@
++/* PR rtl-optimization/86334 */
++/* { dg-do run { target ia32 } } */
++/* { dg-options "-O -march=i386 -mtune=athlon -minline-all-stringops -minline-stringops-dynamically -mmemcpy-strategy=libcall:-1:align -Wno-psabi" } */
++
++typedef int V __attribute__ ((vector_size (64)));
++
++static inline V
++foo (V g)
++{
++  g[0] = 4;
++  return g;
++}
++
++int
++main ()
++{
++  V x = foo ((V) { });
++  if (x[0] != 4 || x[1] || x[2] || x[3] || x[4] || x[5] || x[6] || x[7])
++    __builtin_abort ();
++  return 0;
++}
+--- gcc/testsuite/gcc.target/i386/pr88906.c.jj	2019-01-21 12:08:53.110252030 +0100
++++ gcc/testsuite/gcc.target/i386/pr88906.c	2019-01-21 17:53:08.082325657 +0100
+@@ -0,0 +1,21 @@
++/* PR target/88906 */
++/* { dg-do run { target ia32 } } */
++/* { dg-options "-O -march=i386 -mtune=k6 -minline-all-stringops -minline-stringops-dynamically -mmemcpy-strategy=libcall:-1:align -Wno-psabi" } */
++
++typedef unsigned V __attribute__ ((vector_size (16)));
++
++static inline V
++foo (V v)
++{
++  __builtin_sub_overflow (0, 0, &v[0]);
++  return v;
++}
++
++int
++main ()
++{
++  V v = foo ((V) { ~0 });
++  if (v[0] || v[1] || v[2] || v[3])
++    __builtin_abort ();
++  return 0;
++}
