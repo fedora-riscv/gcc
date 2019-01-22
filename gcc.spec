@@ -478,7 +478,7 @@ D dynamically linked programs.
 %package -n libgphobos-static
 Summary: Static D libraries
 Group: Development/Libraries
-Requires: libghobos = %{version}-%{release}
+Requires: libgphobos = %{version}-%{release}
 Requires: gcc-gdc = %{version}-%{release}
 
 %description -n libgphobos-static
@@ -3182,6 +3182,9 @@ fi
 %endif
 
 %changelog
+* Tue Jan 22 2019 David Abdurachmanov <david.abdurachmanov@gmail.com>
+- fix libgphobos-static requires (#1668204)
+
 * Mon Jan 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.0-0.4
 - update from trunk
   - PRs c++/88949, c/88928, fortran/37835, fortran/56789, fortran/77960,
