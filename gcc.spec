@@ -2081,25 +2081,15 @@ if posix.access ("/sbin/ldconfig", "x") then
   end
 end
 
-%post -n libstdc++ -p /sbin/ldconfig
+%ldconfig_scriptlets -n libstdc++
 
-%postun -n libstdc++ -p /sbin/ldconfig
+%ldconfig_scriptlets -n libobjc
 
-%post -n libobjc -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgfortran
 
-%postun -n libobjc -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgphobos
 
-%post -n libgfortran -p /sbin/ldconfig
-
-%postun -n libgfortran -p /sbin/ldconfig
-
-%post -n libgphobos -p /sbin/ldconfig
-
-%postun -n libgphobos -p /sbin/ldconfig
-
-%post -n libgnat -p /sbin/ldconfig
-
-%postun -n libgnat -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgnat
 
 %post -n libgomp
 /sbin/ldconfig
@@ -2116,13 +2106,9 @@ fi
 
 %postun -n libgomp -p /sbin/ldconfig
 
-%post gdb-plugin -p /sbin/ldconfig
+%ldconfig_scriptlets gdb-plugin
 
-%postun gdb-plugin -p /sbin/ldconfig
-
-%post -n libgccjit -p /sbin/ldconfig
-
-%postun -n libgccjit -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgccjit
 
 %post -n libgccjit-devel
 if [ -f %{_infodir}/libgccjit.info.gz ]; then
@@ -2166,29 +2152,17 @@ fi
 
 %postun -n libitm -p /sbin/ldconfig
 
-%post -n libatomic -p /sbin/ldconfig
+%ldconfig_scriptlets -n libatomic
 
-%postun -n libatomic -p /sbin/ldconfig
+%ldconfig_scriptlets -n libasan
 
-%post -n libasan -p /sbin/ldconfig
+%ldconfig_scriptlets -n libubsan
 
-%postun -n libasan -p /sbin/ldconfig
+%ldconfig_scriptlets -n libtsan
 
-%post -n libubsan -p /sbin/ldconfig
+%ldconfig_scriptlets -n liblsan
 
-%postun -n libubsan -p /sbin/ldconfig
-
-%post -n libtsan -p /sbin/ldconfig
-
-%postun -n libtsan -p /sbin/ldconfig
-
-%post -n liblsan -p /sbin/ldconfig
-
-%postun -n liblsan -p /sbin/ldconfig
-
-%post -n libgo -p /sbin/ldconfig
-
-%postun -n libgo -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgo
 
 %files -f %{name}.lang
 %{_prefix}/bin/cc
