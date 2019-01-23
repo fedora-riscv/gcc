@@ -1,10 +1,10 @@
-%global DATE 20190121
-%global SVNREV 268128
-%global gcc_version 9.0.0
+%global DATE 20190123
+%global SVNREV 268193
+%global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.4
+%global gcc_release 0.1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -258,12 +258,7 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr88714.patch
-Patch13: gcc9-pr88044.patch
-Patch14: gcc9-pr88927.patch
-Patch15: gcc9-pr87064.patch
-Patch16: gcc9-pr88904.patch
-Patch17: gcc9-pr88905.patch
-Patch18: gcc9-pr88906.patch
+Patch13: gcc9-pr89014.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -843,12 +838,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr88714~
-%patch13 -p0 -b .pr88044~
-%patch14 -p0 -b .pr88927~
-%patch15 -p0 -b .pr87064~
-%patch16 -p0 -b .pr88904~
-%patch17 -p0 -b .pr88905~
-%patch18 -p0 -b .pr88906~
+%patch13 -p0 -b .pr89014~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3182,6 +3172,17 @@ fi
 %endif
 
 %changelog
+* Wed Jan 23 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.1
+- update from trunk
+  - PRs c++/87893, c++/88293, c++/88757, c++/88984, c/44715, driver/89014,
+	fortran/88579, libstdc++/88740, lto/88422, middle-end/88968,
+	rtl-optimization/87763, sanitizer/86229, sanitizer/89010,
+	target/87835, target/88469, target/88909, target/88939, target/88941,
+	target/88954, target/88965, target/PR88946, tree-optimization/88862,
+	tree-optimization/88964, tree-optimization/89008
+  - hopefully fix arm C++ issues (#1668323)
+- fix aarch64 -march=native (#1668631)
+
 * Tue Jan 22 2019 David Abdurachmanov <david.abdurachmanov@gmail.com>
 - fix libgphobos-static requires (#1668204)
 
