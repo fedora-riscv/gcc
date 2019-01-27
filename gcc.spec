@@ -239,8 +239,6 @@ Obsoletes: libcilkrts-static
 Obsoletes: libmpx
 Obsoletes: libmpx-static
 %endif
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 AutoReq: true
 Provides: bundled(libiberty)
 Provides: gcc(major) = %{gcc_major}
@@ -416,8 +414,6 @@ Requires: libgfortran = %{version}-%{release}
 Requires: libquadmath = %{version}-%{release}
 Requires: libquadmath-devel = %{version}-%{release}
 %endif
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description gfortran
@@ -453,8 +449,6 @@ Summary: D support
 Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgphobos = %{version}-%{release}
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description gdc
@@ -482,8 +476,6 @@ This package contains static D libraries.
 %package -n libgomp
 Summary: GCC OpenMP v4.5 shared support library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libgomp
 This package contains GCC shared support library which is needed
@@ -524,8 +516,6 @@ BuildRequires: python3-sphinx
 BuildRequires: python-sphinx
 %endif
 Requires: libgccjit = %{version}-%{release}
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libgccjit-devel
 This package contains header files and documentation for GCC JIT front-end.
@@ -533,8 +523,6 @@ This package contains header files and documentation for GCC JIT front-end.
 %package -n libquadmath
 Summary: GCC __float128 shared support library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libquadmath
 This package contains GCC shared support library which is needed
@@ -562,8 +550,6 @@ using REAL*16 and programs using __float128 math.
 %package -n libitm
 Summary: The GNU Transactional Memory library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libitm
 This package contains the GNU Transactional Memory library
@@ -590,8 +576,6 @@ This package contains GNU Transactional Memory static libraries.
 %package -n libatomic
 Summary: The GNU Atomic library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libatomic
 This package contains the GNU Atomic library
@@ -609,8 +593,6 @@ This package contains GNU Atomic static libraries.
 %package -n libasan
 Summary: The Address Sanitizer runtime library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libasan
 This package contains the Address Sanitizer library
@@ -627,8 +609,6 @@ This package contains Address Sanitizer static runtime library.
 %package -n libtsan
 Summary: The Thread Sanitizer runtime library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libtsan
 This package contains the Thread Sanitizer library
@@ -645,8 +625,6 @@ This package contains Thread Sanitizer static runtime library.
 %package -n libubsan
 Summary: The Undefined Behavior Sanitizer runtime library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n libubsan
 This package contains the Undefined Behavior Sanitizer library
@@ -663,8 +641,6 @@ This package contains Undefined Behavior Sanitizer static runtime library.
 %package -n liblsan
 Summary: The Leak Sanitizer runtime library
 Group: System Environment/Libraries
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %description -n liblsan
 This package contains the Leak Sanitizer library
@@ -683,8 +659,6 @@ Summary: The C Preprocessor
 Group: Development/Languages
 Requires: filesystem >= 3
 Provides: /lib/cpp
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description -n cpp
@@ -714,8 +688,6 @@ Summary: Ada 83, 95, 2005 and 2012 support for GCC
 Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgnat = %{version}-%{release}, libgnat-devel = %{version}-%{release}
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 Autoreq: true
 
 %description gnat
@@ -756,8 +728,6 @@ Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgo = %{version}-%{release}
 Requires: libgo-devel = %{version}-%{release}
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
 Autoreq: true
@@ -1969,74 +1939,6 @@ done
 tar cf - testlogs-%{_target_platform}-%{version}-%{release} | xz -9e \
   | uuencode testlogs-%{_target_platform}.tar.xz || :
 rm -rf testlogs-%{_target_platform}-%{version}-%{release}
-
-%post
-if [ -f %{_infodir}/gcc.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gcc.info.gz || :
-fi
-
-%preun
-if [ $1 = 0 -a -f %{_infodir}/gcc.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gcc.info.gz || :
-fi
-
-%post -n cpp
-if [ -f %{_infodir}/cpp.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/cpp.info.gz || :
-fi
-
-%preun -n cpp
-if [ $1 = 0 -a -f %{_infodir}/cpp.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/cpp.info.gz || :
-fi
-
-%post gfortran
-if [ -f %{_infodir}/gfortran.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
-fi
-
-%preun gfortran
-if [ $1 = 0 -a -f %{_infodir}/gfortran.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gfortran.info.gz || :
-fi
-
-%post gdc
-if [ -f %{_infodir}/gdc.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gdc.info.gz || :
-fi
-
-%preun gdc
-if [ $1 = 0 -a -f %{_infodir}/gdc.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gdc.info.gz || :
-fi
-
-%post gnat
-if [ -f %{_infodir}/gnat_rm.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
-fi
-
-%preun gnat
-if [ $1 = 0 -a -f %{_infodir}/gnat_rm.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gnat_rm.info.gz || :
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gnat_ugn.info.gz || :
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/gnat-style.info.gz || :
-fi
 
 %post go
 %{_sbindir}/update-alternatives --install \
