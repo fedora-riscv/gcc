@@ -105,7 +105,6 @@ Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
-Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
 # svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-9-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
@@ -307,7 +306,6 @@ You'll need this package in order to compile C code.
 
 %package -n libgcc
 Summary: GCC version 9 shared support library
-Group: System Environment/Libraries
 Autoreq: false
 %if !%{build_ada}
 Obsoletes: libgnat < %{version}-%{release}
@@ -325,7 +323,6 @@ e.g. for exception handling support.
 
 %package c++
 Summary: C++ support for GCC
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libstdc++ = %{version}-%{release}
 Requires: libstdc++-devel = %{version}-%{release}
@@ -338,7 +335,6 @@ including templates and exception handling.
 
 %package -n libstdc++
 Summary: GNU Standard C++ Library
-Group: System Environment/Libraries
 Autoreq: true
 Requires: glibc >= 2.10.90-7
 
@@ -348,7 +344,6 @@ C++ Library.
 
 %package -n libstdc++-devel
 Summary: Header files and libraries for C++ development
-Group: Development/Libraries
 Requires: libstdc++%{?_isa} = %{version}-%{release}
 Autoreq: true
 
@@ -359,7 +354,6 @@ development. This includes rewritten implementation of STL.
 
 %package -n libstdc++-static
 Summary: Static libraries for the GNU standard C++ library
-Group: Development/Libraries
 Requires: libstdc++-devel = %{version}-%{release}
 Autoreq: true
 
@@ -368,7 +362,6 @@ Static libraries for the GNU standard C++ library.
 
 %package -n libstdc++-docs
 Summary: Documentation for the GNU standard C++ library
-Group: Development/Libraries
 Autoreq: true
 
 %description -n libstdc++-docs
@@ -377,7 +370,6 @@ for the GNU standard C++ library.
 
 %package objc
 Summary: Objective-C support for GCC
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libobjc = %{version}-%{release}
 Autoreq: true
@@ -389,7 +381,6 @@ object-oriented derivative of the C language.
 
 %package objc++
 Summary: Objective-C++ support for GCC
-Group: Development/Languages
 Requires: gcc-c++ = %{version}-%{release}, gcc-objc = %{version}-%{release}
 Autoreq: true
 
@@ -398,7 +389,6 @@ gcc-objc++ package provides Objective-C++ support for the GCC.
 
 %package -n libobjc
 Summary: Objective-C runtime
-Group: System Environment/Libraries
 Autoreq: true
 
 %description -n libobjc
@@ -407,7 +397,6 @@ Objective-C dynamically linked programs.
 
 %package gfortran
 Summary: Fortran support
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgfortran = %{version}-%{release}
 %if %{build_libquadmath}
@@ -422,7 +411,6 @@ programs with the GNU Compiler Collection.
 
 %package -n libgfortran
 Summary: Fortran runtime
-Group: System Environment/Libraries
 Autoreq: true
 %if %{build_libquadmath}
 Requires: libquadmath = %{version}-%{release}
@@ -434,7 +422,6 @@ Fortran dynamically linked programs.
 
 %package -n libgfortran-static
 Summary: Static Fortran libraries
-Group: Development/Libraries
 Requires: libgfortran = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
 %if %{build_libquadmath}
@@ -446,7 +433,6 @@ This package contains static Fortran libraries.
 
 %package gdc
 Summary: D support
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgphobos = %{version}-%{release}
 Autoreq: true
@@ -457,7 +443,6 @@ programs with the GNU Compiler Collection.
 
 %package -n libgphobos
 Summary: D runtime
-Group: System Environment/Libraries
 Autoreq: true
 
 %description -n libgphobos
@@ -466,7 +451,6 @@ D dynamically linked programs.
 
 %package -n libgphobos-static
 Summary: Static D libraries
-Group: Development/Libraries
 Requires: libgphobos = %{version}-%{release}
 Requires: gcc-gdc = %{version}-%{release}
 
@@ -475,7 +459,6 @@ This package contains static D libraries.
 
 %package -n libgomp
 Summary: GCC OpenMP v4.5 shared support library
-Group: System Environment/Libraries
 
 %description -n libgomp
 This package contains GCC shared support library which is needed
@@ -483,7 +466,6 @@ for OpenMP v4.5 support.
 
 %package -n libgomp-offload-nvptx
 Summary: GCC OpenMP v4.5 plugin for offloading to NVPTX
-Group: System Environment/Libraries
 Requires: libgomp = %{version}-%{release}
 
 %description -n libgomp-offload-nvptx
@@ -493,7 +475,6 @@ installed separately.
 
 %package gdb-plugin
 Summary: GCC plugin for GDB
-Group: Development/Debuggers
 Requires: gcc = %{version}-%{release}
 
 %description gdb-plugin
@@ -501,7 +482,6 @@ This package contains GCC plugin for GDB C expression evaluation.
 
 %package -n libgccjit
 Summary: Library for embedding GCC inside programs and libraries
-Group: System Environment/Libraries
 Requires: gcc = %{version}-%{release}
 
 %description -n libgccjit
@@ -509,7 +489,6 @@ This package contains shared library with GCC JIT front-end.
 
 %package -n libgccjit-devel
 Summary: Support for embedding GCC inside programs and libraries
-Group: Development/Libraries
 %if 0%{?fedora} > 27 || 0%{?rhel} > 7
 BuildRequires: python3-sphinx
 %else
@@ -522,7 +501,6 @@ This package contains header files and documentation for GCC JIT front-end.
 
 %package -n libquadmath
 Summary: GCC __float128 shared support library
-Group: System Environment/Libraries
 
 %description -n libquadmath
 This package contains GCC shared support library which is needed
@@ -530,7 +508,6 @@ for __float128 math support and for Fortran REAL*16 support.
 
 %package -n libquadmath-devel
 Summary: GCC __float128 support
-Group: Development/Libraries
 Requires: libquadmath = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
 
@@ -540,7 +517,6 @@ REAL*16 and programs using __float128 math.
 
 %package -n libquadmath-static
 Summary: Static libraries for __float128 support
-Group: Development/Libraries
 Requires: libquadmath-devel = %{version}-%{release}
 
 %description -n libquadmath-static
@@ -549,7 +525,6 @@ using REAL*16 and programs using __float128 math.
 
 %package -n libitm
 Summary: The GNU Transactional Memory library
-Group: System Environment/Libraries
 
 %description -n libitm
 This package contains the GNU Transactional Memory library
@@ -557,7 +532,6 @@ which is a GCC transactional memory support runtime library.
 
 %package -n libitm-devel
 Summary: The GNU Transactional Memory support
-Group: Development/Libraries
 Requires: libitm = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
 
@@ -567,7 +541,6 @@ GNU Transactional Memory library.
 
 %package -n libitm-static
 Summary: The GNU Transactional Memory static library
-Group: Development/Libraries
 Requires: libitm-devel = %{version}-%{release}
 
 %description -n libitm-static
@@ -575,7 +548,6 @@ This package contains GNU Transactional Memory static libraries.
 
 %package -n libatomic
 Summary: The GNU Atomic library
-Group: System Environment/Libraries
 
 %description -n libatomic
 This package contains the GNU Atomic library
@@ -584,7 +556,6 @@ by hardware.
 
 %package -n libatomic-static
 Summary: The GNU Atomic static library
-Group: Development/Libraries
 Requires: libatomic = %{version}-%{release}
 
 %description -n libatomic-static
@@ -592,7 +563,6 @@ This package contains GNU Atomic static libraries.
 
 %package -n libasan
 Summary: The Address Sanitizer runtime library
-Group: System Environment/Libraries
 
 %description -n libasan
 This package contains the Address Sanitizer library
@@ -600,7 +570,6 @@ which is used for -fsanitize=address instrumented programs.
 
 %package -n libasan-static
 Summary: The Address Sanitizer static library
-Group: Development/Libraries
 Requires: libasan = %{version}-%{release}
 
 %description -n libasan-static
@@ -608,7 +577,6 @@ This package contains Address Sanitizer static runtime library.
 
 %package -n libtsan
 Summary: The Thread Sanitizer runtime library
-Group: System Environment/Libraries
 
 %description -n libtsan
 This package contains the Thread Sanitizer library
@@ -616,7 +584,6 @@ which is used for -fsanitize=thread instrumented programs.
 
 %package -n libtsan-static
 Summary: The Thread Sanitizer static library
-Group: Development/Libraries
 Requires: libtsan = %{version}-%{release}
 
 %description -n libtsan-static
@@ -624,7 +591,6 @@ This package contains Thread Sanitizer static runtime library.
 
 %package -n libubsan
 Summary: The Undefined Behavior Sanitizer runtime library
-Group: System Environment/Libraries
 
 %description -n libubsan
 This package contains the Undefined Behavior Sanitizer library
@@ -632,7 +598,6 @@ which is used for -fsanitize=undefined instrumented programs.
 
 %package -n libubsan-static
 Summary: The Undefined Behavior Sanitizer static library
-Group: Development/Libraries
 Requires: libubsan = %{version}-%{release}
 
 %description -n libubsan-static
@@ -640,7 +605,6 @@ This package contains Undefined Behavior Sanitizer static runtime library.
 
 %package -n liblsan
 Summary: The Leak Sanitizer runtime library
-Group: System Environment/Libraries
 
 %description -n liblsan
 This package contains the Leak Sanitizer library
@@ -648,7 +612,6 @@ which is used for -fsanitize=leak instrumented programs.
 
 %package -n liblsan-static
 Summary: The Leak Sanitizer static library
-Group: Development/Libraries
 Requires: liblsan = %{version}-%{release}
 
 %description -n liblsan-static
@@ -656,7 +619,6 @@ This package contains Leak Sanitizer static runtime library.
 
 %package -n cpp
 Summary: The C Preprocessor
-Group: Development/Languages
 Requires: filesystem >= 3
 Provides: /lib/cpp
 Autoreq: true
@@ -685,7 +647,6 @@ macros.
 
 %package gnat
 Summary: Ada 83, 95, 2005 and 2012 support for GCC
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgnat = %{version}-%{release}, libgnat-devel = %{version}-%{release}
 Autoreq: true
@@ -696,7 +657,6 @@ development tools, the documents and Ada compiler.
 
 %package -n libgnat
 Summary: GNU Ada 83, 95, 2005 and 2012 runtime shared libraries
-Group: System Environment/Libraries
 Autoreq: true
 
 %description -n libgnat
@@ -705,7 +665,6 @@ shared libraries, which are required to run programs compiled with the GNAT.
 
 %package -n libgnat-devel
 Summary: GNU Ada 83, 95, 2005 and 2012 libraries
-Group: Development/Languages
 Autoreq: true
 
 %description -n libgnat-devel
@@ -714,7 +673,6 @@ libraries, which are required to compile with the GNAT.
 
 %package -n libgnat-static
 Summary: GNU Ada 83, 95, 2005 and 2012 static libraries
-Group: Development/Languages
 Requires: libgnat-devel = %{version}-%{release}
 Autoreq: true
 
@@ -724,7 +682,6 @@ static libraries.
 
 %package go
 Summary: Go support
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgo = %{version}-%{release}
 Requires: libgo-devel = %{version}-%{release}
@@ -738,7 +695,6 @@ with the GNU Compiler Collection.
 
 %package -n libgo
 Summary: Go runtime
-Group: System Environment/Libraries
 Autoreq: true
 
 %description -n libgo
@@ -747,7 +703,6 @@ Go dynamically linked programs.
 
 %package -n libgo-devel
 Summary: Go development libraries
-Group: Development/Languages
 Requires: libgo = %{version}-%{release}
 Autoreq: true
 
@@ -757,7 +712,6 @@ Go programs.
 
 %package -n libgo-static
 Summary: Static Go libraries
-Group: Development/Libraries
 Requires: libgo = %{version}-%{release}
 Requires: gcc = %{version}-%{release}
 
@@ -766,7 +720,6 @@ This package contains static Go libraries.
 
 %package plugin-devel
 Summary: Support for compiling GCC plugins
-Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 
@@ -777,7 +730,6 @@ not stable, so plugins must be rebuilt any time GCC is updated.
 
 %package offload-nvptx
 Summary: Offloading compiler to NVPTX
-Group: Group: Development/Languages
 Requires: gcc = %{version}-%{release}
 Requires: libgomp-offload-nvptx = %{version}-%{release}
 
