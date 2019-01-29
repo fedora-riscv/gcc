@@ -1,0 +1,114 @@
+2019-01-29  Ramana Radhakrishnan  <ramana.radhakrishnan@arm.com>
+
+	PR target/89093
+	* config/arm/arm-cpus.in: Add -mfpu=none support.
+	* config/arm/arm-tables.opt: Likewise.
+	* config/arm/arm.c (arm_options_perform_arch_sanity_checks): Remove
+	error for no FPU.
+
+	* config/arm/pr-support.c: Add #pragma GCC target ("fpu=none").
+	* config/arm/unwind-arm.c: Likewise.
+	* unwind-c.c: Likewise, #ifdef __arm__ only.
+
+	* libsupc++/eh_personality.cc: Add #pragma GCC target ("fpu=none")
+	for __arm__.
+
+--- gcc/config/arm/arm-cpus.in
++++ gcc/config/arm/arm-cpus.in
+@@ -128,6 +128,7 @@ define feature cmse
+ 
+ # Floating point and Neon extensions.
+ # VFPv1 is not supported in GCC.
++define feature nofp
+ 
+ # Vector floating point v2.
+ define feature vfpv2
+@@ -258,6 +259,7 @@ define fgroup ARMv8m_main ARMv7m armv8 cmse
+ define fgroup ARMv8r      ARMv8a
+ 
+ # Useful combinations.
++define fgroup NONE	nofp
+ define fgroup VFPv2	vfpv2
+ define fgroup VFPv3	VFPv2 vfpv3
+ define fgroup VFPv4	VFPv3 vfpv4 fp16conv
+@@ -1394,6 +1396,9 @@ end cpu cortex-r52
+ # begin fpu <name>
+ #   isa <isa-flags-list>
+ # end fpu <name>
++begin fpu none
++isa NONE FP_DBL
++end fpu none
+ 
+ begin fpu vfp
+  isa VFPv2 FP_DBL
+--- gcc/config/arm/arm-tables.opt
++++ gcc/config/arm/arm-tables.opt
+@@ -353,6 +353,9 @@ Enum
+ Name(arm_fpu) Type(enum fpu_type)
+ Known ARM FPUs (for use with the -mfpu= option):
+ 
++EnumValue
++Enum(arm_fpu) String(none) Value(TARGET_FPU_none)
++
+ EnumValue
+ Enum(arm_fpu) String(vfp) Value(TARGET_FPU_vfp)
+ 
+--- gcc/config/arm/arm.c
++++ gcc/config/arm/arm.c
+@@ -3759,8 +3759,6 @@ arm_options_perform_arch_sanity_checks (void)
+       else if (TARGET_HARD_FLOAT_ABI)
+ 	{
+ 	  arm_pcs_default = ARM_PCS_AAPCS_VFP;
+-	  if (!bitmap_bit_p (arm_active_target.isa, isa_bit_vfpv2))
+-	    error ("-mfloat-abi=hard: selected processor lacks an FPU");
+ 	}
+       else
+ 	arm_pcs_default = ARM_PCS_AAPCS;
+--- libgcc/config/arm/pr-support.c
++++ libgcc/config/arm/pr-support.c
+@@ -21,6 +21,8 @@
+    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#pragma GCC target ("fpu=none")
++
+ #include "unwind.h"
+ 
+ /* We add a prototype for abort here to avoid creating a dependency on
+--- libgcc/config/arm/unwind-arm.c
++++ libgcc/config/arm/unwind-arm.c
+@@ -21,6 +21,8 @@
+    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
++#pragma GCC target ("fpu=none")
++
+ #include "unwind.h"
+ 
+ /* Misc constants.  */
+--- libgcc/unwind-c.c
++++ libgcc/unwind-c.c
+@@ -24,6 +24,10 @@ a copy of the GCC Runtime Library Except
+ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+ <http://www.gnu.org/licenses/>.  */
+ 
++#ifdef __arm__
++#pragma GCC target ("fpu=none")
++#endif
++
+ #include "tconfig.h"
+ #include "tsystem.h"
+ #include "auto-target.h"
+--- libstdc++-v3/libsupc++/eh_personality.cc
++++ libstdc++-v3/libsupc++/eh_personality.cc
+@@ -22,6 +22,10 @@
+ // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+ // <http://www.gnu.org/licenses/>.
+ 
++#ifdef __arm__
++#pragma GCC target ("fpu=none")
++#endif
++
+ #include <bits/c++config.h>
+ #include <cstdlib>
+ #include <bits/exception_defines.h>

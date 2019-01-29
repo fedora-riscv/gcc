@@ -1,10 +1,10 @@
-%global DATE 20190123
-%global SVNREV 268193
+%global DATE 20190129
+%global SVNREV 268371
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.1
+%global gcc_release 0.2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -256,6 +256,7 @@ Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr88714.patch
 Patch13: gcc9-pr89014.patch
+Patch14: gcc9-pr89093.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -761,6 +762,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr88714~
 %patch13 -p0 -b .pr89014~
+%patch14 -p0 -b .pr89093~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2949,6 +2951,21 @@ end
 %endif
 
 %changelog
+* Tue Jan 29 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.2
+- update from trunk
+  - PRs c++/66676, c++/88358, c++/88815, c++/88865, c++/88969, c++/88976,
+	c++/89001, c++/89024, c++/89089, c/86125, c/88886, c/89045, d/89042,
+	debug/87295, debug/89006, debug/89076, fortran/57553, fortran/70696,
+	fortran/85780, fortran/88929, gcc/87763, gcov-profile/88994,
+	ipa/88933, ipa/89104, libfortran/89020, libgcc/88931, libstdc++/68737,
+	libstdc++/88840, lto/87187, middle-end/86308, middle-end/89002,
+	middle-end/89015, middle-end/89037, preprocessor/88974,
+	rtl-optimization/88846, rtl-optimization/88948, target/85711,
+	target/87214, target/88998, target/89073, testsuite/89064,
+	tree-optimization/86865, tree-optimization/88739,
+	tree-optimization/89027, tree-optimization/89049
+- make sure ARM unwinder doesn't use VFP registers (#1670069, PR target/89093)
+
 * Wed Jan 23 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.1
 - update from trunk
   - PRs c++/87893, c++/88293, c++/88757, c++/88984, c/44715, driver/89014,
