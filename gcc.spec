@@ -1935,66 +1935,15 @@ end
 
 %ldconfig_scriptlets -n libgnat
 
-%post -n libgomp
-/sbin/ldconfig
-if [ -f %{_infodir}/libgomp.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/libgomp.info.gz || :
-fi
-
-%preun -n libgomp
-if [ $1 = 0 -a -f %{_infodir}/libgomp.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/libgomp.info.gz || :
-fi
-
-%postun -n libgomp -p /sbin/ldconfig
+%ldconfig_scriptlets -n libgomp
 
 %ldconfig_scriptlets gdb-plugin
 
 %ldconfig_scriptlets -n libgccjit
 
-%post -n libgccjit-devel
-if [ -f %{_infodir}/libgccjit.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/libgccjit.info.gz || :
-fi
+%ldconfig_scriptlets -n libgquadmath
 
-%preun -n libgccjit-devel
-if [ $1 = 0 -a -f %{_infodir}/libgccjit.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/libgccjit.info.gz || :
-fi
-
-%post -n libquadmath
-/sbin/ldconfig
-if [ -f %{_infodir}/libquadmath.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/libquadmath.info.gz || :
-fi
-
-%preun -n libquadmath
-if [ $1 = 0 -a -f %{_infodir}/libquadmath.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/libquadmath.info.gz || :
-fi
-
-%postun -n libquadmath -p /sbin/ldconfig
-
-%post -n libitm
-/sbin/ldconfig
-if [ -f %{_infodir}/libitm.info.gz ]; then
-  /sbin/install-info \
-    --info-dir=%{_infodir} %{_infodir}/libitm.info.gz || :
-fi
-
-%preun -n libitm
-if [ $1 = 0 -a -f %{_infodir}/libitm.info.gz ]; then
-  /sbin/install-info --delete \
-    --info-dir=%{_infodir} %{_infodir}/libitm.info.gz || :
-fi
-
-%postun -n libitm -p /sbin/ldconfig
+%ldconfig_scriptlets -n libitm
 
 %ldconfig_scriptlets -n libatomic
 
