@@ -2951,7 +2951,7 @@ end
 %endif
 
 %changelog
-* Sun Jan  3 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
+* Sun Feb  3 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
 - update from trunk
   - PRs c++/80864, c++/86943, c++/87175, c++/88325, c++/88752, c++/88761,
 	c++/88983, c++/88988, c++/89083, c++/89105, c++/89119, c/88956,
