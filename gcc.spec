@@ -1,10 +1,10 @@
-%global DATE 20190129
+%global DATE 20190203
 %global SVNREV 268371
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.2
+%global gcc_release 0.3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -101,7 +101,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2951,8 +2951,21 @@ end
 %endif
 
 %changelog
-* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 9.0.1-0.2.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+* Sun Jan  3 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
+- update from trunk
+  - PRs c++/80864, c++/86943, c++/87175, c++/88325, c++/88752, c++/88761,
+	c++/88983, c++/88988, c++/89083, c++/89105, c++/89119, c/88956,
+	c/89061, c/89122, fortran/52564, fortran/52884, fortran/57048,
+	fortran/81344, fortran/83246, fortran/88298, fortran/88393,
+	fortran/88669, fortran/88685, fortran/88980, fortran/89084, hsa/87863,
+	libbacktrace/89136, libfortran/78314, libfortran/88678,
+	libstdc++/88170, libstdc++/89117, middle-end/87887, middle-end/88597,
+	middle-end/89137, other/89106, rtl-optimization/87246,
+	rtl-optimization/88593, rtl-optimization/89115, sanitizer/89124,
+	target/89071, testsuite/87451, testsuite/88920, testsuite/89110,
+	tree-optimization/85497, tree-optimization/88107,
+	tree-optimization/88932, tree-optimization/89111,
+	tree-optimization/89135, tree-optimization/89143
 
 * Tue Jan 29 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.2
 - update from trunk
