@@ -1,10 +1,10 @@
-%global DATE 20190203
-%global SVNREV 268371
+%global DATE 20190209
+%global SVNREV 268719
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.3
+%global gcc_release 0.4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -257,6 +257,8 @@ Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr88714.patch
 Patch13: gcc9-pr89014.patch
 Patch14: gcc9-pr89093.patch
+Patch15: gcc9-pr88977.patch
+Patch16: gcc9-pr89229.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -327,6 +329,8 @@ Summary: C++ support for GCC
 Requires: gcc = %{version}-%{release}
 Requires: libstdc++ = %{version}-%{release}
 Requires: libstdc++-devel = %{version}-%{release}
+Provides: gcc-g++ = %{version}-%{release}
+Provides: g++ = %{version}-%{release}
 Autoreq: true
 
 %description c++
@@ -404,6 +408,8 @@ Requires: libgfortran = %{version}-%{release}
 Requires: libquadmath = %{version}-%{release}
 Requires: libquadmath-devel = %{version}-%{release}
 %endif
+Provides: gcc-fortran = %{version}-%{release}
+Provides: gfortran = %{version}-%{release}
 Autoreq: true
 
 %description gfortran
@@ -436,6 +442,8 @@ This package contains static Fortran libraries.
 Summary: D support
 Requires: gcc = %{version}-%{release}
 Requires: libgphobos = %{version}-%{release}
+Provides: gcc-d = %{version}-%{release}
+Provides: gdc = %{version}-%{release}
 Autoreq: true
 
 %description gdc
@@ -688,6 +696,7 @@ Requires: libgo = %{version}-%{release}
 Requires: libgo-devel = %{version}-%{release}
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
+Provides: gccgo = %{version}-%{release}
 Autoreq: true
 
 %description go
@@ -763,6 +772,8 @@ to NVidia PTX capable devices if available.
 %patch12 -p0 -b .pr88714~
 %patch13 -p0 -b .pr89014~
 %patch14 -p0 -b .pr89093~
+%patch15 -p0 -b .pr88977~
+%patch16 -p0 -b .pr89229~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2951,6 +2962,25 @@ end
 %endif
 
 %changelog
+* Sat Feb  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.4
+- update from trunk
+  - PRs c++/44648, c++/71302, c++/86218, c++/87770, c++/89158, c++/89187,
+	c/69661, c/88584, c/88606, c/88698, c/89211, debug/87451,
+	fortran/52789, fortran/71860, fortran/88912, fortran/89077,
+	fortran/89185, gcov-profile/89000, go/89019, ipa/88985,
+	libbacktrace/78063, libstdc++/71044, libstdc++/87106, libstdc++/89090,
+	libstdc++/89102, libstdc++/89128, libstdc++/89130, libstdc++/89194,
+	middle-end/88560, middle-end/89150, middle-end/89210,
+	middle-end/89223, middle-end/89246, rtl-optimization/11304,
+	rtl-optimization/89195, rtl-optimization/89225,
+	rtl-optimization/89234, target/88343, target/88856, target/89112,
+	target/89186, target/89188, target/89229, testsuite/89250,
+	testsuite/89258, tree-optimization/86637, tree-optimization/89182,
+	tree-optimization/89235, tree-optimization/89247
+- add gcc-g++ and g++ provides to gcc-c++, gcc-fortran and gfortran
+  provides to gcc-gfortran, gcc-d and gdc provides to gcc-gdc and gccgo
+  provides to gcc-go
+
 * Sun Feb  3 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.3
 - update from trunk
   - PRs c++/80864, c++/86943, c++/87175, c++/88325, c++/88752, c++/88761,

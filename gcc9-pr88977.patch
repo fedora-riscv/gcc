@@ -1,0 +1,48 @@
+2019-02-08  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/88977
+	* pt.c (convert_nontype_argument): Pass true as manifestly_const_eval
+	to maybe_constant_value calls.
+
+	* g++.dg/cpp2a/is-constant-evaluated7.C: New test.
+
+--- gcc/cp/pt.c.jj	2019-02-05 10:04:19.038028029 +0100
++++ gcc/cp/pt.c	2019-02-08 09:46:23.370257199 +0100
+@@ -6821,12 +6821,14 @@ convert_nontype_argument (tree type, tre
+ 	    /* Make sure we return NULL_TREE only if we have really issued
+ 	       an error, as described above.  */
+ 	    return (complain & tf_error) ? NULL_TREE : error_mark_node;
+-	  expr = maybe_constant_value (expr);
++	  expr = maybe_constant_value (expr, NULL_TREE,
++				       /*manifestly_const_eval=*/true);
+ 	  expr = convert_from_reference (expr);
+ 	}
+       else if (TYPE_PTR_OR_PTRMEM_P (type))
+ 	{
+-	  tree folded = maybe_constant_value (expr);
++	  tree folded = maybe_constant_value (expr, NULL_TREE,
++					      /*manifestly_const_eval=*/true);
+ 	  if (TYPE_PTR_P (type) ? integer_zerop (folded)
+ 	      : null_member_pointer_value_p (folded))
+ 	    expr = folded;
+--- gcc/testsuite/g++.dg/cpp2a/is-constant-evaluated7.C.jj	2019-02-08 09:53:47.255935430 +0100
++++ gcc/testsuite/g++.dg/cpp2a/is-constant-evaluated7.C	2019-02-08 09:49:45.159957823 +0100
+@@ -0,0 +1,18 @@
++// P0595R2
++// PR c++/88977
++// { dg-do compile { target c++11 } }
++
++namespace std {
++  constexpr inline bool
++  is_constant_evaluated () noexcept
++  {
++    return __builtin_is_constant_evaluated ();
++  }
++}
++
++template<bool B> constexpr bool foo () { return B; }
++
++constexpr bool x = foo<std::is_constant_evaluated ()> ();
++constexpr bool y = foo<__builtin_is_constant_evaluated ()> ();
++static_assert (x, "");
++static_assert (y, "");
