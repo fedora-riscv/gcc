@@ -1,10 +1,10 @@
-%global DATE 20190109
-%global SVNREV 267776
+%global DATE 20190209
+%global SVNREV 268720
 %global gcc_version 8.2.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3128,6 +3128,42 @@ fi
 %endif
 
 %changelog
+* Sat Feb  9 2019 Jakub Jelinek <jakub@redhat.com> 8.2.1-8
+- update from the 8 branch
+  - PRs bootstrap/88714, c++/66676, c++/80864, c++/86610, c++/86740,
+	c++/86943, c++/87075, c++/88752, c++/88761, c++/88949, c++/88976,
+	c++/88983, c++/88988, c++/89024, c++/89083, c++/89105, c++/89119,
+	c++/89158, c++/89187, c/88568, c/88720, c/88726, c/89211, debug/87295,
+	debug/88046, debug/88635, debug/88723, fortran/35031, fortran/56386,
+	fortran/57048, fortran/58906, fortran/67679, fortran/70696,
+	fortran/77385, fortran/80260, fortran/81849, fortran/82077,
+	fortran/83246, fortran/87336, fortran/88298, fortran/88393,
+	fortran/88685, fortran/88803, fortran/88902, fortran/88980,
+	fortran/89084, ipa/85574, ipa/88214, ipa/89104, libfortran/78314,
+	libfortran/88678, libfortran/88776, libstdc++/65229, libstdc++/80762,
+	libstdc++/83511, libstdc++/86595, libstdc++/86910, libstdc++/87308,
+	libstdc++/87514, libstdc++/87787, libstdc++/87846, libstdc++/88066,
+	libstdc++/88084, libstdc++/88119, libstdc++/88782, libstdc++/89117,
+	libstdc++/89128, lto/86736, lto/87187, lto/87229, lto/88112,
+	lto/88422, middle-end/87887, middle-end/88415, middle-end/88448,
+	middle-end/88968, middle-end/89002, middle-end/89243,
+	rtl-optimization/11304, rtl-optimization/49429,
+	rtl-optimization/86334, rtl-optimization/88870,
+	rtl-optimization/89115, rtl-optimization/89195,
+	rtl-optimization/89234, sanitizer/88901, sanitizer/89124,
+	target/49454, target/85596, target/87064, target/87214, target/88469,
+	target/88734, target/88799, target/88856, target/88861, target/88905,
+	target/88906, target/88938, target/88948, target/88965, target/88998,
+	target/89073, target/89186, target/89188, tree-optimization/85574,
+	tree-optimization/86865, tree-optimization/86991,
+	tree-optimization/87022, tree-optimization/87929,
+	tree-optimization/88030, tree-optimization/88105,
+	tree-optimization/88107, tree-optimization/88149,
+	tree-optimization/88217, tree-optimization/88223,
+	tree-optimization/88427, tree-optimization/88903,
+	tree-optimization/88932, tree-optimization/88964,
+	tree-optimization/89008, tree-optimization/89135
+
 * Wed Jan  9 2019 Jakub Jelinek <jakub@redhat.com> 8.2.1-7
 - update from the 8 branch
   - PRs c++/60994, c++/82294, c++/86669, c++/86900, c++/87380, c++/87436,
