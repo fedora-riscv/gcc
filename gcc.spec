@@ -256,6 +256,7 @@ Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89014.patch
 Patch13: gcc9-pr89093.patch
+Patch14: gcc9-pr89368.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -768,6 +769,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89014~
 %patch13 -p0 -b .pr89093~
+%patch14 -p0 -b .pr89368~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
