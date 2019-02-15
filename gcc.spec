@@ -1,10 +1,10 @@
-%global DATE 20190209
+%global DATE 20190215
 %global SVNREV 268719
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.4
+%global gcc_release 0.5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -254,11 +254,8 @@ Patch8: gcc9-foffload-default.patch
 Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
-Patch12: gcc9-pr88714.patch
-Patch13: gcc9-pr89014.patch
-Patch14: gcc9-pr89093.patch
-Patch15: gcc9-pr88977.patch
-Patch16: gcc9-pr89229.patch
+Patch12: gcc9-pr89014.patch
+Patch13: gcc9-pr89093.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -769,11 +766,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr88714~
-%patch13 -p0 -b .pr89014~
-%patch14 -p0 -b .pr89093~
-%patch15 -p0 -b .pr88977~
-%patch16 -p0 -b .pr89229~
+%patch12 -p0 -b .pr89014~
+%patch13 -p0 -b .pr89093~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2962,6 +2956,21 @@ end
 %endif
 
 %changelog
+* Fri Feb 15 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.5
+- update from trunk
+  - PRs c++/77304, c++/86379, c++/87322, c++/87996, c++/88977, c++/88986,
+	c++/89036, c++/89144, c++/89212, c++/89241, c++/89297, c/89340,
+	d/87864, fortran/67679, fortran/71723, fortran/72715, fortran/81552,
+	fortran/88248, fortran/88649, fortran/89200, go/89193, ipa/88711,
+	ipa/88755, ipa/89009, libbacktrace/81983, libstdc++/89023,
+	libstdc++/89345, lto/87957, lto/88147, lto/88677, lto/88858,
+	lto/88876, lto/89272, middle-end/89281, middle-end/89284,
+	middle-end/89303, other/69006, other/89342, rtl-optimization/88308,
+	rtl-optimization/89242, rtl-optimization/89354, target/88847,
+	target/89190, target/89233, target/89290, tree-optimization/88771,
+	tree-optimization/89253, tree-optimization/89268,
+	tree-optimization/89278, tree-optimization/89314
+
 * Sat Feb  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.4
 - update from trunk
   - PRs c++/44648, c++/71302, c++/86218, c++/87770, c++/89158, c++/89187,
