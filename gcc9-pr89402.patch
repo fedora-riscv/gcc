@@ -1,0 +1,16 @@
+2019-02-19  Jakub Jelinek  <jakub@redhat.com>
+
+	PR libstdc++/89402
+	* src/c++98/compatibility-ldbl.cc (_ZNKSt4hashIeEclEe): Add
+	_GLIBCXX_PURE to the alias declaration.
+
+--- libstdc++-v3/src/c++98/compatibility-ldbl.cc.jj	2019-01-01 12:39:41.530606161 +0100
++++ libstdc++-v3/src/c++98/compatibility-ldbl.cc	2019-02-19 16:12:52.402123217 +0100
+@@ -75,6 +75,6 @@ namespace std _GLIBCXX_VISIBILITY(defaul
+ // and std::hash<long double>::operator()
+ // are the same, no need to duplicate them.
+ extern "C" void _ZNKSt4hashIeEclEe (void)
+-  __attribute__((alias ("_ZNKSt3tr14hashIeEclEe")));
++  _GLIBCXX_PURE __attribute__((alias ("_ZNKSt3tr14hashIeEclEe")));
+ 
+ #endif

@@ -1,0 +1,17 @@
+--- libgo/go/internal/cpu/cpu_gccgo.c.jj	2019-02-16 07:57:27.882179972 +0100
++++ libgo/go/internal/cpu/cpu_gccgo.c	2019-02-16 08:36:37.241900882 +0100
+@@ -71,7 +71,7 @@ struct xgetbv_ret xgetbv(void) {
+ 
+ #endif /* defined(__i386__) || defined(__x86_64__)  */
+ 
+-#ifdef __s390__
++#ifdef __s390x__
+ 
+ struct facilityList {
+ 	uint64_t bits[4];
+@@ -184,4 +184,4 @@ struct queryResult klmdQuery() {
+     return ret;
+ }
+ 
+-#endif /* defined(__s390__)  */
++#endif /* defined(__s390x__)  */
