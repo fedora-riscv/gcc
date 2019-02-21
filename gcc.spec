@@ -1,10 +1,10 @@
-%global DATE 20190219
-%global SVNREV 269023
+%global DATE 20190221
+%global SVNREV 269078
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.6
+%global gcc_release 0.7
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -256,9 +256,6 @@ Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89014.patch
 Patch13: gcc9-pr89093.patch
-Patch14: gcc9-s390x-bootstrap-fix.patch
-Patch15: gcc9-pr88714.patch
-Patch16: gcc9-pr89402.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -771,9 +768,6 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89014~
 %patch13 -p0 -b .pr89093~
-%patch14 -p0 -b .s390x-bootstrap~
-%patch15 -p0 -b .pr88714~
-%patch16 -p0 -b .pr89402~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2962,6 +2956,15 @@ end
 %endif
 
 %changelog
+* Thu Feb 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.6
+- update from trunk
+  - PRs c++/84536, c++/87513, c++/87921, c++/88368, c++/88380, c++/88572,
+	c++/88690, c++/89403, c++/89405, c/89410, fortran/86119,
+	fortran/89384, hsa/89302, libstdc++/89402, libstdc++/89416,
+	middle-end/89091, middle-end/89392, middle-end/89412,
+	middle-end/89415, sanitizer/89409, target/86487, target/87412,
+	target/88100
+
 * Tue Feb 19 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.6
 - update from trunk
   - PRs c++/88680, c++/89217, c++/89315, c++/89336, c++/89356, c++/89383,
