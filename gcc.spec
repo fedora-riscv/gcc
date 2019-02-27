@@ -258,7 +258,7 @@ Patch12: gcc9-pr89014.patch
 Patch13: gcc9-pr89093.patch
 Patch14: gcc9-pr70341.patch
 Patch15: gcc9-pr89490.patch
-Patch16: gcc9-pr89506.patch
+Patch16: gcc9-pr89434.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -773,7 +773,7 @@ to NVidia PTX capable devices if available.
 %patch13 -p0 -b .pr89093~
 %patch14 -p0 -b .pr70341~
 %patch15 -p0 -b .pr89490~
-%patch16 -p0 -b .pr89506~
+%patch16 -p0 -b .pr89434~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2984,8 +2984,6 @@ end
 - improve arm and aarch64 casesi (PR target/70341)
 - don't use section anchors block infrastructure for mergeable section
   data (PR rtl-optimization/89490)
-- fix arm cmpsi2_addneg and subsi3_carryin_compare_const patterns
-  and corresponding splitters (PR target/89506)
 
 * Thu Feb 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.7
 - update from trunk
