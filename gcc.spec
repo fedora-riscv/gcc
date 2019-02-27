@@ -1,10 +1,10 @@
-%global DATE 20190221
-%global SVNREV 269078
+%global DATE 20190227
+%global SVNREV 269254
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.7
+%global gcc_release 0.8
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -256,6 +256,9 @@ Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89014.patch
 Patch13: gcc9-pr89093.patch
+Patch14: gcc9-pr70341.patch
+Patch15: gcc9-pr89490.patch
+Patch16: gcc9-pr89506.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -768,6 +771,9 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89014~
 %patch13 -p0 -b .pr89093~
+%patch14 -p0 -b .pr70341~
+%patch15 -p0 -b .pr89490~
+%patch16 -p0 -b .pr89506~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2956,6 +2962,31 @@ end
 %endif
 
 %changelog
+* Wed Feb 27 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.8
+- update from trunk
+  - PRs c++/84585, c++/84676, c++/87685, c++/88294, c++/88394, c++/88419,
+	c++/88869, c++/88987, c++/89285, c++/89419, c++/89420, c++/89422,
+	c++/89481, c++/89488, c++/89507, c/77754, c/80409, c/89425, c/89495,
+	debug/88878, debug/89514, driver/69471, fortran/43210, fortran/72741,
+	fortran/78027, fortran/83057, fortran/84387, fortran/88117,
+	fortran/88326, fortran/89174, fortran/89266, fortran/89282,
+	fortran/89366, fortran/89385, fortran/89431, fortran/89492,
+	fortran/89496, go/89170, libfortran/89274, libstdc++/89446,
+	libstdc++/89466, libstdc++/89477, middle-end/85598, middle-end/87609,
+	rtl-optimization/86096, rtl-optimization/87761,
+	rtl-optimization/89445, target/87007, target/88530, target/89324,
+	target/89338, target/89339, target/89434, target/89438, target/89444,
+	target/89474, testsuite/89476, tree-optimization/87609,
+	tree-optimization/88853, tree-optimization/88993,
+	tree-optimization/89280, tree-optimization/89440,
+	tree-optimization/89489, tree-optimization/89500,
+	tree-optimization/89505
+- improve arm and aarch64 casesi (PR target/70341)
+- don't use section anchors block infrastructure for mergeable section
+  data (PR rtl-optimization/89490)
+- fix arm cmpsi2_addneg and subsi3_carryin_compare_const patterns
+  and corresponding splitters (PR target/89506)
+
 * Thu Feb 21 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.7
 - update from trunk
   - PRs c++/84536, c++/87513, c++/87921, c++/88368, c++/88380, c++/88572,

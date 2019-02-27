@@ -1,0 +1,187 @@
+2019-02-23  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/70341
+	* config/arm/arm.md (arm_casesi_internal): New define_expand.  Rename
+	old define_insn to ...
+	(*arm_casesi_internal): ... this.  Add mode to LABEL_REFs.
+	* config/arm/thumb2.md (thumb2_casesi_internal): New define_expand.
+	Rename old define_insn to ...
+	(*thumb2_casesi_internal): ... this.  Add mode to LABEL_REFs.
+	(thumb2_casesi_internal_pic): New define_expand.  Rename old
+	define_insn to ...
+	(*thumb2_casesi_internal_pic): ... this.  Add mode to LABEL_REFs.
+	* config/aarch64/aarch64.md (casesi): Create the casesi_dispatch
+	MEM manually here, set MEM_READONLY_P and MEM_NOTRAP_P on it.
+
+--- gcc/config/arm/arm.md.jj	2019-02-18 20:48:32.643732307 +0100
++++ gcc/config/arm/arm.md	2019-02-21 14:40:50.603452028 +0100
+@@ -8914,16 +8914,35 @@ (define_expand "casesi"
+ 
+ ;; The USE in this pattern is needed to tell flow analysis that this is
+ ;; a CASESI insn.  It has no other purpose.
+-(define_insn "arm_casesi_internal"
++(define_expand "arm_casesi_internal"
++  [(parallel [(set (pc)
++	       (if_then_else
++		(leu (match_operand:SI 0 "s_register_operand")
++		     (match_operand:SI 1 "arm_rhs_operand"))
++		(match_dup 4)
++		(label_ref:SI (match_operand 3 ""))))
++	      (clobber (reg:CC CC_REGNUM))
++	      (use (label_ref:SI (match_operand 2 "")))])]
++  "TARGET_ARM"
++{
++  operands[4] = gen_rtx_MULT (SImode, operands[0], GEN_INT (4));
++  operands[4] = gen_rtx_PLUS (SImode, operands[4],
++			      gen_rtx_LABEL_REF (SImode, operands[2]));
++  operands[4] = gen_rtx_MEM (SImode, operands[4]);
++  MEM_READONLY_P (operands[4]) = 1;
++  MEM_NOTRAP_P (operands[4]) = 1;
++})
++
++(define_insn "*arm_casesi_internal"
+   [(parallel [(set (pc)
+ 	       (if_then_else
+ 		(leu (match_operand:SI 0 "s_register_operand" "r")
+ 		     (match_operand:SI 1 "arm_rhs_operand" "rI"))
+ 		(mem:SI (plus:SI (mult:SI (match_dup 0) (const_int 4))
+-				 (label_ref (match_operand 2 "" ""))))
+-		(label_ref (match_operand 3 "" ""))))
++				 (label_ref:SI (match_operand 2 "" ""))))
++		(label_ref:SI (match_operand 3 "" ""))))
+ 	      (clobber (reg:CC CC_REGNUM))
+-	      (use (label_ref (match_dup 2)))])]
++	      (use (label_ref:SI (match_dup 2)))])]
+   "TARGET_ARM"
+   "*
+     if (flag_pic)
+--- gcc/config/arm/thumb2.md.jj	2019-01-01 12:37:28.280792453 +0100
++++ gcc/config/arm/thumb2.md	2019-02-21 15:00:26.811137210 +0100
+@@ -1079,17 +1079,37 @@ (define_insn "thumb2_zero_extendqisi2_v6
+    (set_attr "neg_pool_range" "*,250")]
+ )
+ 
+-(define_insn "thumb2_casesi_internal"
++(define_expand "thumb2_casesi_internal"
++  [(parallel [(set (pc)
++	       (if_then_else
++		(leu (match_operand:SI 0 "s_register_operand")
++		     (match_operand:SI 1 "arm_rhs_operand"))
++		(match_dup 4)
++		(label_ref:SI (match_operand 3 ""))))
++	      (clobber (reg:CC CC_REGNUM))
++	      (clobber (match_scratch:SI 5))
++	      (use (label_ref:SI (match_operand 2 "")))])]
++  "TARGET_THUMB2 && !flag_pic"
++{
++  operands[4] = gen_rtx_MULT (SImode, operands[0], GEN_INT (4));
++  operands[4] = gen_rtx_PLUS (SImode, operands[4],
++			      gen_rtx_LABEL_REF (SImode, operands[2]));
++  operands[4] = gen_rtx_MEM (SImode, operands[4]);
++  MEM_READONLY_P (operands[4]) = 1;
++  MEM_NOTRAP_P (operands[4]) = 1;
++})
++
++(define_insn "*thumb2_casesi_internal"
+   [(parallel [(set (pc)
+ 	       (if_then_else
+ 		(leu (match_operand:SI 0 "s_register_operand" "r")
+ 		     (match_operand:SI 1 "arm_rhs_operand" "rI"))
+ 		(mem:SI (plus:SI (mult:SI (match_dup 0) (const_int 4))
+-				 (label_ref (match_operand 2 "" ""))))
+-		(label_ref (match_operand 3 "" ""))))
++				 (label_ref:SI (match_operand 2 "" ""))))
++		(label_ref:SI (match_operand 3 "" ""))))
+ 	      (clobber (reg:CC CC_REGNUM))
+ 	      (clobber (match_scratch:SI 4 "=&r"))
+-	      (use (label_ref (match_dup 2)))])]
++	      (use (label_ref:SI (match_dup 2)))])]
+   "TARGET_THUMB2 && !flag_pic"
+   "* return thumb2_output_casesi(operands);"
+   [(set_attr "conds" "clob")
+@@ -1097,18 +1117,39 @@ (define_insn "thumb2_casesi_internal"
+    (set_attr "type" "multiple")]
+ )
+ 
+-(define_insn "thumb2_casesi_internal_pic"
++(define_expand "thumb2_casesi_internal_pic"
++  [(parallel [(set (pc)
++	       (if_then_else
++		(leu (match_operand:SI 0 "s_register_operand")
++		     (match_operand:SI 1 "arm_rhs_operand"))
++		(match_dup 4)
++		(label_ref:SI (match_operand 3 ""))))
++	      (clobber (reg:CC CC_REGNUM))
++	      (clobber (match_scratch:SI 5))
++	      (clobber (match_scratch:SI 6))
++	      (use (label_ref:SI (match_operand 2 "")))])]
++  "TARGET_THUMB2 && flag_pic"
++{
++  operands[4] = gen_rtx_MULT (SImode, operands[0], GEN_INT (4));
++  operands[4] = gen_rtx_PLUS (SImode, operands[4],
++			      gen_rtx_LABEL_REF (SImode, operands[2]));
++  operands[4] = gen_rtx_MEM (SImode, operands[4]);
++  MEM_READONLY_P (operands[4]) = 1;
++  MEM_NOTRAP_P (operands[4]) = 1;
++})
++
++(define_insn "*thumb2_casesi_internal_pic"
+   [(parallel [(set (pc)
+ 	       (if_then_else
+ 		(leu (match_operand:SI 0 "s_register_operand" "r")
+ 		     (match_operand:SI 1 "arm_rhs_operand" "rI"))
+ 		(mem:SI (plus:SI (mult:SI (match_dup 0) (const_int 4))
+-				 (label_ref (match_operand 2 "" ""))))
+-		(label_ref (match_operand 3 "" ""))))
++				 (label_ref:SI (match_operand 2 "" ""))))
++		(label_ref:SI (match_operand 3 "" ""))))
+ 	      (clobber (reg:CC CC_REGNUM))
+ 	      (clobber (match_scratch:SI 4 "=&r"))
+ 	      (clobber (match_scratch:SI 5 "=r"))
+-	      (use (label_ref (match_dup 2)))])]
++	      (use (label_ref:SI (match_dup 2)))])]
+   "TARGET_THUMB2 && flag_pic"
+   "* return thumb2_output_casesi(operands);"
+   [(set_attr "conds" "clob")
+--- gcc/config/aarch64/aarch64.md.jj	2019-01-19 09:39:18.847831222 +0100
++++ gcc/config/aarch64/aarch64.md	2019-02-21 15:25:27.874532191 +0100
+@@ -622,13 +622,27 @@ (define_expand "casesi"
+ 				    operands[0], operands[2], operands[4]));
+ 
+     operands[2] = force_reg (DImode, gen_rtx_LABEL_REF (DImode, operands[3]));
+-    emit_jump_insn (gen_casesi_dispatch (operands[2], operands[0],
+-					 operands[3]));
++    operands[2]
++      = gen_rtx_UNSPEC (Pmode, gen_rtvec (2, operands[2], operands[0]),
++			UNSPEC_CASESI);
++    operands[2] = gen_rtx_MEM (DImode, operands[2]);
++    MEM_READONLY_P (operands[2]) = 1;
++    MEM_NOTRAP_P (operands[2]) = 1;
++    emit_jump_insn (gen_casesi_dispatch (operands[2], operands[3]));
+     DONE;
+   }
+ )
+ 
+-(define_insn "casesi_dispatch"
++(define_expand "casesi_dispatch"
++  [(parallel
++    [(set (pc) (match_operand:DI 0 ""))
++     (clobber (reg:CC CC_REGNUM))
++     (clobber (match_scratch:DI 2))
++     (clobber (match_scratch:DI 3))
++     (use (label_ref:DI (match_operand 1 "")))])]
++  "")
++
++(define_insn "*casesi_dispatch"
+   [(parallel
+     [(set (pc)
+ 	  (mem:DI (unspec [(match_operand:DI 0 "register_operand" "r")
+@@ -637,7 +651,7 @@ (define_insn "casesi_dispatch"
+      (clobber (reg:CC CC_REGNUM))
+      (clobber (match_scratch:DI 3 "=r"))
+      (clobber (match_scratch:DI 4 "=r"))
+-     (use (label_ref (match_operand 2 "" "")))])]
++     (use (label_ref:DI (match_operand 2 "" "")))])]
+   ""
+   "*
+   return aarch64_output_casesi (operands);
