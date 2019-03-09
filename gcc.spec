@@ -1,10 +1,10 @@
-%global DATE 20190227
-%global SVNREV 269254
+%global DATE 20190309
+%global SVNREV 269524
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.8
+%global gcc_release 0.9
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -254,11 +254,8 @@ Patch8: gcc9-foffload-default.patch
 Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
-Patch12: gcc9-pr89014.patch
-Patch13: gcc9-pr89093.patch
-Patch14: gcc9-pr70341.patch
-Patch15: gcc9-pr89490.patch
-Patch16: gcc9-pr89434.patch
+Patch12: gcc9-pr89093.patch
+Patch13: gcc9-pr89629.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -769,11 +766,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr89014~
-%patch13 -p0 -b .pr89093~
-%patch14 -p0 -b .pr70341~
-%patch15 -p0 -b .pr89490~
-%patch16 -p0 -b .pr89434~
+%patch12 -p0 -b .pr89093~
+%patch13 -p0 -b .pr89629~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -1888,7 +1882,7 @@ echo gcc-%{version}-%{release}.%{_arch} > $FULLPATH/rpmver
 cd obj-%{gcc_target_platform}
 
 # run the tests.
-make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ \
+LC_ALL=C make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ \
 %if 0%{?fedora} >= 20 || 0%{?rhel} > 7
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector-strong}'" || :
 %else
@@ -2962,6 +2956,33 @@ end
 %endif
 
 %changelog
+* Sat Mar  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.9
+- update from trunk
+  - PRs bootstrap/89539, bootstrap/89560, c++/22149, c++/63540, c++/71446,
+	c++/80916, c++/82075, c++/84518, c++/84605, c++/86485, c++/86969,
+	c++/87068, c++/87148, c++/87378, c++/88049, c++/88123, c++/88183,
+	c++/88820, c++/88857, c++/89381, c++/89511, c++/89513, c++/89522,
+	c++/89532, c++/89537, c++/89576, c++/89585, c++/89599, c++/89622,
+	c/85870, c/89520, c/89521, c/89525, debug/89631, fortran/71203,
+	fortran/72714, fortran/77583, fortran/89433, fortran/89516,
+	gcov-profile/89577, go/63560, go/89227, go/89406, ipa/80000,
+	ipa/88235, libgfortran/89593, libstdc++/86655, libstdc++/88996,
+	libstdc++/89562, libstdc++/89608, lto/87525, lto/88585,
+	middle-end/89497, middle-end/89503, middle-end/89541,
+	middle-end/89572, middle-end/89578, middle-end/89590,
+	middle-end/89618, other/80058, rtl-optimization/85899,
+	rtl-optimization/88845, rtl-optimization/89634, sanitizer/88684,
+	target/68924, target/78782, target/79645, target/79846, target/79926,
+	target/80003, target/80190, target/85665, target/86952, target/87558,
+	target/89222, target/89455, target/89506, target/89517, target/89587,
+	target/89602, testsuite/89441, testsuite/89551, translation/79999,
+	tree-optimization/89437, tree-optimization/89487,
+	tree-optimization/89535, tree-optimization/89536,
+	tree-optimization/89550, tree-optimization/89566,
+	tree-optimization/89570, tree-optimization/89594,
+	tree-optimization/89595
+- fix libstdc++ hashing of > 2GB strings (PR libstdc++/89629)
+
 * Wed Feb 27 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.8
 - update from trunk
   - PRs c++/84585, c++/84676, c++/87685, c++/88294, c++/88394, c++/88419,
