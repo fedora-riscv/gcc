@@ -1,10 +1,10 @@
-%global DATE 20190223
-%global SVNREV 269162
+%global DATE 20190311
+%global SVNREV 269592
 %global gcc_version 8.3.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -259,6 +259,7 @@ Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
 Patch12: gcc8-mcet.patch
 Patch13: gcc8-rh1574936.patch
+Patch14: gcc8-pr89629.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -827,6 +828,7 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch13 -p0 -b .rh1574936~
 %endif
+%patch14 -p0 -b .pr89629~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3128,6 +3130,21 @@ fi
 %endif
 
 %changelog
+* Mon Mar 11 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-3
+- update from the 8 branch
+  - PRs bootstrap/89539, c++/87513, c++/87921, c++/88183, c++/88419,
+	c++/88690, c++/88820, c++/88869, c++/89212, c++/89381, c++/89383,
+	c++/89422, c++/89576, c++/89585, debug/88878, debug/89514,
+	fortran/71203, fortran/71544, fortran/72714, fortran/77583,
+	fortran/84387, fortran/86119, fortran/87689, fortran/87734,
+	fortran/88326, fortran/89174, fortran/89266, fortran/89492,
+	fortran/89516, ipa/88235, libfortran/89020, lto/88147,
+	rtl-optimization/89588, target/86952, target/88100, target/88530,
+	target/89271, target/89361, target/89397, target/89517,
+	tree-optimization/89505, tree-optimization/89536
+- two small autoFDO fixes (#1684650)
+- fix std::hash for 2GB+ strings (PR libstdc++/89629)
+
 * Sat Feb 23 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-2
 - update from the 8 branch
   - PRs ada/89349, fortran/71066, fortran/88117, libstdc++/89446

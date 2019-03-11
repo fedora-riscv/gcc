@@ -1,0 +1,64 @@
+2019-03-11  Jonathan Wakely  <jwakely@redhat.com>
+
+	PR libstdc++/89629
+	* libsupc++/hash_bytes.cc [__SIZEOF_SIZE_T__ == 8] (_Hash_bytes):
+	Use correct type for len_aligned.
+	* testsuite/20_util/hash/89629.cc: New test.
+
+--- libstdc++-v3/libsupc++/hash_bytes.cc	(revision 269583)
++++ libstdc++-v3/libsupc++/hash_bytes.cc	(revision 269584)
+@@ -139,7 +139,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 
+     // Remove the bytes not divisible by the sizeof(size_t).  This
+     // allows the main loop to process the data as 64-bit integers.
+-    const int len_aligned = len & ~0x7;
++    const size_t len_aligned = len & ~(size_t)0x7;
+     const char* const end = buf + len_aligned;
+     size_t hash = seed ^ (len * mul);
+     for (const char* p = buf; p != end; p += 8)
+--- libstdc++-v3/testsuite/20_util/hash/89629.cc	(nonexistent)
++++ libstdc++-v3/testsuite/20_util/hash/89629.cc	(revision 269584)
+@@ -0,0 +1,43 @@
++// Copyright (C) 2019 Free Software Foundation, Inc.
++//
++// This file is part of the GNU ISO C++ Library.  This library is free
++// software; you can redistribute it and/or modify it under the
++// terms of the GNU General Public License as published by the
++// Free Software Foundation; either version 3, or (at your option)
++// any later version.
++
++// This library is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++
++// You should have received a copy of the GNU General Public License along
++// with this library; see the file COPYING3.  If not see
++// <http://www.gnu.org/licenses/>.
++
++// { dg-do run { target { lp64 || llp64 } } }
++// { dg-require-effective-target c++11 }
++// { dg-require-effective-target run_expensive_tests }
++
++#include <functional>
++#include <string>
++
++void
++test01()
++{
++  const std::size_t big = std::size_t(1) << 31;
++  std::string s;
++  try {
++    s.resize(big, 'a');
++  } catch (const std::bad_alloc&) {
++    return; // try to avoid a FAIL if memory allocation fails
++  }
++  // PR libstdc++/89629
++  (void) std::hash<std::string>{}(s);
++}
++
++int
++main()
++{
++  test01();
++}
