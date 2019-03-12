@@ -55,15 +55,19 @@
  
 --- gcc/config/arm/arm.c
 +++ gcc/config/arm/arm.c
-@@ -3759,8 +3759,6 @@ arm_options_perform_arch_sanity_checks (void)
+@@ -3761,11 +3761,7 @@ arm_options_perform_arch_sanity_checks (
+       if (arm_abi == ARM_ABI_IWMMXT)
+ 	arm_pcs_default = ARM_PCS_AAPCS_IWMMXT;
        else if (TARGET_HARD_FLOAT_ABI)
- 	{
- 	  arm_pcs_default = ARM_PCS_AAPCS_VFP;
+-	{
+-	  arm_pcs_default = ARM_PCS_AAPCS_VFP;
 -	  if (!bitmap_bit_p (arm_active_target.isa, isa_bit_vfpv2))
--	    error ("-mfloat-abi=hard: selected processor lacks an FPU");
- 	}
+-	    error ("%<-mfloat-abi=hard%>: selected processor lacks an FPU");
+-	}
++	arm_pcs_default = ARM_PCS_AAPCS_VFP;
        else
  	arm_pcs_default = ARM_PCS_AAPCS;
+     }
 --- libgcc/config/arm/pr-support.c
 +++ libgcc/config/arm/pr-support.c
 @@ -21,6 +21,8 @@
