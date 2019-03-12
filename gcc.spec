@@ -1,10 +1,10 @@
-%global DATE 20190309
-%global SVNREV 269524
+%global DATE 20190312
+%global SVNREV 269606
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.9
+%global gcc_release 0.10
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -255,7 +255,8 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89093.patch
-Patch13: gcc9-pr89629.patch
+Patch13: gcc9-pr89652.patch
+Patch14: gcc9-pr89660.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -767,7 +768,8 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89093~
-%patch13 -p0 -b .pr89629~
+%patch13 -p0 -b .pr89652~
+%patch14 -p0 -b .pr89660~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2956,6 +2958,20 @@ end
 %endif
 
 %changelog
+* Tue Mar 12 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.10
+- update from trunk
+  - PRs bootstrap/89656, c++/70349, c++/86521, c++/87571, c++/87750,
+	c++/89648, c/88568, contrib/82704, d/89041, fortran/66089,
+	fortran/71544, fortran/84504, fortran/87734, fortran/89639,
+	fortran/89651, inline-asm/87010, libbacktrace/89669, libstdc++/89460,
+	libstdc++/89641, middle-end/68733, middle-end/89655, middle-end/89663,
+	rtl-optimization/89588, testsuite/89472, tree-optimization/85459,
+	tree-optimization/85762, tree-optimization/87008,
+	tree-optimization/89649, tree-optimization/89664
+- fix ICE in constexpr loop handling of SAVE_EXPRs (PR c++/89652)
+- temporarily revert -Wredundant-move warning false positive
+  improvement (PR c++/89660)
+
 * Sat Mar  9 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.9
 - update from trunk
   - PRs bootstrap/89539, bootstrap/89560, c++/22149, c++/63540, c++/71446,
