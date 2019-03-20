@@ -1,10 +1,10 @@
-%global DATE 20190312
-%global SVNREV 269606
+%global DATE 20190320
+%global SVNREV 269820
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.10
+%global gcc_release 0.11
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -255,8 +255,6 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89093.patch
-Patch13: gcc9-pr89652.patch
-Patch14: gcc9-pr89660.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -768,8 +766,6 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89093~
-%patch13 -p0 -b .pr89652~
-%patch14 -p0 -b .pr89660~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2961,7 +2957,28 @@ end
 %endif
 
 %changelog
-% Thu Mar 14 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.11
+* Wed Mar 20 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.11
+- update from trunk
+  - PRs c++/63508, c++/85014, c++/85558, c++/88534, c++/88537, c++/88979,
+	c++/89512, c++/89571, c++/89630, c++/89640, c++/89660, c++/89682,
+	c++/89686, c++/89709, c++/89761, c/89734, d/87866, d/88957,
+	debug/88389, debug/89498, debug/89704, fortran/60091, fortran/66695,
+	fortran/68009, fortran/77746, fortran/79485, fortran/84394,
+	fortran/87045, fortran/87673, fortran/88008, fortran/89363,
+	fortran/89364, fortran/89601, fortran/89724, ipa/89684,
+	libstdc++/89461, lto/87809, lto/89335, middle-end/86979,
+	middle-end/88588, middle-end/88945, middle-end/89677,
+	middle-end/89698, middle-end/89737, other/89712,
+	rtl-optimization/89679, rtl-optimization/89721,
+	rtl-optimization/89753, rtl-optimization/89768, sanitizer/80953,
+	target/52726, target/85860, target/87532, target/87561, target/89378,
+	target/89411, target/89523, target/89627, target/89650, target/89711,
+	target/89719, target/89726, target/89736, target/89746, target/89752,
+	testsuite/83453, testsuite/84174, testsuite/89393, testsuite/89471,
+	testsuite/89666, tree-optimization/89546, tree-optimization/89644,
+	tree-optimization/89662, tree-optimization/89688,
+	tree-optimization/89703, tree-optimization/89710,
+	tree-optimization/89720
 - turn libgcc_s.so into a linker script on i?86, x86_64, ppc64le and also on
   ppc and ppc64 for 64-bit multilib (#1688766)
 
