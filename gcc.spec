@@ -1,10 +1,10 @@
-%global DATE 20190320
-%global SVNREV 269820
+%global DATE 20190328
+%global SVNREV 270000
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.11
+%global gcc_release 0.12
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -2957,6 +2957,24 @@ end
 %endif
 
 %changelog
+* Thu Mar 28 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.12
+- update from trunk
+  - PRs ada/89583, bootstrap/89829, c++/60702, c++/78645, c++/82643,
+	c++/84598, c++/84661, c++/85013, c++/86429, c++/86932, c++/87327,
+	c++/87480, c++/87481, c++/87748, c++/89214, c++/89421, c++/89705,
+	c++/89767, c++/89785, c++/89796, c++/89831, c/79022, c/89812, d/89017,
+	debug/86964, fortran/29383, fortran/56408, fortran/71861,
+	fortran/78865, fortran/85537, fortran/88247, fortran/89773,
+	libgfortran/79540, libstdc++/85965, libstdc++/88066, libstdc++/89816,
+	libstdc++/89824, libstdc++/89825, lto/89692, middle-end/89725,
+	middle-end/89790, rtl-optimization/88347, rtl-optimization/88423,
+	rtl-optimization/89313, rtl-optimization/89676,
+	rtl-optimization/89826, target/85667, target/89775, target/89784,
+	target/89827, testsuite/89834, tree-optimization/81740,
+	tree-optimization/89350, tree-optimization/89463,
+	tree-optimization/89779, tree-optimization/89789,
+	tree-optimization/89802
+
 * Wed Mar 20 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.11
 - update from trunk
   - PRs c++/63508, c++/85014, c++/85558, c++/88534, c++/88537, c++/88979,
