@@ -255,6 +255,9 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89093.patch
+Patch13: gcc9-pr89794.patch
+Patch14: gcc9-pr90071.patch
+Patch15: gcc9-pr90074.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -766,6 +769,9 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89093~
+%patch13 -p0 -b .pr89794~
+%patch14 -p0 -b .pr90071~
+%patch15 -p0 -b .pr90074~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2992,6 +2998,7 @@ end
 	tree-optimization/89730, tree-optimization/89956,
 	tree-optimization/89998, tree-optimization/90006,
 	tree-optimization/90018, tree-optimization/90020
+- PRs rtl-optimization/89794, tree-optimization/90071, debug/90074
 
 * Thu Mar 28 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.12
 - update from trunk

@@ -70,7 +70,7 @@ libgomp/
 +
    if (!compiler)
      fatal_error (input_location,
- 		 "could not find %s in %s (consider using '-B')\n", suffix + 1,
+ 		 "could not find %s in %s (consider using %<-B%>)\n",
 @@ -883,6 +890,7 @@ compile_images_for_offload_targets (unsi
    unsigned num_targets = parse_env_var (target_names, &names, NULL);
  
