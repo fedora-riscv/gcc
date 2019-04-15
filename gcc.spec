@@ -1,10 +1,10 @@
-%global DATE 20190328
-%global SVNREV 270000
+%global DATE 20190415
+%global SVNREV 270367
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.12
+%global gcc_release 0.13
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -2957,6 +2957,42 @@ end
 %endif
 
 %changelog
+* Mon Apr 15 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.13
+- update from trunk
+  - PRs bootstrap/89980, c++/47488, c++/56643, c++/61327, c++/62207,
+	c++/65619, c++/66548, c++/81506, c++/81866, c++/86586, c++/86946,
+	c++/86986, c++/87145, c++/87603, c++/89331, c++/89612, c++/89744,
+	c++/89833, c++/89836, c++/89852, c++/89871, c++/89876, c++/89878,
+	c++/89914, c++/89917, c++/89948, c++/89966, c++/89973, c++/89974,
+	c++/90010, c/71598, c/88383, c/89288, c/89685, c/89797, c/89798,
+	c/89872, c/89933, c/89946, c/89985, d/87799, d/88150, d/88462,
+	d/89255, d/89823, debug/89892, debug/89905, driver/89861,
+	fortran/68567, fortran/79842, fortran/83515, fortran/85448,
+	fortran/85797, fortran/87352, fortran/89375, fortran/89841,
+	fortran/89842, fortran/89843, fortran/89846, fortran/89866,
+	fortran/89904, fortran/89981, fortran/90022, gcov-profile/89959,
+	gcov-profile/89961, ipa/88936, ipa/pr89693, libstdc++/85184,
+	libstdc++/87431, libstdc++/89851, libstdc++/89986, libstdc++/90008,
+	libstdc++/90046, lto/89358, lto/89896, middle-end/89621,
+	middle-end/89911, middle-end/89934, middle-end/89957,
+	middle-end/89970, middle-end/90025, other/89394,
+	rtl-optimization/46590, rtl-optimization/81025,
+	rtl-optimization/84206, rtl-optimization/85412,
+	rtl-optimization/85876, rtl-optimization/86928,
+	rtl-optimization/87273, rtl-optimization/87485,
+	rtl-optimization/89399, rtl-optimization/89862,
+	rtl-optimization/89865, rtl-optimization/89965,
+	rtl-optimization/90026, sanitizer/89869, sanitizer/89941,
+	target/83033, target/89623, target/89848, target/89865, target/89902,
+	target/89903, target/89945, target/90015, target/90016, target/90024,
+	testsuite/89907, testsuite/89916, translation/89912,
+	translation/89936, translation/89939, translation/90011,
+	translation/90035, translation/90041, tree-optimization/46590,
+	tree-optimization/84101, tree-optimization/89725,
+	tree-optimization/89730, tree-optimization/89956,
+	tree-optimization/89998, tree-optimization/90006,
+	tree-optimization/90018, tree-optimization/90020
+
 * Thu Mar 28 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.12
 - update from trunk
   - PRs ada/89583, bootstrap/89829, c++/60702, c++/78645, c++/82643,
