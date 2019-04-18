@@ -1,10 +1,10 @@
-%global DATE 20190415
-%global SVNREV 270367
+%global DATE 20190418
+%global SVNREV 270440
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.13
+%global gcc_release 0.14
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -151,7 +151,7 @@ BuildRequires: zlib-devel, gettext, dejagnu, bison, flex, sharutils
 BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 BuildRequires: systemtap-sdt-devel >= 1.3
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
-BuildRequires: python2-devel, python3-devel
+BuildRequires: python2-devel, python3-devel, /usr/bin/python
 BuildRequires: gcc, gcc-c++
 %if %{build_go}
 BuildRequires: hostname, procps
@@ -255,9 +255,6 @@ Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
 Patch12: gcc9-pr89093.patch
-Patch13: gcc9-pr89794.patch
-Patch14: gcc9-pr90071.patch
-Patch15: gcc9-pr90074.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -769,9 +766,6 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr89093~
-%patch13 -p0 -b .pr89794~
-%patch14 -p0 -b .pr90071~
-%patch15 -p0 -b .pr90074~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2963,6 +2957,16 @@ end
 %endif
 
 %changelog
+* Thu Apr 18 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.14
+- update from trunk
+  - PRs bootstrap/89864, c++/86953, c++/89325, c++/90047, c++/90124,
+	debug/89528, fortran/90048, fortran/90067, fortran/90114,
+	libstdc++/90105, middle-end/90095, rtl-optimization/86438,
+	rtl-optimization/90082, target/17108, target/84369, target/90096,
+	target/90125, translation/79183, tree-optimization/56049,
+	tree-optimization/90090
+- buildrequire /usr/bin/python for better dg-extract-results.sh
+
 * Mon Apr 15 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.13
 - update from trunk
   - PRs bootstrap/89980, c++/47488, c++/56643, c++/61327, c++/62207,
