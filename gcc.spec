@@ -1,10 +1,10 @@
-%global DATE 20190426
-%global SVNREV 270616
+%global DATE 20190430
+%global SVNREV 270701
 %global gcc_version 9.0.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.15
+%global gcc_release 0.16
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -33,7 +33,7 @@
 %else
 %global build_go 0
 %endif
-%ifarch %{ix86} x86_64 %{arm} %{mips}
+%ifarch %{ix86} x86_64 %{arm} %{mips} s390 s390x riscv64
 %global build_d 1
 %else
 %global build_d 0
@@ -2955,6 +2955,13 @@ end
 %endif
 
 %changelog
+* Tue Apr 30 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.16
+- update from 9 branch
+  - gcc 9.1-rc2
+  - PRs middle-end/90258, target/86538, translation/90274,
+	tree-optimization/90273
+- enable D on s390{,x} and riscv64
+
 * Fri Apr 26 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.15
 - update from trunk and 9 branch
   - gcc 9.1-rc1
