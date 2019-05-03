@@ -2963,7 +2963,7 @@ end
   - PR tree-optimization/90316
 - fix up devirtualization ICE with fastcall attribute (#1705081,
   PR tree-optimization/90303)
-- move Obsoletes for libcilkrts and libmpx from gcc to libgcc subpackage
+- move Obsoletes for lib{cilkrts,mpx}{,-static} from gcc to libgcc subpackage
 
 * Tue Apr 30 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.16
 - update from 9 branch
