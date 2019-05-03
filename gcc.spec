@@ -1,10 +1,10 @@
-%global DATE 20190430
-%global SVNREV 270701
-%global gcc_version 9.0.1
+%global DATE 20190503
+%global SVNREV 270850
+%global gcc_version 9.1.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.16
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -232,12 +232,6 @@ Requires: libgomp = %{version}-%{release}
 Obsoletes: gcc-gnat < %{version}-%{release}
 %endif
 Obsoletes: gcc-java < %{version}-%{release}
-%ifarch %{ix86} x86_64
-Obsoletes: libcilkrts
-Obsoletes: libcilkrts-static
-Obsoletes: libmpx
-Obsoletes: libmpx-static
-%endif
 AutoReq: true
 Provides: bundled(libiberty)
 Provides: gcc(major) = %{gcc_major}
@@ -254,6 +248,7 @@ Patch8: gcc9-foffload-default.patch
 Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
+Patch12: gcc9-pr90303.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -314,6 +309,12 @@ Obsoletes: libmudflap-static
 Obsoletes: libgcj < %{version}-%{release}
 Obsoletes: libgcj-devel < %{version}-%{release}
 Obsoletes: libgcj-src < %{version}-%{release}
+%ifarch %{ix86} x86_64
+Obsoletes: libcilkrts
+Obsoletes: libcilkrts-static
+Obsoletes: libmpx
+Obsoletes: libmpx-static
+%endif
 
 %description -n libgcc
 This package contains GCC shared support library which is needed
@@ -764,6 +765,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr90303~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2955,6 +2957,14 @@ end
 %endif
 
 %changelog
+* Fri May  3 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-1
+- update from 9 branch
+  - GCC 9.1 release
+  - PR tree-optimization/90316
+- fix up devirtualization ICE with fastcall attribute (#1705081,
+  PR tree-optimization/90303)
+- move Obsoletes for libcilkrts and libmpx from gcc to libgcc subpackage
+
 * Tue Apr 30 2019 Jakub Jelinek <jakub@redhat.com> 9.0.1-0.16
 - update from 9 branch
   - gcc 9.1-rc2
