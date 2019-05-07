@@ -259,7 +259,6 @@ Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
 Patch12: gcc8-mcet.patch
 Patch13: gcc8-rh1574936.patch
-Patch14: gcc8-pr89629.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -828,7 +827,6 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch13 -p0 -b .rh1574936~
 %endif
-%patch14 -p0 -b .pr89629~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
