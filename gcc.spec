@@ -1,10 +1,10 @@
-%global DATE 20190311
-%global SVNREV 269592
+%global DATE 20190507
+%global SVNREV 270976
 %global gcc_version 8.3.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3130,6 +3130,44 @@ fi
 %endif
 
 %changelog
+* Tue May  7 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-4
+- update from the 8 branch
+  - PRs bootstrap/89656, bootstrap/90359, c++/60702, c++/82075, c++/87148,
+	c++/88857, c++/89214, c++/89403, c++/89405, c++/89511, c++/89512,
+	c++/89705, c++/89767, c++/89796, c++/89876, c++/90010, c++/90108,
+	c/89520, c/89521, c/89734, c/89872, c/89933, c/89946, debug/88389,
+	debug/89498, debug/89631, debug/89704, fortran/29383, fortran/56408,
+	fortran/66089, fortran/66695, fortran/68009, fortran/71861,
+	fortran/77746, fortran/78865, fortran/79485, fortran/83515,
+	fortran/84394, fortran/85797, fortran/87127, fortran/87352,
+	fortran/87673, fortran/89651, fortran/89866, fortran/89904,
+	fortran/89981, ipa/89684, ipa/89693, libgcc/60790, libgfortran/79540,
+	libstdc++/85965, libstdc++/88740, libstdc++/89102, libstdc++/90105,
+	libstdc++/90165, lto/87525, lto/89896, middle-end/88074,
+	middle-end/88273, middle-end/88587, middle-end/88588,
+	middle-end/89037, middle-end/89091, middle-end/89412,
+	middle-end/89415, middle-end/89497, middle-end/89572,
+	middle-end/89590, middle-end/89621, middle-end/89655,
+	middle-end/89663, middle-end/89677, middle-end/89698,
+	middle-end/89934, other/89712, rtl-optimization/84032,
+	rtl-optimization/87979, rtl-optimization/89679,
+	rtl-optimization/89753, rtl-optimization/89768,
+	rtl-optimization/89862, rtl-optimization/89965,
+	rtl-optimization/90026, rtl-optimization/90082, sanitizer/89869,
+	target/37369, target/84369, target/85860, target/85910, target/86538,
+	target/86984, target/87532, target/89523, target/89587, target/89711,
+	target/89726, target/89736, target/89752, target/89775, target/89827,
+	target/89848, target/89877, target/89902, target/89903, target/89945,
+	target/90024, target/90075, target/90187, target/90193,
+	testsuite/85368, testsuite/89551, tree-optimization/85459,
+	tree-optimization/85762, tree-optimization/87008,
+	tree-optimization/89296, tree-optimization/89546,
+	tree-optimization/89595, tree-optimization/89664,
+	tree-optimization/89703, tree-optimization/89710,
+	tree-optimization/89998, tree-optimization/90018,
+	tree-optimization/90071, tree-optimization/90090,
+	tree-optimization/90208, web/87829
+
 * Mon Mar 11 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-3
 - update from the 8 branch
   - PRs bootstrap/89539, c++/87513, c++/87921, c++/88183, c++/88419,
