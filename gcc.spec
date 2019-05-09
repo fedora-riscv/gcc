@@ -1317,36 +1317,39 @@ mkdir -p %{buildroot}/%{_lib}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
 chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
 ln -sf libgcc_s-%{gcc_major}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 ppc64le %{arm}
+rm -f $FULLPATH/libgcc_s.so
+echo '/* GNU ld script
+   Use the shared library, but some functions are only in
+   the static library, so try that secondarily.  */
+OUTPUT_FORMAT('`gcc -Wl,--print-output-format -nostdlib -r -o /dev/null`')
+GROUP ( /%{_lib}/libgcc_s.so.1 libgcc.a )' > $FULLPATH/libgcc_s.so
+%else
 ln -sf /%{_lib}/libgcc_s.so.1 $FULLPATH/libgcc_s.so
+%endif
 %ifarch sparcv9 ppc
+%ifarch ppc
+rm -f $FULLPATH/64/libgcc_s.so
+echo '/* GNU ld script
+   Use the shared library, but some functions are only in
+   the static library, so try that secondarily.  */
+OUTPUT_FORMAT('`gcc -m64 -Wl,--print-output-format -nostdlib -r -o /dev/null`')
+GROUP ( /lib64/libgcc_s.so.1 libgcc.a )' > $FULLPATH/64/libgcc_s.so
+%else
 ln -sf /lib64/libgcc_s.so.1 $FULLPATH/64/libgcc_s.so
 %endif
+%endif
 %ifarch %{multilib_64_archs}
+%ifarch x86_64 ppc64 ppc64p7
+rm -f $FULLPATH/64/libgcc_s.so
+echo '/* GNU ld script
+   Use the shared library, but some functions are only in
+   the static library, so try that secondarily.  */
+OUTPUT_FORMAT('`gcc -m32 -Wl,--print-output-format -nostdlib -r -o /dev/null`')
+GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/32/libgcc_s.so
+%else
 ln -sf /lib/libgcc_s.so.1 $FULLPATH/32/libgcc_s.so
 %endif
-%ifarch ppc
-rm -f $FULLPATH/libgcc_s.so
-echo '/* GNU ld script
-   Use the shared library, but some functions are only in
-   the static library, so try that secondarily.  */
-OUTPUT_FORMAT(elf32-powerpc)
-GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/libgcc_s.so
-%endif
-%ifarch ppc64 ppc64p7
-rm -f $FULLPATH/32/libgcc_s.so
-echo '/* GNU ld script
-   Use the shared library, but some functions are only in
-   the static library, so try that secondarily.  */
-OUTPUT_FORMAT(elf32-powerpc)
-GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/32/libgcc_s.so
-%endif
-%ifarch %{arm}
-rm -f $FULLPATH/libgcc_s.so
-echo '/* GNU ld script
-   Use the shared library, but some functions are only in
-   the static library, so try that secondarily.  */
-OUTPUT_FORMAT(elf32-littlearm)
-GROUP ( /lib/libgcc_s.so.1 libgcc.a )' > $FULLPATH/libgcc_s.so
 %endif
 
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgomp.spec $FULLPATH/
@@ -3128,6 +3131,9 @@ fi
 %endif
 
 %changelog
+- turn libgcc_s.so into a linker script on i?86, x86_64, ppc64le and also on
+  ppc and ppc64 for 64-bit multilib (#1688766)
+
 * Tue May  7 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-4
 - update from the 8 branch
   - PRs bootstrap/89656, bootstrap/90359, c++/60702, c++/82075, c++/87148,
