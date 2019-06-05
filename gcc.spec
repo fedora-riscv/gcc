@@ -1,10 +1,10 @@
-%global DATE 20190503
-%global SVNREV 270850
+%global DATE 20190605
+%global SVNREV 271961
 %global gcc_version 9.1.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -248,7 +248,6 @@ Patch8: gcc9-foffload-default.patch
 Patch9: gcc9-Wno-format-security.patch
 Patch10: gcc9-rh1574936.patch
 Patch11: gcc9-d-shared-libphobos.patch
-Patch12: gcc9-pr90303.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -765,7 +764,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr90303~
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -2957,6 +2955,20 @@ end
 %endif
 
 %changelog
+* Wed Jun  5 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-2
+- update from 9 branch
+  - PRs bootstrap/90543, c++/78010, c++/90173, c++/90265, c++/90383,
+	c++/90484, c++/90532, c++/90548, c++/90572, c++/90598, debug/90197,
+	debug/90733, fortran/54613, fortran/90093, fortran/90329,
+	fortran/90351, fortran/90352, fortran/90355, fortran/90498,
+	gcov-profile/90380, libfortran/90038, libgomp/90527, libgomp/90585,
+	libgomp/90641, libstdc++/81266, libstdc++/90299, libstdc++/90397,
+	libstdc++/90454, libstdc++/90557, libstdc++/90634, libstdc++/90686,
+	libstdc++/90700, pch/90326, sanitizer/90312, sanitizer/90570,
+	target/82920, target/89424, target/89765, target/90357, target/90379,
+	target/90530, target/90547, testsuite/81058, tree-optimization/90385,
+	tree-optimization/90416
+
 * Fri May  3 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-1
 - update from 9 branch
   - GCC 9.1 release
