@@ -101,7 +101,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.1
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2955,6 +2955,9 @@ end
 %endif
 
 %changelog
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 9.1.1-2.1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Wed Jun  5 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-2
 - update from 9 branch
   - PRs bootstrap/90543, c++/78010, c++/90173, c++/90265, c++/90383,
