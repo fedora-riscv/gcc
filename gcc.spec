@@ -1,10 +1,10 @@
-%global DATE 20190605
-%global SVNREV 271961
-%global gcc_version 9.1.1
+%global DATE 20190827
+%global SVNREV 274959
+%global gcc_version 9.2.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -101,7 +101,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2955,8 +2955,50 @@ end
 %endif
 
 %changelog
-* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 9.1.1-2.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+* Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
+- update from 9 branch
+  - GCC 9.2 release
+  - PRs ada/80590, bootstrap/87030, c++/60223, c++/63149, c++/64372,
+	c++/81429, c++/82081, c++/85552, c++/86205, c++/87519, c++/88095,
+	c++/90098, c++/90099, c++/90101, c++/90393, c++/90473, c++/90490,
+	c++/90538, c++/90736, c++/90810, c++/90825, c++/90832, c++/90884,
+	c++/90947, c++/90950, c++/91024, c++/91125, c++/91230, c++/91378,
+	c++/91436, c++/91521, c/53633, c/90474, c/90737, c/90760, c/91149,
+	c/91192, debug/90900, debug/90914, debug/91231, driver/90684,
+	driver/91130, driver/91172, fortran/42546, fortran/68544,
+	fortran/69398, fortran/69499, fortran/77632, fortran/78719,
+	fortran/78739, fortran/82992, fortran/86587, fortran/87233,
+	fortran/87907, fortran/87991, fortran/87993, fortran/88072,
+	fortran/89344, fortran/89647, fortran/90002, fortran/90290,
+	fortran/90561, fortran/90563, fortran/90577, fortran/90578,
+	fortran/90744, fortran/90786, fortran/90813, fortran/90937,
+	fortran/91077, fortran/91296, fortran/91359, fortran/91414,
+	fortran/91422, fortran/91424, fortran/91471, fortran/91485,
+	gcov-profile/91087, ipa/90939, ipa/90982, ipa/91062, ipa/91404,
+	ipa/91438, ipa/91508, libfortran/91030, libsanitizer/87880,
+	libstdc++/51333, libstdc++/85494, libstdc++/90252, libstdc++/90281,
+	libstdc++/90361, libstdc++/90770, libstdc++/90920, libstdc++/91012,
+	libstdc++/91067, libstdc++/91308, lto/90369, lto/90924, lto/91287,
+	lto/91375, middle-end/64242, middle-end/78884, middle-end/90899,
+	middle-end/91131, middle-end/91162, middle-end/91216,
+	middle-end/91301, objc/90709, rtl-optimisation/64895,
+	rtl-optimization/90756, rtl-optimization/91136,
+	rtl-optimization/91173, rtl-optimization/91347, sanitizer/90954,
+	target/63891, target/83531, target/90698, target/90751, target/90811,
+	target/90991, target/91135, target/91150, target/91349, target/91386,
+	target/91533, testsuite/27221, testsuite/58321, testsuite/65364,
+	testsuite/67958, testsuite/78529, testsuite/91004, testsuite/91175,
+	tree-optimization/90328, tree-optimization/90402,
+	tree-optimization/90450, tree-optimization/90892,
+	tree-optimization/90930, tree-optimization/90949,
+	tree-optimization/90972, tree-optimization/90989,
+	tree-optimization/91063, tree-optimization/91091,
+	tree-optimization/91108, tree-optimization/91109,
+	tree-optimization/91126, tree-optimization/91137,
+	tree-optimization/91145, tree-optimization/91157,
+	tree-optimization/91178, tree-optimization/91200,
+	tree-optimization/91280, tree-optimization/91293,
+	tree-optimization/91445
 
 * Wed Jun  5 2019 Jakub Jelinek <jakub@redhat.com> 9.1.1-2
 - update from 9 branch
