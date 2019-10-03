@@ -101,7 +101,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.1
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2955,6 +2955,9 @@ end
 %endif
 
 %changelog
+* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> - 9.2.1-1.1
+- Rebuilt for Python 3.8.0rc1 (#1748018)
+
 * Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
 - update from 9 branch
   - GCC 9.2 release
