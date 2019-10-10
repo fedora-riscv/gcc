@@ -15,7 +15,7 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
-%global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
+%global multilib_64_archs sparc64 ppc64 ppc64p7 x86_64
 %if 0%{?rhel} > 7
 %global build_ada 0
 %global build_objc 0
@@ -85,9 +85,6 @@
 %global build_offload_nvptx 1
 %else
 %global build_offload_nvptx 0
-%endif
-%ifarch s390x
-%global multilib_32_arch s390
 %endif
 %ifarch sparc64
 %global multilib_32_arch sparcv9
@@ -2957,6 +2954,7 @@ end
 %changelog
 * Wed Oct  9 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.3
 - Build against mpfr4 and libmpc linked with mpfr4
+- Drop multilib support for s390x since glibc32 already did
 
 * Tue Oct  8 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.2
 - Build against mpfr3 and libmpc-mpfr3 so an mpfr 4.x version can be built
