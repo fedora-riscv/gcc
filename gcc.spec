@@ -886,7 +886,7 @@ CONFIGURE_OPTS="\
 %ifarch ppc64le
 	--enable-targets=powerpcle-linux \
 %endif
-%ifarch ppc64le %{mips} riscv64
+%ifarch ppc64le %{mips} riscv64 s390x
 	--disable-multilib \
 %else
 	--enable-multilib \
