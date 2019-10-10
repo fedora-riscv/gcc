@@ -101,7 +101,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.2
+Release: %{gcc_release}%{?dist}.3
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -150,7 +150,7 @@ BuildRequires: glibc-static
 BuildRequires: zlib-devel, gettext, dejagnu, bison, flex, sharutils
 BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 BuildRequires: systemtap-sdt-devel >= 1.3
-BuildRequires: gmp-devel >= 4.1.2-8, mpfr3-devel >= 2.2.1, libmpc-mpfr3-devel >= 0.8.1
+BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 BuildRequires: python2-devel, python3-devel, /usr/bin/python
 BuildRequires: gcc, gcc-c++
 %if %{build_go}
@@ -726,7 +726,7 @@ This package contains static Go libraries.
 %package plugin-devel
 Summary: Support for compiling GCC plugins
 Requires: gcc = %{version}-%{release}
-Requires: gmp-devel >= 4.1.2-8, mpfr3-devel >= 2.2.1, libmpc-mpfr3-devel >= 0.8.1
+Requires: gmp-devel >= 4.1.2-8, mpfr-devel >= 2.2.1, libmpc-devel >= 0.8.1
 
 %description plugin-devel
 This package contains header files and other support files
@@ -800,11 +800,6 @@ fi
 
 # This test causes fork failures, because it spawns way too many threads
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
-
-# Build against mpfr3 and libmpc-mpfr3 so we can build mpfr 4.x
-grep -Frl '<mpfr.h>' | xargs sed -i 's/<mpfr\.h>/<mpfr3.h>/g'
-grep -Frl '<mpc.h>' | xargs sed -i 's/<mpc\.h>/<mpc-mpfr3.h>/g'
-sed -i 's/-lmpc -lmpfr/-lmpc-mpfr3 -lmpfr3/' configure
 
 %build
 
@@ -2960,6 +2955,9 @@ end
 %endif
 
 %changelog
+* Wed Oct  9 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.3
+- Build against mpfr4 and libmpc linked with mpfr4
+
 * Tue Oct  8 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.2
 - Build against mpfr3 and libmpc-mpfr3 so an mpfr 4.x version can be built
 
