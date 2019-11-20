@@ -15,7 +15,7 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
-%if 0%{?fedora} < 31
+%if 0%{?fedora} < 32
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %else
 %global multilib_64_archs sparc64 ppc64 ppc64p7 x86_64
@@ -90,7 +90,7 @@
 %else
 %global build_offload_nvptx 0
 %endif
-%if 0%{?fedora} < 31
+%if 0%{?fedora} < 32
 %ifarch s390x
 %global multilib_32_arch s390
 %endif
@@ -897,7 +897,7 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch ppc64le %{mips} riscv64 s390x
 %ifarch s390x
-%if 0%{?fedora} < 31
+%if 0%{?fedora} < 32
 	--enable-multilib \
 %else
 	--disable-multilib \
