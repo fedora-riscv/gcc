@@ -1,10 +1,10 @@
-%global DATE 20190827
-%global SVNREV 274959
+%global DATE 20191120
+%global SVNREV 278493
 %global gcc_version 9.2.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -15,7 +15,11 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+%if 0%{?fedora} < 31
+%global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
+%else
 %global multilib_64_archs sparc64 ppc64 ppc64p7 x86_64
+%endif
 %if 0%{?rhel} > 7
 %global build_ada 0
 %global build_objc 0
@@ -86,6 +90,11 @@
 %else
 %global build_offload_nvptx 0
 %endif
+%if 0%{?fedora} < 31
+%ifarch s390x
+%global multilib_32_arch s390
+%endif
+%endif
 %ifarch sparc64
 %global multilib_32_arch sparcv9
 %endif
@@ -98,7 +107,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.3
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -887,7 +896,15 @@ CONFIGURE_OPTS="\
 	--enable-targets=powerpcle-linux \
 %endif
 %ifarch ppc64le %{mips} riscv64 s390x
+%ifarch s390x
+%if 0%{?fedora} < 31
+	--enable-multilib \
+%else
 	--disable-multilib \
+%endif
+%else
+	--disable-multilib \
+%endif
 %else
 	--enable-multilib \
 %endif
@@ -2952,15 +2969,57 @@ end
 %endif
 
 %changelog
+* Wed Nov 20 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-2
+- update from 9 branch
+  - PRs ada/91995, bootstrap/90543, c++/85254, c++/88203, c++/90767,
+	c++/90947, c++/90998, c++/91129, c++/91155, c++/91606, c++/91705,
+	c++/91740, c++/91923, c++/91925, c++/91974, c++/92015, c++/92062,
+	c++/92106, c++/92201, c++/92343, c++/92384, c++/92504, c/90898,
+	c/91401, debug/91772, debug/91887, driver/69471, fortran/47054,
+	fortran/69455, fortran/83113, fortran/84487, fortran/86248,
+	fortran/87752, fortran/89943, fortran/91253, fortran/91496,
+	fortran/91550, fortran/91551, fortran/91552, fortran/91553,
+	fortran/91557, fortran/91564, fortran/91565, fortran/91566,
+	fortran/91586, fortran/91587, fortran/91588, fortran/91589,
+	fortran/91641, fortran/91642, fortran/91649, fortran/91660,
+	fortran/91714, fortran/91715, fortran/91716, fortran/91727,
+	fortran/91785, fortran/91801, fortran/91802, fortran/91863,
+	fortran/91864, fortran/91926, fortran/91942, fortran/92113,
+	fortran/92174, fortran/92208, fortran/92277, fortran/92284,
+	fortran/92321, fortran/92470, fortran/92500, gcov-profile/91601,
+	go/91617, libfortran/90038, libstdc++/61761, libstdc++/89164,
+	libstdc++/90682, libstdc++/91067, libstdc++/91456, libstdc++/91748,
+	libstdc++/92059, libstdc++/92143, lto/91572, lto/91968,
+	middle-end/90840, middle-end/91001, middle-end/91105,
+	middle-end/91106, middle-end/91450, middle-end/91623,
+	middle-end/91920, middle-end/92153, middle-end/92231, pch/61250,
+	preprocessor/92296, rtl-optimization/88751, rtl-optimization/89435,
+	rtl-optimization/89795, rtl-optimization/91720,
+	rtl-optimization/92007, rtl-optimization/92430, sanitizer/92154,
+	target/59888, target/65342, target/67183, target/70010, target/80672,
+	target/81800, target/86040, target/86805, target/87243, target/87833,
+	target/87853, target/88167, target/88562, target/88630, target/89400,
+	target/90867, target/91269, target/91275, target/91289, target/91472,
+	target/91481, target/91635, target/91683, target/91704, target/91769,
+	target/92022, target/92093, target/92095, target/92225, target/92389,
+	tree-optimization/85887, tree-optimization/90278,
+	tree-optimization/90637, tree-optimization/90930,
+	tree-optimization/91351, tree-optimization/91568,
+	tree-optimization/91597, tree-optimization/91632,
+	tree-optimization/91665, tree-optimization/91723,
+	tree-optimization/91734, tree-optimization/91790,
+	tree-optimization/91812, tree-optimization/91885,
+	tree-optimization/92056, tree-optimization/92131
+
 * Wed Oct  9 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.3
-- Build against mpfr4 and libmpc linked with mpfr4
-- Drop multilib support for s390x since glibc32 already did
+- build against mpfr4 and libmpc linked with mpfr4
+- drop multilib support for s390x since glibc32 already did
 
 * Tue Oct  8 2019 Jerry James <loganjerry@gmail.com> 9.2.1-1.2
-- Build against mpfr3 and libmpc-mpfr3 so an mpfr 4.x version can be built
+- build against mpfr3 and libmpc-mpfr3 so an mpfr 4.x version can be built
 
-* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> - 9.2.1-1.1
-- Rebuilt for Python 3.8.0rc1 (#1748018)
+* Thu Oct 03 2019 Miro Hrončok <mhroncok@redhat.com> 9.2.1-1.1
+- rebuilt for Python 3.8.0rc1 (#1748018)
 
 * Tue Aug 27 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-1
 - update from 9 branch
