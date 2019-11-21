@@ -1,10 +1,10 @@
-%global DATE 20190507
-%global SVNREV 270976
+%global DATE 20191121
+%global SVNREV 278589
 %global gcc_version 8.3.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3131,6 +3131,57 @@ fi
 %endif
 
 %changelog
+* Thu Nov 21 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-5
+- update from the 8 branch
+  - PRs ada/80590, ada/91995, bootstrap/87030, bootstrap/89864, c++/79274,
+	c++/82081, c++/85400, c++/86098, c++/88075, c++/90532, c++/90810,
+	c++/90950, c++/91436, c++/91974, c++/92106, c++/92201, c++/92384,
+	c/53633, c/90474, c/90760, c/90898, c/91401, debug/90197, debug/90733,
+	debug/90900, debug/91231, debug/91772, debug/91887, driver/91172,
+	fortran/57284, fortran/69455, fortran/84487, fortran/86248,
+	fortran/90329, fortran/90498, fortran/90563, fortran/90744,
+	fortran/90786, fortran/90813, fortran/90937, fortran/91077,
+	fortran/91414, fortran/91550, fortran/91557, fortran/91588,
+	fortran/91660, fortran/92113, gcov-profile/90380, gcov-profile/91087,
+	ipa/90939, libgomp/90585, libstdc++/51333, libstdc++/78179,
+	libstdc++/81266, libstdc++/89466, libstdc++/90220, libstdc++/90299,
+	libstdc++/90454, libstdc++/90634, libstdc++/90770, libstdc++/91308,
+	libstdc++/92059, libstdc++/92143, lto/90924, lto/91375,
+	middle-end/64242, middle-end/78884, middle-end/87609,
+	middle-end/88567, middle-end/89392, middle-end/89578,
+	middle-end/90139, middle-end/90194, middle-end/90213,
+	middle-end/90840, middle-end/90899, middle-end/91001,
+	middle-end/91105, middle-end/91106, middle-end/91131,
+	middle-end/91162, middle-end/91450, middle-end/91623, objc/90709,
+	other/92090, pch/61250, pch/90326, preprocessor/92296,
+	rtl-optimisation/64895, rtl-optimization/85458,
+	rtl-optimization/88751, rtl-optimization/89721,
+	rtl-optimization/89795, rtl-optimization/90756,
+	rtl-optimization/91136, rtl-optimization/91173,
+	rtl-optimization/91347, sanitizer/90570, sanitizer/90954,
+	target/59888, target/61976, target/63891, target/65342, target/67183,
+	target/70010, target/80672, target/81800, target/82920, target/83531,
+	target/85711, target/85993, target/86040, target/86487, target/86712,
+	target/87243, target/87833, target/88167, target/88562, target/88630,
+	target/89190, target/89222, target/89400, target/89424, target/89765,
+	target/90530, target/90547, target/90698, target/90751, target/90811,
+	target/90867, target/91150, target/91269, target/91275, target/91289,
+	target/91472, target/91481, target/91533, target/91704, target/91854,
+	target/92022, target/92093, target/92095, target/92389,
+	testsuite/27221, testsuite/58321, testsuite/65364, testsuite/67958,
+	testsuite/78529, testsuite/81058, testsuite/91619,
+	tree-optimization/81740, tree-optimization/85887,
+	tree-optimization/87609, tree-optimization/88315,
+	tree-optimization/89725, tree-optimization/90006,
+	tree-optimization/90020, tree-optimization/90278,
+	tree-optimization/90328, tree-optimization/90637,
+	tree-optimization/90930, tree-optimization/90949,
+	tree-optimization/91108, tree-optimization/91126,
+	tree-optimization/91137, tree-optimization/91200,
+	tree-optimization/91280, tree-optimization/91293,
+	tree-optimization/91355, tree-optimization/91665,
+	tree-optimization/91812, tree-optimization/92056,
+	tree-optimization/92131
 - turn libgcc_s.so into a linker script on i?86, x86_64, ppc64le and also on
   ppc and ppc64 for 64-bit multilib (#1688766)
 
