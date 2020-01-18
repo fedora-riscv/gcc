@@ -1,15 +1,15 @@
 --- gcc/Makefile.in.jj	2015-06-06 10:00:25.000000000 +0200
 +++ gcc/Makefile.in	2015-11-04 14:56:02.643536437 +0100
-@@ -1046,7 +1046,7 @@ BUILD_LIBDEPS= $(BUILD_LIBIBERTY)
+@@ -1063,7 +1063,7 @@ BUILD_LIBDEPS= $(BUILD_LIBIBERTY)
  # and the system's installed libraries.
  LIBS = @LIBS@ libcommon.a $(CPPLIB) $(LIBINTL) $(LIBICONV) $(LIBBACKTRACE) \
  	$(LIBIBERTY) $(LIBDECNUMBER) $(HOST_LIBS)
 -BACKENDLIBS = $(ISLLIBS) $(GMPLIBS) $(PLUGINLIBS) $(HOST_LIBS) \
 +BACKENDLIBS = $(if $(ISLLIBS),-ldl) $(GMPLIBS) $(PLUGINLIBS) $(HOST_LIBS) \
- 	$(ZLIB)
+ 	$(ZLIB) $(ZSTD_LIB)
  # Any system libraries needed just for GNAT.
  SYSLIBS = @GNAT_LIBEXC@
-@@ -2196,6 +2196,15 @@ $(out_object_file): $(out_file)
+@@ -2302,6 +2302,15 @@ $(out_object_file): $(out_file)
  $(common_out_object_file): $(common_out_file)
  	$(COMPILE) $<
  	$(POSTCOMPILE)

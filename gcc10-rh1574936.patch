@@ -12,7 +12,7 @@ these notes only confer that there is no other annobin markup.
 
 --- libgcc/Makefile.in	2018-01-13 13:05:41.000000000 +0100
 +++ libgcc/Makefile.in	2018-07-25 13:15:02.036226940 +0200
-@@ -244,6 +244,7 @@
+@@ -246,6 +246,7 @@ LIBGCC2_DEBUG_CFLAGS = -g
  LIBGCC2_CFLAGS = -O2 $(LIBGCC2_INCLUDES) $(GCC_CFLAGS) $(HOST_LIBGCC2_CFLAGS) \
  		 $(LIBGCC2_DEBUG_CFLAGS) -DIN_LIBGCC2 \
  		 -fbuilding-libgcc -fno-stack-protector \
@@ -20,12 +20,11 @@ these notes only confer that there is no other annobin markup.
  		 $(INHIBIT_LIBC_CFLAGS)
  
  # Additional options to use when compiling libgcc2.a.
-@@ -297,6 +298,7 @@
+@@ -301,6 +302,7 @@ CRTSTUFF_CFLAGS = -O2 $(GCC_CFLAGS) $(IN
    $(NO_PIE_CFLAGS) -finhibit-size-directive -fno-inline -fno-exceptions \
    -fno-zero-initialized-in-bss -fno-toplevel-reorder -fno-tree-vectorize \
    -fbuilding-libgcc -fno-stack-protector $(FORCE_EXPLICIT_EH_REGISTRY) \
 +  -Wa,--generate-missing-build-notes=yes \
-   $(INHIBIT_LIBC_CFLAGS)
+   $(INHIBIT_LIBC_CFLAGS) $(USE_TM_CLONE_REGISTRY)
  
  # Extra flags to use when compiling crt{begin,end}.o.
-
