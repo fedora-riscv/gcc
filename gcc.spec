@@ -259,7 +259,6 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-coroutines.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -771,7 +770,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .coroutines~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
