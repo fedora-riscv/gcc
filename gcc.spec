@@ -1,10 +1,10 @@
-%global DATE 20200118
-%global gitrev cef2a35ef0b6b1f728face9ba5530f0eb69b1d50
+%global DATE 20200121
+%global gitrev 0d664c7566fe5bf444420c5333401ac056e1a5d6
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.3
+%global gcc_release 0.4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -14,6 +14,9 @@
 %if 0%{?fedora} > 27 || 0%{?rhel} > 7
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
+%endif
+%if 0%{?__brp_strip_static_archive:1}
+%global __brp_strip_static_archive %{__brp_strip_static_archive} || :
 %endif
 %if 0%{?fedora} < 32
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
@@ -2145,11 +2148,14 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_acle.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_cmse.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_fp16.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_bf16.h
 %endif
 %ifarch aarch64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_neon.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_acle.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_fp16.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_bf16.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_sve.h
 %endif
 %ifarch sparc sparcv9 sparc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/visintrin.h
@@ -2974,5 +2980,14 @@ end
 %endif
 
 %changelog
+* Tue Jan 21 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.4
+- update from trunk
+  - PRs c++/33799, c++/92536, debug/92763, fortran/44960, fortran/93309,
+	lto/93318, middle-end/93194, middle-end/93242, preprocessor/80005,
+	target/93073, target/93304, target/93319, testsuite/92829,
+	tree-opt/93321, tree-optimization/92328, tree-optimization/93094,
+	tree-optimization/93199
+- add arm_bf16.h and arm_sve.h to arm and arm/aarch64 (#1793471)
+
 * Sat Jan 18 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.3
 - new package
