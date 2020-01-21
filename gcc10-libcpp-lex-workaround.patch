@@ -1,0 +1,20 @@
+--- libcpp/lex.c	2020-01-12 11:54:38.565380941 +0100
++++ libcpp/lex.c	2020-01-21 14:35:36.182794214 +0100
+@@ -752,7 +752,7 @@ search_line_fast (const uchar *s, const
+   }
+ }
+ 
+-#elif defined (__ARM_NEON) && defined (__ARM_64BIT_STATE)
++#elif defined (__ARM_NEON) && defined (__ARM_64BIT_STATE) && __has_include("arm_bf16.h")
+ #include "arm_neon.h"
+ 
+ /* This doesn't have to be the exact page size, but no system may use
+@@ -847,7 +847,7 @@ done:
+ 	  + __builtin_ctz (found));
+ }
+ 
+-#elif defined (__ARM_NEON)
++#elif defined (__ARM_NEON) && __has_include("arm_bf16.h")
+ #include "arm_neon.h"
+ 
+ static const uchar *
