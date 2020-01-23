@@ -1,10 +1,10 @@
-%global DATE 20191120
-%global SVNREV 278493
+%global DATE 20200123
+%global gitrev 98ca79bc91558a8ccaf487acc861a50425faf5af
 %global gcc_version 9.2.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -113,8 +113,10 @@ Release: %{gcc_release}%{?dist}
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-9-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
-# tar cf - gcc-%%{version}-%%{DATE} | xz -9e > gcc-%%{version}-%%{DATE}.tar.xz
+# git clone --depth 1 git://gcc.gnu.org/git/gcc.git gcc-dir.tmp
+# git --git-dir=gcc-dir.tmp/.git fetch --depth 1 origin %%{gitrev}
+# git --git-dir=gcc-dir.tmp/.git archive --prefix=%%{name}-%%{version}-%%{DATE}/ %%{gitrev} | xz -9e > %%{name}-%%{version}-%%{DATE}.tar.xz
+# rm -rf gcc-dir.tmp
 Source0: gcc-%{version}-%{DATE}.tar.xz
 # The source for nvptx-tools package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
@@ -2969,6 +2971,30 @@ end
 %endif
 
 %changelog
+* Thu Jan 23 2020 Jakub Jelinek <jakub@redhat.com> 9.2.1-3
+- update from 9 branch
+  - PRs ada/92362, ada/92489, ada/92575, c++/57082, c++/60228, c++/61414,
+	c++/90842, c++/91476, c++/92150, c++/92438, c++/92446, c++/92524,
+	c++/92531, c++/92648, c++/92695, c++/92732, c++/92831, c++/92859,
+	c++/92992, c++/93228, c++/93286, c/90677, c/93072, c/93241, c/93348,
+	debug/92664, fortran/84135, fortran/91783, fortran/91944,
+	fortran/92050, fortran/92100, fortran/92569, fortran/92629,
+	fortran/92753, fortran/92756, fortran/92775, fortran/92781,
+	fortran/92897, fortran/92898, fortran/92899, fortran/92961,
+	fortran/92977, fortran/93236, fortran/93329, inline-asm/93202,
+	ipa/84963, ipa/92357, ipa/92971, ipa/93087, ipa/93223,
+	libfortran/93234, libgomp/93065, libgomp/93066, libgomp/93219,
+	libstdc++/81091, libstdc++/91786, libstdc++/91947, libstdc++/92267,
+	libstdc++/92853, libstdc++/93201, libstdc++/93208, middle-end/90796,
+	middle-end/91226, middle-end/93246, other/92090,
+	rtl-optimization/92591, rtl-optimization/93088, target/67834,
+	target/91298, target/92098, target/92132, target/92499, target/92545,
+	target/92615, target/92723, target/92904, target/92950, target/93009,
+	target/93073, target/93111, target/93182, target/93188, target/93254,
+	target/93333, target/93335, tree-optimization/91355,
+	tree-optimization/92222, tree-optimization/92644,
+	tree-optimization/92930
+
 * Wed Nov 20 2019 Jakub Jelinek <jakub@redhat.com> 9.2.1-2
 - update from 9 branch
   - PRs ada/91995, bootstrap/90543, c++/85254, c++/88203, c++/90767,
