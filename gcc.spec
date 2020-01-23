@@ -1,10 +1,10 @@
-%global DATE 20200121
-%global gitrev 0d664c7566fe5bf444420c5333401ac056e1a5d6
+%global DATE 20200123
+%global gitrev 083f4455962cb0f38e406792b5aaa198f77ecc60
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.4
+%global gcc_release 0.5
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -259,7 +259,6 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-libcpp-lex-workaround.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -771,7 +770,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .libcpp-lex-workaround~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -2980,6 +2978,18 @@ end
 %endif
 
 %changelog
+* Thu Jan 23 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.5
+- update from trunk
+  - PRs analyzer/93307, analyzer/93316, analyzer/93352, analyzer/93375,
+	analyzer/93378, analyzer/93382, c++/40752, c++/60855, c++/90732,
+	c++/91476, c++/92804, c++/92907, c++/93324, c++/93331, c++/93345,
+	c/84919, c/93348, fortran/93329, ipa/93315, libstdc++/91947,
+	rtl-optimization/93124, rtl-optimization/93402, target/91298,
+	target/92424, target/9311, target/93119, target/93333, target/93335,
+	target/93341, target/93346, target/93376, testsuite/93391,
+	tree-optimization/92924, tree-optimization/93381
+  - fix ICE in nothrow_spec_p (#1794094, c++/93345)
+
 * Tue Jan 21 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.4
 - update from trunk
   - PRs c++/33799, c++/92536, debug/92763, fortran/44960, fortran/93309,
