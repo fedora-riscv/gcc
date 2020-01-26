@@ -1,10 +1,10 @@
-%global DATE 20200123
-%global gitrev 083f4455962cb0f38e406792b5aaa198f77ecc60
+%global DATE 20200126
+%global gitrev 834af6f1f10cfe4642e6f690f0c7b6dae44de101
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.5
+%global gcc_release 0.6
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -29,13 +29,13 @@
 %global build_go 0
 %global build_d 0
 %else
-%ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ia64 ppc %{power64} alpha s390x %{arm} aarch64 riscv64
 %global build_ada 1
 %else
 %global build_ada 0
 %endif
 %global build_objc 1
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips} riscv64
 %global build_go 1
 %else
 %global build_go 0
@@ -71,7 +71,7 @@
 %else
 %global build_libubsan 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips} riscv64
 %global build_libatomic 1
 %else
 %global build_libatomic 0
@@ -259,6 +259,7 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
+Patch12: gcc10-pr92765-workaround.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -770,6 +771,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr92765-workaround~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -889,7 +891,7 @@ CONFIGURE_OPTS="\
 %ifarch ppc64le
 	--enable-targets=powerpcle-linux \
 %endif
-%ifarch ppc64le %{mips} riscv64 s390x
+%ifarch ppc64le %{mips} s390x
 %ifarch s390x
 %if 0%{?fedora} < 32
 	--enable-multilib \
@@ -998,6 +1000,9 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch mips64 mips64el
 	--with-arch=mips64r2 --with-abi=64 \
+%endif
+%ifarch riscv64
+	--with-arch=rv64gc --with-abi=lp64d --with-multilib-list=lp64d \
 %endif
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform} \
@@ -1113,6 +1118,19 @@ find rpm.doc -name \*ChangeLog\* | xargs bzip2 -9
 
 %install
 rm -rf %{buildroot}
+mkdir -p %{buildroot}
+
+# RISC-V ABI wants to install everything in /lib64/lp64d or /usr/lib64/lp64d.
+# Make these be symlinks to /lib64 or /usr/lib64 respectively. See:
+# https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/DRHT5YTPK4WWVGL3GIN5BF2IKX2ODHZ3/
+%ifarch riscv64
+for d in %{buildroot}%{_libdir} %{buildroot}/%{_lib} \
+	  %{buildroot}%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib} \
+	  %{buildroot}%{_prefix}/include/c++/%{gcc_major}/%{gcc_target_platform}/%{_lib}; do
+  mkdir -p $d
+  (cd $d && ln -sf . lp64d)
+done
+%endif
 
 %if %{build_offload_nvptx}
 cd nvptx-tools-%{nvptx_tools_gitrev}
@@ -2349,6 +2367,10 @@ end
 %dir %{_datadir}/gdb/auto-load
 %dir %{_datadir}/gdb/auto-load/%{_prefix}
 %dir %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/
+# Package symlink to keep compatibility
+%ifarch riscv64
+%{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/lp64d
+%endif
 %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/libstdc*gdb.py*
 %{_datadir}/gdb/auto-load/%{_prefix}/%{_lib}/__pycache__
 %dir %{_prefix}/share/gcc-%{gcc_major}
@@ -2978,6 +3000,15 @@ end
 %endif
 
 %changelog
+* Sun Jan 26 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.6
+- update from trunk
+  - PRs analyzer/93367, c++/90997, c++/92852, c++/93279, c++/93299, c++/93377,
+	c++/93400, c++/93414, inline-asm/93027, ipa/93166, target/13721,
+	target/92269, target/93395, target/93412, target/93430,
+	translation/90162, tree-optimization/92788
+- temporarily disable broken strcmp optimization (PR tree-optimization/92765)
+- riscv64 tweaks from David Abdurachmanov (#1794343)
+
 * Thu Jan 23 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.5
 - update from trunk
   - PRs analyzer/93307, analyzer/93316, analyzer/93352, analyzer/93375,
