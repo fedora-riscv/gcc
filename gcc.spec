@@ -1,10 +1,10 @@
-%global DATE 20200126
-%global gitrev 834af6f1f10cfe4642e6f690f0c7b6dae44de101
+%global DATE 20200130
+%global gitrev e391c69b766a2056ab10cf80fa0cbe777f338235
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.6
+%global gcc_release 0.7
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -110,7 +110,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3000,8 +3000,28 @@ end
 %endif
 
 %changelog
-* Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 10.0.1-0.6.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+* Thu Jan 30 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.7
+- update from trunk
+  - PRs analyzer/93276, analyzer/93291, analyzer/93349, analyzer/93450,
+	analyzer/93451, bootstrap/93409, c++/60503, c++/82521, c++/88092,
+	c++/89357, c++/89640, c++/90333, c++/90338, c++/90546, c++/90731,
+	c++/90966, c++/90992, c++/91118, c++/91754, c++/91826, c++/92440,
+	c++/92601, c++/92948, c++/93442, c++/93443, c++/93477, driver/91220,
+	fortran/85781, fortran/87103, fortran/92123, fortran/93025,
+	fortran/93461, fortran/93463, fortran/93464, fortran/93473,
+	gcov-profile/93403, libstdc++/92895, libstdc++/93325, libstdc++/93426,
+	libstdc++/93470, libstdc++/93478, libstdc++/93479, middle-end/92323,
+	middle-end/93437, middle-end/93505, rtl-optimization/87763,
+	rtl-optimization/92989, rtl-optimization/93170,
+	rtl-optimization/93272, sanitizer/93436, target/91399, target/91461,
+	target/91824, target/92822, target/93221, target/93274, target/93418,
+	target/93494, testsuite/71727, testsuite/91171, testsuite/93393,
+	testsuite/93460, tree-optimization/89689, tree-optimization/92706,
+	tree-optimization/92822, tree-optimization/93397,
+	tree-optimization/93428, tree-optimization/93434,
+	tree-optimization/93439, tree-optimization/93454
+  - LTO fix for *.localalias aliases (#1795575, PR lto/93384)
+  - __has_include{,_next} fix (#1795633, PR preprocessor/93452)
 
 * Sun Jan 26 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.6
 - update from trunk
