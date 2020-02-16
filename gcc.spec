@@ -1,10 +1,10 @@
-%global DATE 20200130
-%global gitrev e391c69b766a2056ab10cf80fa0cbe777f338235
+%global DATE 20200216
+%global gitrev e192529cb03e8c4fb50bff9ce451d0f9e12b863f
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.7
+%global gcc_release 0.8
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -259,7 +259,6 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-pr92765-workaround.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -771,7 +770,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr92765-workaround~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3000,6 +2998,40 @@ end
 %endif
 
 %changelog
+* Sun Feb 16 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.8
+- update from trunk
+  - PRs analyzer/93212, analyzer/93288, analyzer/93350, analyzer/93356,
+	analyzer/93373, analyzer/93374, analyzer/93379, analyzer/93405,
+	analyzer/93438, analyzer/93457, analyzer/93543, analyzer/93544,
+	analyzer/93546, analyzer/93547, analyzer/93647, analyzer/93649,
+	analyzer/93657, analyzer/93659, analyzer/93669, c++/14179, c++/61414,
+	c++/66477, c++/69448, c++/80471, c++/86216, c++/86917, c++/88256,
+	c++/88819, c++/89404, c++/90691, c++/90951, c++/91953, c++/92003,
+	c++/92517, c++/92556, c++/92583, c++/92593, c++/92654, c++/92717,
+	c++/92947, c++/93140, c++/93458, c++/93530, c++/93549, c++/93551,
+	c++/93557, c++/93559, c++/93597, c++/93618, c++/93633, c++/93643,
+	c++/93650, c++/93675, c++/93684, c++/93710, c++/93713, c/87488,
+	c/88660, c/93576, c/93640, fortran/83113, fortran/92305,
+	fortran/93427, fortran/93462, fortran/93541, gcov-profile/91971,
+	gcov-profile/93466, ipa/93203, libgcc/85334, libgomp/93481,
+	libgomp/93515, libstdc++/79193, libstdc++/88999, libstdc++/92906,
+	libstdc++/93562, lto/93489, middle-end/90648, middle-end/93519,
+	middle-end/93555, middle-end/93646, middle-end/93663, other/93168,
+	other/93641, preprocessor/92319, preprocessor/93545,
+	rtl-optimization/91333, rtl-optimization/91838,
+	rtl-optimization/93561, rtl-optimization/93565, target/58218,
+	target/65782, target/85667, target/87763, target/91052, target/91816,
+	target/91913, target/91927, target/92190, target/93122, target/93136,
+	target/93300, target/93372, target/93532, target/93533, target/93548,
+	target/93568, target/93569, target/93594, target/93611, target/93615,
+	target/93637, target/93656, target/93670, target/93673, target/93696,
+	target/93704, target/93724, testsuite/92177, testsuite/93697,
+	testsuite/93717, tree-optimization/91123, tree-optimization/92819,
+	tree-optimization/93516, tree-optimization/93538,
+	tree-optimization/93582, tree-optimization/93661,
+	tree-optimization/93662, tree-optimization/93683,
+	tree-optimization/93744
+
 * Thu Jan 30 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.7
 - update from trunk
   - PRs analyzer/93276, analyzer/93291, analyzer/93349, analyzer/93450,
