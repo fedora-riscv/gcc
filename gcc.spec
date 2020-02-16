@@ -15,8 +15,13 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+# Strip will fail on nvptx-none *.a archives and the brp-* scripts will
+# fail randomly depending on what is stripped last.
 %if 0%{?__brp_strip_static_archive:1}
 %global __brp_strip_static_archive %{__brp_strip_static_archive} || :
+%endif
+%if 0%{?__brp_strip_lto:1}
+%global __brp_strip_lto %{__brp_strip_lto} || :
 %endif
 %if 0%{?fedora} < 32
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
