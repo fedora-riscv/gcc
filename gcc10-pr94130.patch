@@ -1,0 +1,85 @@
+2020-03-11  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/94130
+	* tree-ssa-dse.c: Include gimplify.h.
+	(increment_start_addr): If stmt has lhs, drop the lhs from call and
+	set it after the call to the original value of the first argument.
+	Formatting fixes.
+	(decrement_count): Formatting fix.
+
+	* gcc.c-torture/execute/pr94130.c: New test.
+
+--- gcc/tree-ssa-dse.c.jj	2020-03-03 11:04:46.367821907 +0100
++++ gcc/tree-ssa-dse.c	2020-03-11 13:57:38.671845186 +0100
+@@ -38,6 +38,7 @@ along with GCC; see the file COPYING3.
+ #include "tree-ssa-dse.h"
+ #include "builtins.h"
+ #include "gimple-fold.h"
++#include "gimplify.h"
+ 
+ /* This file implements dead store elimination.
+ 
+@@ -422,29 +423,38 @@ decrement_count (gimple *stmt, int decre
+   gcc_assert (TREE_CODE (*countp) == INTEGER_CST);
+   *countp = wide_int_to_tree (TREE_TYPE (*countp), (TREE_INT_CST_LOW (*countp)
+ 						    - decrement));
+-
+ }
+ 
+ static void
+ increment_start_addr (gimple *stmt, tree *where, int increment)
+ {
++  if (tree lhs = gimple_call_lhs (stmt))
++    if (where == gimple_call_arg_ptr (stmt, 0))
++      {
++	gassign *newop = gimple_build_assign (lhs, unshare_expr (*where));
++	gimple_stmt_iterator gsi = gsi_for_stmt (stmt);
++	gsi_insert_after (&gsi, newop, GSI_SAME_STMT);
++	gimple_call_set_lhs (stmt, NULL_TREE);
++	update_stmt (stmt);
++      }
++
+   if (TREE_CODE (*where) == SSA_NAME)
+     {
+       tree tem = make_ssa_name (TREE_TYPE (*where));
+       gassign *newop
+-        = gimple_build_assign (tem, POINTER_PLUS_EXPR, *where,
++	= gimple_build_assign (tem, POINTER_PLUS_EXPR, *where,
+ 			       build_int_cst (sizetype, increment));
+       gimple_stmt_iterator gsi = gsi_for_stmt (stmt);
+       gsi_insert_before (&gsi, newop, GSI_SAME_STMT);
+       *where = tem;
+-      update_stmt (gsi_stmt (gsi));
++      update_stmt (stmt);
+       return;
+     }
+ 
+   *where = build_fold_addr_expr (fold_build2 (MEM_REF, char_type_node,
+-                                             *where,
+-                                             build_int_cst (ptr_type_node,
+-                                                            increment)));
++					      *where,
++					      build_int_cst (ptr_type_node,
++							     increment)));
+ }
+ 
+ /* STMT is builtin call that writes bytes in bitmap ORIG, some bytes are dead
+--- gcc/testsuite/gcc.c-torture/execute/pr94130.c.jj	2020-03-11 14:01:49.431180291 +0100
++++ gcc/testsuite/gcc.c-torture/execute/pr94130.c	2020-03-11 14:01:37.654352419 +0100
+@@ -0,0 +1,16 @@
++/* PR tree-optimization/94130 */
++
++int
++main ()
++{
++  int a[8];
++  char *b = __builtin_memset (a, 0, sizeof (a));
++  a[0] = 1;
++  a[1] = 2;
++  a[2] = 3;
++  if (b != (char *) a)
++    __builtin_abort ();
++  else
++    asm volatile ("" : : "g" (a) : "memory");
++  return 0;
++}

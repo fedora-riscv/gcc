@@ -1,10 +1,10 @@
-%global DATE 20200216
-%global gitrev e192529cb03e8c4fb50bff9ce451d0f9e12b863f
+%global DATE 20200311
+%global gitrev 61bcda69ca5dc9e9d5e25de7b914dd3a86089244
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.8
+%global gcc_release 0.9
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -264,6 +264,8 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
+Patch12: gcc10-pr94015.patch
+Patch13: gcc10-pr94130.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -775,6 +777,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr94015~
+%patch13 -p0 -b .pr94130~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3003,6 +3007,66 @@ end
 %endif
 
 %changelog
+* Wed Mar 11 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.9
+- update from trunk
+  - PRs ada/91100, analyzer/93032, analyzer/93388, analyzer/93692,
+	analyzer/93774, analyzer/93775, analyzer/93777, analyzer/93778,
+	analyzer/93779, analyzer/93899, analyzer/93947, analyzer/93950,
+	analyzer/93959, analyzer/93993, analyzer/94028, bootstrap/93962,
+	c++/52320, c++/66139, c++/90432, c++/90467, c++/90505, c++/90938,
+	c++/91465, c++/92031, c++/92721, c++/93169, c++/93676, c++/93712,
+	c++/93729, c++/93789, c++/93801, c++/93803, c++/93804, c++/93817,
+	c++/93862, c++/93869, c++/93870, c++/93882, c++/93901, c++/93905,
+	c++/93907, c++/93922, c++/93933, c++/93956, c++/93958, c++/93998,
+	c++/94027, c++/94041, c++/94068, c++/94074, c++/94117, c++/94124,
+	c/86134, c/93577, c/93812, c/93858, c/93886, c/93887, c/93949,
+	debug/93888, driver/47785, driver/93796, fortran/92785, fortran/92959,
+	fortran/92976, fortran/93486, fortran/93552, fortran/93580,
+	fortran/93581, fortran/93599, fortran/93601, fortran/93603,
+	fortran/93604, fortran/93714, fortran/93792, fortran/93825,
+	fortran/93835, fortran/93889, fortran/93890, gcov-profile/93753,
+	inline-asm/94095, ipa/92518, ipa/92548, ipa/92924, ipa/93583,
+	ipa/93707, ipa/93760, ipa/93797, libstdc++/92546, libstdc++/93244,
+	libstdc++/93818, libstdc++/93872, libstdc++/93884, libstdc++/93936,
+	libstdc++/93972, libstdc++/93978, libstdc++/94013, libstdc++/94017,
+	libstdc++/94051, libstdc++/94063, libstdc++/94069, lto/78353,
+	middle-end/81401, middle-end/92152, middle-end/93399,
+	middle-end/93829, middle-end/93843, middle-end/93874,
+	middle-end/93926, middle-end/93961, middle-end/94111, other/55930,
+	other/93756, other/93912, other/93965, rtl-optimization/93564,
+	rtl-optimization/93996, rtl-optimization/94002,
+	rtl-optimization/94045, rtl-optimization/PR92989, sanitizer/93731,
+	target/26877, target/87560, target/87612, target/89229, target/89346,
+	target/90311, target/90763, target/91276, target/91598, target/93047,
+	target/93658, target/93709, target/93743, target/93800, target/93828,
+	target/93860, target/93913, target/93932, target/93937, target/93995,
+	target/93997, target/94046, target/94065, target/94088, target/94121,
+	target/94134, testsuite/91797, testsuite/91799, testsuite/94019,
+	testsuite/94023, translation/93755, translation/93759,
+	translation/93830, translation/93831, translation/93838,
+	translation/93841, translation/93864, tree-optimization/90883,
+	tree-optimization/91890, tree-optimization/92128,
+	tree-optimization/92982, tree-optimization/93508,
+	tree-optimization/93586, tree-optimization/93667,
+	tree-optimization/93767, tree-optimization/93776,
+	tree-optimization/93780, tree-optimization/93820,
+	tree-optimization/93845, tree-optimization/93868,
+	tree-optimization/93927, tree-optimization/93945,
+	tree-optimization/93946, tree-optimization/93953,
+	tree-optimization/93964, tree-optimization/93986,
+	tree-optimization/94001, tree-optimization/94114
+  - fix ICE on rotate with -Wconversion (#1810941, PR c++/94067)
+  - fix -fcf-protection -flto -g interaction (#1808484, PR lto/93966)
+  - fix git miscompilation on s390x with -O2 -march=zEC12 -mtune=z13
+    (#1799408, PR rtl-optimization/93908)
+  - fix ICE in in propagate_vals_across_arith_jfunc (#1806466, PR ipa/93763)
+  - ARM ABI alignment fix for classes derived from user aligned empty
+    bases (PR c++/94050)
+- strlen pass fixes (PR tree-optimization/94015)
+- fix {memset,memcpy,memmove,strncpy} head trimming if the result is used
+  (PR tree-optimization/94130)
+- drop python2-devel Requires
+
 * Sun Feb 16 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.8
 - update from trunk
   - PRs analyzer/93212, analyzer/93288, analyzer/93350, analyzer/93356,
