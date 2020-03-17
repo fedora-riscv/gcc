@@ -1,10 +1,10 @@
-%global DATE 20200123
-%global gitrev 98ca79bc91558a8ccaf487acc861a50425faf5af
-%global gcc_version 9.2.1
+%global DATE 20200317
+%global gitrev 5a52cad853ff4bd63c0730fcc5ac9b9db9b2834f
+%global gcc_version 9.3.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -2971,6 +2971,44 @@ end
 %endif
 
 %changelog
+* Tue Mar 17 2020 Jakub Jelinek <jakub@redhat.com> 9.3.1-1
+- update from 9 branch
+  - GCC 9.3 release
+  - PRs ada/91100, c++/60503, c++/86917, c++/88256, c++/88395, c++/89357,
+	c++/90333, c++/90338, c++/90432, c++/90505, c++/90546, c++/90731,
+	c++/90732, c++/90938, c++/90951, c++/90966, c++/90997, c++/91118,
+	c++/91607, c++/91826, c++/91953, c++/92003, c++/92068, c++/92601,
+	c++/92745, c++/92852, c++/92909, c++/93140, c++/93248, c++/93279,
+	c++/93299, c++/93442, c++/93551, c++/93557, c++/93676, c++/93905,
+	c/93576, c/93949, debug/92763, debug/93888, debug/94167,
+	fortran/92976, fortran/93309, fortran/93462, fortran/93463,
+	fortran/93541, fortran/93580, fortran/93599, fortran/93714,
+	fortran/93835, gcov-profile/93753, libbacktrace/91908, libgcc/85334,
+	libgomp/93515, libstdc++/78552, libstdc++/91910, libstdc++/92376,
+	libstdc++/92886, libstdc++/93205, libstdc++/93244, libstdc++/93325,
+	libstdc++/93470, libstdc++/93562, libstdc++/94063, libstdc++/94069,
+	libstdc++/94199, lto/93966, middle-end/90313, middle-end/90648,
+	middle-end/92674, middle-end/92768, middle-end/93054,
+	middle-end/93399, middle-end/93505, middle-end/93555,
+	middle-end/93566, middle-end/94111, middle-end/94189, other/93965,
+	rtl-optimization/88879, rtl-optimization/91838,
+	rtl-optimization/93402, rtl-optimization/93908,
+	rtl-optimization/94002, rtl-optimization/94119, sanitizer/93436,
+	target/65782, target/87560, target/90311, target/90724, target/91276,
+	target/91913, target/92424, target/92692, target/93047, target/93304,
+	target/93418, target/93568, target/93637, target/93656, target/93658,
+	target/93670, target/93673, target/93696, target/93704, target/93724,
+	target/93743, target/93800, target/93828, target/93913, target/94046,
+	target/94121, target/94134, testsuite/92398, testsuite/94019,
+	testsuite/94023, testsuite/94036, tree-optimization/92420,
+	tree-optimization/92704, tree-optimization/92710,
+	tree-optimization/93381, tree-optimization/93434,
+	tree-optimization/93439, tree-optimization/93744,
+	tree-optimization/93767, tree-optimization/93820,
+	tree-optimization/93945, tree-optimization/94001,
+	tree-optimization/94114, tree-optimization/94130,
+	tree-optimization/94163
+
 * Thu Jan 23 2020 Jakub Jelinek <jakub@redhat.com> 9.2.1-3
 - update from 9 branch
   - PRs ada/92362, ada/92489, ada/92575, c++/57082, c++/60228, c++/61414,
