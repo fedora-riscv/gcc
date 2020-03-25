@@ -265,6 +265,7 @@ Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
 Patch12: gcc10-pr94308.patch
+Patch13: gcc10-pr94254.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -777,6 +778,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr94308~
+%patch13 -p0 -b .pr94254~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3034,6 +3036,7 @@ end
 	tree-optimization/94300
 - fix ICE in final_scan_insn_1 on i686 with vzeroupper (#1816760,
   PR target/94308)
+- fix ppc64* hang with dfp (PR target/94254)
 
 * Wed Mar 11 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.9
 - update from trunk
