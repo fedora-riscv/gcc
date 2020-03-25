@@ -1,10 +1,10 @@
-%global DATE 20200311
-%global gitrev 61bcda69ca5dc9e9d5e25de7b914dd3a86089244
+%global DATE 20200325
+%global gitrev 17146084e899406b7b39093e945561c737dfe02c
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.9
+%global gcc_release 0.10
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -264,8 +264,7 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-pr94015.patch
-Patch13: gcc10-pr94130.patch
+Patch12: gcc10-pr94308.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -777,8 +776,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr94015~
-%patch13 -p0 -b .pr94130~
+%patch12 -p0 -b .pr94308~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3007,6 +3005,36 @@ end
 %endif
 
 %changelog
+* Wed Mar 25 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.10
+- update from trunk
+  - PRs analyzer/94047, analyzer/94099, analyzer/94105, c++/67960, c++/69694,
+	c++/90995, c++/91759, c++/91993, c++/92068, c++/92909, c++/93248,
+	c++/93596, c++/93805, c++/93931, c++/94044, c++/94066, c++/94147,
+	c++/94175, c++/94186, c++/94190, c++/94197, c++/94223, c/94040,
+	c/94172, c/94179, c/94239, d/92216, d/92309, d/92792, d/93038,
+	d/94240, debug/93751, debug/94167, debug/94277, debug/94280,
+	debug/94283, debug/94285, fortran/93365, fortran/93484, fortran/93600,
+	gcov-profile/94029, ipa/92372, ipa/92799, ipa/93347, ipa/94202,
+	ipa/94217, ipa/94232, ipa/94245, ipa/94250, libgomp/81689,
+	libgomp/94251, libstdc++/93245, libstdc++/94033, libstdc++/94199,
+	libstdc++/94203, libstdc++/94242, lto/91027, lto/94157, lto/94249,
+	middle-end/92071, middle-end/93566, middle-end/94072,
+	middle-end/94120, middle-end/94188, middle-end/94189,
+	middle-end/94206, middle-end/94216, middle-end/94233,
+	middle-end/94303, rtl-optimization/90275, rtl-optimization/92303,
+	rtl-optimization/94042, rtl-optimization/94052,
+	rtl-optimization/94119, rtl-optimization/94148, target/92379,
+	target/93694, target/94052, target/94144, target/94154, target/94176,
+	target/94185, target/94201, target/94238, target/94286,
+	testsuite/93935, tree-optimization/93435, tree-optimization/94103,
+	tree-optimization/94125, tree-optimization/94163,
+	tree-optimization/94166, tree-optimization/94187,
+	tree-optimization/94211, tree-optimization/94224,
+	tree-optimization/94261, tree-optimization/94266,
+	tree-optimization/94300
+- fix ICE in final_scan_insn_1 on i686 with vzeroupper (#1816760,
+  PR target/94308)
+
 * Wed Mar 11 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.9
 - update from trunk
   - PRs ada/91100, analyzer/93032, analyzer/93388, analyzer/93692,
