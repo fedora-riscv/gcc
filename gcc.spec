@@ -1378,8 +1378,8 @@ ln -sf ../../../libgo.so.16.* libgo.so
 ln -sf ../../../libquadmath.so.0.* libquadmath.so
 %endif
 %if %{build_d}
-ln -sf ../../../libgdruntime.so.76.* libgdruntime.so
-ln -sf ../../../libgphobos.so.76.* libgphobos.so
+ln -sf ../../../libgdruntime.so.1.* libgdruntime.so
+ln -sf ../../../libgphobos.so.1.* libgphobos.so
 %endif
 %if %{build_libitm}
 ln -sf ../../../libitm.so.1.* libitm.so
@@ -1408,8 +1408,8 @@ ln -sf ../../../../%{_lib}/libgo.so.16.* libgo.so
 ln -sf ../../../../%{_lib}/libquadmath.so.0.* libquadmath.so
 %endif
 %if %{build_d}
-ln -sf ../../../../%{_lib}/libgdruntime.so.76.* libgdruntime.so
-ln -sf ../../../../%{_lib}/libgphobos.so.76.* libgphobos.so
+ln -sf ../../../../%{_lib}/libgdruntime.so.1.* libgdruntime.so
+ln -sf ../../../../%{_lib}/libgphobos.so.1.* libgphobos.so
 %endif
 %if %{build_libitm}
 ln -sf ../../../../%{_lib}/libitm.so.1.* libitm.so
@@ -1532,10 +1532,10 @@ echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libquadmath.so.0.* | sed '
 %endif
 %if %{build_d}
 rm -f libgdruntime.so libgphobos.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > 64/libgdruntime.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > 64/libgphobos.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgdruntime.so.1.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgdruntime.so.1.* | sed 's,^.*libg,libg,'`' )' > 64/libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgphobos.so.1.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgphobos.so.1.* | sed 's,^.*libg,libg,'`' )' > 64/libgphobos.so
 %endif
 %if %{build_libitm}
 rm -f libitm.so
@@ -1631,10 +1631,10 @@ echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libquadmath.so.0.* | sed '
 %endif
 %if %{build_d}
 rm -f libgdruntime.so libgphobos.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgdruntime.so.76.* | sed 's,^.*libg,libg,'`' )' > 32/libgdruntime.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgphobos.so.76.* | sed 's,^.*libg,libg,'`' )' > 32/libgphobos.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgdruntime.so.1.* | sed 's,^.*libg,libg,'`' )' > libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgdruntime.so.1.* | sed 's,^.*libg,libg,'`' )' > 32/libgdruntime.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgphobos.so.1.* | sed 's,^.*libg,libg,'`' )' > libgphobos.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgphobos.so.1.* | sed 's,^.*libg,libg,'`' )' > 32/libgphobos.so
 %endif
 %if %{build_libitm}
 rm -f libitm.so
@@ -1786,8 +1786,8 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libcc1.so.0.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libquadmath.so.0.*
 %endif
 %if %{build_d}
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgdruntime.so.76.*
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgphobos.so.76.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgdruntime.so.1.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgphobos.so.1.*
 %endif
 %if %{build_libitm}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libitm.so.1.*
@@ -2571,8 +2571,8 @@ end
 %doc rpm.doc/gdc/*
 
 %files -n libgphobos
-%{_prefix}/%{_lib}/libgdruntime.so.76*
-%{_prefix}/%{_lib}/libgphobos.so.76*
+%{_prefix}/%{_lib}/libgdruntime.so.1*
+%{_prefix}/%{_lib}/libgphobos.so.1*
 %doc rpm.doc/libphobos/*
 
 %files -n libgphobos-static
