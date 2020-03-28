@@ -1,10 +1,10 @@
-%global DATE 20200325
-%global gitrev 17146084e899406b7b39093e945561c737dfe02c
+%global DATE 20200328
+%global gitrev 97ad35f30b0d8ed5376febf09cefa2b93f9dc423
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.10
+%global gcc_release 0.11
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -180,6 +180,7 @@ BuildRequires: gdb
 BuildRequires: glibc-devel >= 2.4.90-13
 BuildRequires: elfutils-devel >= 0.147
 BuildRequires: elfutils-libelf-devel >= 0.147
+BuildRequires: libzstd-devel
 %ifarch ppc ppc64 ppc64le ppc64p7 s390 s390x sparc sparcv9 alpha
 # Make sure glibc supports TFmode long double
 BuildRequires: glibc >= 2.3.90-35
@@ -264,8 +265,8 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-pr94308.patch
-Patch13: gcc10-pr94254.patch
+Patch12: gcc10-pr93069.patch
+Patch13: gcc10-pr94343.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -777,8 +778,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr94308~
-%patch13 -p0 -b .pr94254~
+%patch12 -p0 -b .pr93069~
+%patch13 -p0 -b .pr94343~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3007,6 +3008,20 @@ end
 %endif
 
 %changelog
+* Sat Mar 28 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.11
+- update from trunk
+  - PRs c++/81349, c++/84733, c++/93810, c++/93824, c++/94057, c++/94078,
+	c++/94098, c++/94257, c++/94265, c++/94272, c++/94319, c++/94326,
+	c++/94336, c++/94339, c++/94346, c/93573, debug/94273, debug/94281,
+	debug/94296, debug/94323, fortran/93363, fortran/93957, ipa/94271,
+	lto/94259, middle-end/94004, rtl-optimization/92264, target/94145,
+	target/94220, target/94292, testsuite/94334, tree-optimization/90332,
+	tree-optimization/94131, tree-optimization/94269,
+	tree-optimization/94329, tree-optimization/94352
+- fix x86 vec_extract_{lo,hi}*_mask AVX512* patterns (PR target/93069)
+- fix x86 *one_cmpl*2* AVX512* patterns (PR target/94343)
+- add BuildRequires: libzstd-devel
+
 * Wed Mar 25 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.10
 - update from trunk
   - PRs analyzer/94047, analyzer/94099, analyzer/94105, c++/67960, c++/69694,

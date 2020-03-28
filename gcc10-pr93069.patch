@@ -1,0 +1,70 @@
+2020-03-26  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/93069
+	* config/i386/sse.md (vec_extract_lo_<mode><mask_name>): Use
+	<store_mask_constraint> instead of m in output operand constraint.
+	(vec_extract_hi_<mode><mask_name>): Use <mask_operand2> instead of
+	%{%3%}.
+
+	* gcc.target/i386/avx512vl-pr93069.c: New test.
+	* gcc.dg/vect/pr93069.c: New test.
+
+--- gcc/config/i386/sse.md.jj	2019-12-27 18:16:48.146431083 +0100
++++ gcc/config/i386/sse.md	2019-12-28 14:43:29.181456611 +0100
+@@ -8782,7 +8782,8 @@
+ })
+ 
+ (define_insn "vec_extract_lo_<mode><mask_name>"
+-  [(set (match_operand:<ssehalfvecmode> 0 "nonimmediate_operand" "=v,v,m")
++  [(set (match_operand:<ssehalfvecmode> 0 "<store_mask_predicate>"
++					  "=v,v,<store_mask_constraint>")
+ 	(vec_select:<ssehalfvecmode>
+ 	  (match_operand:V16FI 1 "<store_mask_predicate>"
+ 				 "v,<store_mask_constraint>,v")
+@@ -8834,7 +8835,8 @@
+ })
+ 
+ (define_insn "vec_extract_lo_<mode><mask_name>"
+-  [(set (match_operand:<ssehalfvecmode> 0 "<store_mask_predicate>" "=v,v,m")
++  [(set (match_operand:<ssehalfvecmode> 0 "<store_mask_predicate>"
++					  "=v,v,<store_mask_constraint>")
+ 	(vec_select:<ssehalfvecmode>
+ 	  (match_operand:VI8F_256 1 "<store_mask_predicate>"
+ 				    "v,<store_mask_constraint>,v")
+@@ -8844,7 +8846,7 @@
+    && (<mask_applied> || !(MEM_P (operands[0]) && MEM_P (operands[1])))"
+ {
+   if (<mask_applied>)
+-    return "vextract<shuffletype>64x2\t{$0x0, %1, %0%{%3%}|%0%{%3%}, %1, 0x0}";
++    return "vextract<shuffletype>64x2\t{$0x0, %1, %0<mask_operand2>|%0<mask_operand2>, %1, 0x0}";
+   else
+     return "#";
+ }
+--- gcc/testsuite/gcc.target/i386/avx512vl-pr93069.c.jj	2019-12-28 16:31:30.118695074 +0100
++++ gcc/testsuite/gcc.target/i386/avx512vl-pr93069.c	2019-12-28 16:32:16.920990539 +0100
+@@ -0,0 +1,12 @@
++/* PR target/93069 */
++/* { dg-do assemble { target vect_simd_clones } } */
++/* { dg-options "-O2 -fopenmp-simd -mtune=skylake-avx512" } */
++/* { dg-additional-options "-mavx512vl" { target avx512vl } } */
++/* { dg-additional-options "-mavx512dq" { target avx512dq } } */
++
++#pragma omp declare simd
++int
++foo (int x, int y)
++{
++  return x == 0 ? x : y;
++}
+--- gcc/testsuite/gcc.dg/vect/pr93069.c.jj	2019-12-28 16:31:01.822121036 +0100
++++ gcc/testsuite/gcc.dg/vect/pr93069.c	2019-12-28 16:30:35.503517205 +0100
+@@ -0,0 +1,10 @@
++/* PR target/93069 */
++/* { dg-do assemble { target vect_simd_clones } } */
++/* { dg-options "-O2 -fopenmp-simd" } */
++
++#pragma omp declare simd
++int
++foo (int x, int y)
++{
++  return x == 0 ? x : y;
++}
