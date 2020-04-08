@@ -1,10 +1,10 @@
-%global DATE 20200317
-%global gitrev 5a52cad853ff4bd63c0730fcc5ac9b9db9b2834f
+%global DATE 20200408
+%global gitrev 3535aa1f5e6c9b2de6a60d84460b8c5945a77ab4
 %global gcc_version 9.3.1
 %global gcc_major 9
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -2971,6 +2971,22 @@ end
 %endif
 
 %changelog
+* Wed Apr  8 2020 Jakub Jelinek <jakub@redhat.com> 9.3.1-2
+- update from 9 branch
+  - PRs c++/84733, c++/90711, c++/90995, c++/91377, c++/91966, c++/93931,
+	c++/94385, c++/94453, c++/94477, c++/94512, c/94172, c/94239, d/94240,
+	debug/94277, debug/94283, debug/94459, driver/92757, fortran/85982,
+	fortran/93484, fortran/93498, fortran/93686, fortran/94030,
+	fortran/94348, gcov-profile/94029, ipa/94445, libstdc++/93960,
+	lto/94249, middle-end/94206, middle-end/94303, middle-end/94412,
+	middle-end/94423, target/87583, target/90763, target/91833,
+	target/91834, target/93069, target/93709, target/93819, target/94052,
+	target/94368, target/94435, target/94460, target/94488, target/94500,
+	target/94509, target/94518, testsuite/93935, tree-optimization/93435,
+	tree-optimization/94103, tree-optimization/94125,
+	tree-optimization/94211, tree-optimization/94329
+  - fix C++ ICE in get_fns (#1821077, PR c++/93597)
+
 * Tue Mar 17 2020 Jakub Jelinek <jakub@redhat.com> 9.3.1-1
 - update from 9 branch
   - GCC 9.3 release
