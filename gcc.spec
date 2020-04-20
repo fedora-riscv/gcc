@@ -1,10 +1,10 @@
-%global DATE 20200328
-%global gitrev 97ad35f30b0d8ed5376febf09cefa2b93f9dc423
+%global DATE 20200420
+%global gitrev dbc1bb99e280740e5bda658a911d9dd3f431ad4d
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.11
+%global gcc_release 0.12
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -265,8 +265,6 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
-Patch12: gcc10-pr93069.patch
-Patch13: gcc10-pr94343.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -778,8 +776,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr93069~
-%patch13 -p0 -b .pr94343~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3008,6 +3004,51 @@ end
 %endif
 
 %changelog
+* Mon Apr 20 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.12
+- update from trunk
+  - PRs analyzer/94378, bootstrap/89494, bootstrap/92008, c++/67825,
+	c++/79937, c++/85278, c++/86327, c++/88754, c++/90711, c++/90996,
+	c++/91377, c++/91966, c++/92010, c++/92187, c++/92878, c++/93207,
+	c++/93211, c++/93790, c++/94034, c++/94149, c++/94155, c++/94205,
+	c++/94219, c++/94252, c++/94306, c++/94314, c++/94325, c++/94359,
+	c++/94385, c++/94426, c++/94453, c++/94454, c++/94462, c++/94470,
+	c++/94475, c++/94477, c++/94478, c++/94480, c++/94481, c++/94483,
+	c++/94507, c++/94512, c++/94521, c++/94523, c++/94528, c++/94571,
+	c++/94588, c++/94608, c++/94632, c/92326, c/94392, c/94593, d/90136,
+	d/94304, d/94305, d/94315, d/94321, d/94424, d/94425, d/94609,
+	debug/94439, debug/94441, debug/94450, debug/94459, debug/94495,
+	driver/94381, fortran/57129, fortran/85982, fortran/87644,
+	fortran/87923, fortran/91800, fortran/93364, fortran/93498,
+	fortran/93500, fortran/93522, fortran/93686, fortran/93871,
+	fortran/94030, fortran/94090, fortran/94091, fortran/94192,
+	fortran/94246, fortran/94347, fortran/94348, fortran/94386,
+	gcov-profile/93401, gcov-profile/94570, go/94607, ipa/92676,
+	ipa/93621, ipa/93940, ipa/94363, ipa/94434, ipa/94445, ipa/94582,
+	libgcc/94513, libgomp/92843, libstdc++/93960, libstdc++/94498,
+	libstdc++/94520, libstdc++/94562, libstdc++/94565, lto/94612,
+	middle-end/89433, middle-end/93465, middle-end/94412,
+	middle-end/94423, middle-end/94436, middle-end/94465,
+	middle-end/94479, middle-end/94526, middle-end/94539,
+	middle-end/94614, middle-end/94635, objc/94637, other/94629,
+	rtl-optimization/84169, rtl-optimization/87716,
+	rtl-optimization/93946, rtl-optimization/93974,
+	rtl-optimization/94123, rtl-optimization/94291,
+	rtl-optimization/94344, rtl-optimization/94468,
+	rtl-optimization/94516, rtl-optimization/94605,
+	rtl-optimization/94618, target/93053, target/94317, target/94368,
+	target/94396, target/94417, target/94420, target/94435, target/94438,
+	target/94460, target/94467, target/94488, target/94494, target/94500,
+	target/94509, target/94530, target/94542, target/94551, target/94556,
+	target/94561, target/94567, target/94584, target/94603, target/94606,
+	testsuite/93369, testsuite/94079, testsuite/94402, testsuite/94533,
+	tree-optimization/89713, tree-optimization/91322,
+	tree-optimization/93674, tree-optimization/94043,
+	tree-optimization/94398, tree-optimization/94401,
+	tree-optimization/94403, tree-optimization/94443,
+	tree-optimization/94482, tree-optimization/94524,
+	tree-optimization/94573, tree-optimization/94574,
+	tree-optimization/94598, tree-optimization/94621
+
 * Sat Mar 28 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.11
 - update from trunk
   - PRs c++/81349, c++/84733, c++/93810, c++/93824, c++/94057, c++/94078,
