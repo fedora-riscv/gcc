@@ -1,10 +1,10 @@
-%global DATE 20200420
-%global gitrev dbc1bb99e280740e5bda658a911d9dd3f431ad4d
+%global DATE 20200501
+%global gitrev 563509ad4338c7193d06f4008e9df657990628a5
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.12
+%global gcc_release 0.13
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3004,6 +3004,36 @@ end
 %endif
 
 %changelog
+* Fri May  1 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.13
+- update from trunk and releases/gcc-10 branch
+  - GCC 10.1-rc1
+  - PRs analyzer/94447, analyzer/94639, analyzer/94732, analyzer/94754,
+	analyzer/94816, bootstrap/94739, c++/79585, c++/90320, c++/90448,
+	c++/90750, c++/93807, c++/94288, c++/94383, c++/94505, c++/94510,
+	c++/94546, c++/94549, c++/94583, c++/94592, c++/94597, c++/94628,
+	c++/94645, c++/94661, c++/94682, c++/94701, c++/94719, c++/94733,
+	c++/94742, c++/94752, c++/94759, c++/94760, c++/94772, c++/94775,
+	c++/94808, c++/94819, c++/94827, c++/94830, c++/94879, c++/94883,
+	c++/94886, c/94641, c/94686, c/94705, c/94755, d/89418, d/94777,
+	d/94825, demangler/94797, driver/90983, fortran/90350, fortran/93956,
+	fortran/94578, fortran/94709, fortran/94737, fortran/94769,
+	fortran/94788, ipa/94856, libfortran/25830, libfortran/94586,
+	libfortran/94694, libstdc++/89510, libstdc++/90415, libstdc++/91480,
+	libstdc++/92156, libstdc++/94831, libstdc++/94854, lto/94659,
+	lto/94822, middle-end/92830, middle-end/93488, middle-end/94647,
+	middle-end/94724, rtl-optimization/94708, rtl-optimization/94740,
+	target/57002, target/91518, target/92713, target/93654, target/94248,
+	target/94279, target/94282, target/94383, target/94514, target/94515,
+	target/94577, target/94613, target/94622, target/94668, target/94678,
+	target/94697, target/94704, target/94706, target/94707, target/94710,
+	target/94711, target/94748, target/94780, target/94812, target/94820,
+	target/94826, target/94832, testsuite/94712, translation/94698,
+	tree-optimization/89430, tree-optimization/94683,
+	tree-optimization/94700, tree-optimization/94717,
+	tree-optimization/94727, tree-optimization/94734,
+	tree-optimization/94774, tree-optimization/94784,
+	tree-optimization/94809
+
 * Mon Apr 20 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.12
 - update from trunk
   - PRs analyzer/94378, bootstrap/89494, bootstrap/92008, c++/67825,
