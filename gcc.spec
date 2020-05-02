@@ -1,10 +1,10 @@
-%global DATE 20200501
+%global DATE 20200502
 %global gitrev 563509ad4338c7193d06f4008e9df657990628a5
 %global gcc_version 10.0.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.13
+%global gcc_release 0.14
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -1290,7 +1290,7 @@ mkdir -p %{buildroot}/%{_lib}
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgcc_s.so.1 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
 chmod 755 %{buildroot}/%{_lib}/libgcc_s-%{gcc_major}-%{DATE}.so.1
 ln -sf libgcc_s-%{gcc_major}-%{DATE}.so.1 %{buildroot}/%{_lib}/libgcc_s.so.1
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 ppc64le %{arm}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64p7 ppc64le %{arm} aarch64 riscv64
 rm -f $FULLPATH/libgcc_s.so
 echo '/* GNU ld script
    Use the shared library, but some functions are only in
@@ -3004,6 +3004,9 @@ end
 %endif
 
 %changelog
+* Sat May  2 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.14
+- use libgcc_s.so linker script also on aarch64 and riscv64 (#1830472)
+
 * Fri May  1 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.13
 - update from trunk and releases/gcc-10 branch
   - GCC 10.1-rc1
