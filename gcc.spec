@@ -1,4 +1,4 @@
-%global DATE 20200502
+%global DATE 20200501
 %global gitrev 563509ad4338c7193d06f4008e9df657990628a5
 %global gcc_version 10.0.1
 %global gcc_major 10
