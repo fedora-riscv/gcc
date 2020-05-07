@@ -1,10 +1,10 @@
-%global DATE 20200501
+%global DATE 20200507
 %global gitrev 563509ad4338c7193d06f4008e9df657990628a5
-%global gcc_version 10.0.1
+%global gcc_version 10.1.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0.14
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3004,6 +3004,13 @@ end
 %endif
 
 %changelog
+* Thu May  7 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-1
+- update from releases/gcc-10 branch
+  - GCC 10.1.0 release
+  - PRs bootstrap/94918, c++/94907, c++/94938, c++/94946, c++/94951, c/94842,
+	c/94968, libstdc++/94901, middle-end/94941, rtl-optimization/94873,
+	target/94942, target/94950
+
 * Sat May  2 2020 Jakub Jelinek <jakub@redhat.com> 10.0.1-0.14
 - use libgcc_s.so linker script also on aarch64 and riscv64 (#1830472)
 
