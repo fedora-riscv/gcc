@@ -135,9 +135,8 @@ Source0: gcc-%{version}-%{DATE}.tar.xz
 Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
 # The source for nvptx-newlib package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# git clone --depth 1 git://sourceware.org/git/newlib-cygwin.git newlib-cygwin-dir.tmp
-# git --git-dir=newlib-cygwin-dir.tmp/.git fetch --depth 1 origin %%{newlib_cygwin_gitrev}
-# git --git-dir=newlib-cygwin-dir.tmp/.git archive --prefix=newlib-cygwin-%%{newlib_cygwin_gitrev}/ %%{newlib_cygwin_gitrev} | xz -9e > newlib-cygwin-%%{newlib_cygwin_gitrev}.tar.xz
+# git clone git://sourceware.org/git/newlib-cygwin.git newlib-cygwin-dir.tmp
+# git --git-dir=newlib-cygwin-dir.tmp/.git archive --prefix=newlib-cygwin-%%{newlib_cygwin_gitrev}/ %%{newlib_cygwin_gitrev} ":(exclude)newlib/libc/sys/linux/include/rpc/*.[hx]" | xz -9e > newlib-cygwin-%%{newlib_cygwin_gitrev}.tar.xz
 # rm -rf newlib-cygwin-dir.tmp
 Source2: newlib-cygwin-%{newlib_cygwin_gitrev}.tar.xz
 %global isl_version 0.16.1
@@ -3004,6 +3003,9 @@ end
 %endif
 
 %changelog
+- correct instructions for creation of newlib tarball, filter out sun-rpc
+  licensed code that is never used during the package build
+
 * Thu May  7 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-1
 - update from releases/gcc-10 branch
   - GCC 10.1.0 release
