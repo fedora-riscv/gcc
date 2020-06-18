@@ -1,10 +1,10 @@
-%global DATE 20200507
-%global gitrev 563509ad4338c7193d06f4008e9df657990628a5
+%global DATE 20200618
+%global gitrev c518050989be3a224a04a8b33d73f37a16c30fbb
 %global gcc_version 10.1.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -1906,6 +1906,11 @@ rm -f %{buildroot}%{mandir}/man3/ffi*
 # Help plugins find out nvra.
 echo gcc-%{version}-%{release}.%{_arch} > $FULLPATH/rpmver
 
+# Add symlink to lto plugin in the binutils plugin directory.
+%{__mkdir_p} %{buildroot}%{_libdir}/bfd-plugins/
+ln -s ../../libexec/gcc/%{gcc_target_platform}/%{gcc_major}/liblto_plugin.so \
+  %{buildroot}%{_libdir}/bfd-plugins/
+
 %check
 cd obj-%{gcc_target_platform}
 
@@ -2031,6 +2036,7 @@ end
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/lto1
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/lto-wrapper
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/liblto_plugin.so*
+%{_libdir}/bfd-plugins/liblto_plugin.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/rpmver
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/stddef.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/stdarg.h
@@ -3003,8 +3009,37 @@ end
 %endif
 
 %changelog
+* Thu Jun 18 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-2
+- update from releases/gcc-10 branch
+  - PRs c++/90212, c++/90479, c++/90915, c++/91529, c++/92103, c++/92633,
+	c++/92652, c++/92838, c++/93310, c++/93467, c++/93698, c++/93822,
+	c++/94128, c++/94817, c++/94829, c++/94885, c++/94937, c++/94955,
+	c++/95003, c++/95020, c++/95050, c++/95066, c++/95087, c++/95137,
+	c++/95158, c++/95181, c++/95197, c++/95222, c++/95241, c++/95319,
+	c++/95328, c++/95344, c++/95345, c++/95346, c++/95350, c++/95371,
+	c++/95386, c++/95440, c++/95508, c++/95560, c++/95562, c/95040,
+	c/95580, d/94970, d/95166, d/95167, d/95168, debug/95080,
+	fortran/39695, fortran/50392, fortran/59107, fortran/92993,
+	fortran/93366, fortran/93497, fortran/94109, fortran/94361,
+	fortran/94397, fortran/94672, fortran/95088, fortran/95090,
+	fortran/95091, fortran/95106, fortran/95373, fortran/95500,
+	fortran/95503, fortran/95530, fortran/95537, fortran/95544,
+	fortran/95611, gcov-profile/95332, ipa/94947, ipa/95113,
+	libfortran/95104, libfortran/95119, libfortran/95191,
+	libfortran/95390, libgomp/92854, libstdc++/77691, libstdc++/92894,
+	libstdc++/93983, libstdc++/94906, libstdc++/94933, libstdc++/95289,
+	libstdc++/95322, libstdc++/95578, lto/94848, lto/95190,
+	middle-end/94940, middle-end/95108, middle-end/95551,
+	middle-end/95622, sanitizer/94910, sanitizer/95634, target/91695,
+	target/94591, target/94735, target/94959, target/95169, target/95212,
+	target/95220, target/95255, target/95258, target/95355, target/95420,
+	target/95525, target/95528, testsuite/95361, testsuite/95575,
+	web/95380
 - correct instructions for creation of newlib tarball, filter out sun-rpc
   licensed code that is never used during the package build
+
+* Mon May 11 2020 Tom Stellard <tstellar@redhat.com>
+- add symlink to liblto_plugin.so in /usr/lib/bfd-plugins
 
 * Thu May  7 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-1
 - update from releases/gcc-10 branch
