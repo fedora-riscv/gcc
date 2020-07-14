@@ -23,7 +23,7 @@
 %if 0%{?__brp_strip_lto:1}
 %global __brp_strip_lto %{__brp_strip_lto} || :
 %endif
-%if 0%{?fedora} < 32
+%if 0%{?fedora} < 32 && 0%{?rhel} < 8
 %global multilib_64_archs sparc64 ppc64 ppc64p7 s390x x86_64
 %else
 %global multilib_64_archs sparc64 ppc64 ppc64p7 x86_64
@@ -98,7 +98,7 @@
 %else
 %global build_offload_nvptx 0
 %endif
-%if 0%{?fedora} < 32
+%if 0%{?fedora} < 32 && 0%{?rhel} < 8
 %ifarch s390x
 %global multilib_32_arch s390
 %endif
