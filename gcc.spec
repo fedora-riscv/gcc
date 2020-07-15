@@ -896,7 +896,7 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch ppc64le %{mips} s390x
 %ifarch s390x
-%if 0%{?fedora} < 32
+%if 0%{?fedora} < 32 && 0%{?rhel} < 8
 	--enable-multilib \
 %else
 	--disable-multilib \
