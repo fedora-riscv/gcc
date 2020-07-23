@@ -1,10 +1,10 @@
-%global DATE 20200618
-%global gitrev c518050989be3a224a04a8b33d73f37a16c30fbb
-%global gcc_version 10.1.1
+%global DATE 20200723
+%global gitrev 3fc88aa16f1bf661db4518d6d62869f081981981
+%global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3009,6 +3009,36 @@ end
 %endif
 
 %changelog
+* Thu Jul 23 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-1
+- update from releases/gcc-10 branch
+  - GCC 10.2 release
+  - PRs bootstrap/94998, c++/90916, c++/95477, c++/95505, c++/95518,
+	c++/95519, c++/95711, c++/95719, c++/95736, c++/95789, c++/95813,
+	c++/95976, c++/96052, c++/96063, c++/96077, c++/96104, c++/96105,
+	c++/96179, c/95141, d/95173, d/95250, debug/95343, fortran/71706,
+	fortran/88379, fortran/93337, fortran/95340, fortran/95366,
+	fortran/95587, fortran/95687, fortran/95688, fortran/95689,
+	fortran/95707, fortran/95708, fortran/95709, fortran/95743,
+	fortran/95812, fortran/95826, fortran/95827, fortran/95828,
+	fortran/95829, fortran/95880, fortran/95881, fortran/95978,
+	ipa/12345, ipa/93223, ipa/96040, ipa/96130, libstdc++/91153,
+	libstdc++/91807, libstdc++/94087, libstdc++/94627, libstdc++/94936,
+	libstdc++/95282, libstdc++/95851, libstdc++/95915, lto/91576,
+	lto/95604, middle-end/94600, middle-end/94964, middle-end/95114,
+	middle-end/95118, middle-end/95270, middle-end/95493,
+	middle-end/95690, middle-end/95810, middle-end/95903,
+	middle-end/96194, target/12345, target/93224, target/93492,
+	target/94791, target/94891, target/95018, target/95105, target/95347,
+	target/95581, target/95683, target/95713, target/95726, target/95874,
+	target/96001, target/96125, target/96174, testsuite/96180,
+	tree-optimization/90838, tree-optimization/94969,
+	tree-optimization/95049, tree-optimization/95110,
+	tree-optimization/95133, tree-optimization/95308,
+	tree-optimization/95487, tree-optimization/95638,
+	tree-optimization/95717, tree-optimization/95804,
+	tree-optimization/95857, tree-optimization/96075,
+	tree-optimization/96133, tree-optimization/96146
+
 * Thu Jun 18 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-2
 - update from releases/gcc-10 branch
   - PRs c++/90212, c++/90479, c++/90915, c++/91529, c++/92103, c++/92633,
