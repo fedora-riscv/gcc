@@ -814,6 +814,7 @@ export CONFIG_SITE=NONE
 CC=gcc
 CXX=g++
 OPT_FLAGS=`echo %{optflags}|sed -e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'`
+OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-flto//g;s/-ffat-lto-objects//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-m64//g;s/-m32//g;s/-m31//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mfpmath=sse/-mfpmath=sse -msse2/g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/ -pipe / /g'`
@@ -3038,6 +3039,9 @@ end
 	tree-optimization/95717, tree-optimization/95804,
 	tree-optimization/95857, tree-optimization/96075,
 	tree-optimization/96133, tree-optimization/96146
+  - disable s390x multilibs also for ELN
+  - disable -flto in %%{optflags}, lto bootstrap will be enabled the GCC way
+    later
 
 * Thu Jun 18 2020 Jakub Jelinek <jakub@redhat.com> 10.1.1-2
 - update from releases/gcc-10 branch
