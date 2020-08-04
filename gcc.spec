@@ -1,4 +1,4 @@
-%global DATE 20200803
+%global DATE 20200804
 %global gitrev 08d83635c2ab388f6139db6965e600b296ad85e6
 %global gcc_version 10.2.1
 %global gcc_major 10
@@ -3014,7 +3014,7 @@ end
 %endif
 
 %changelog
-* Tue Aug  3 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-2
+* Tue Aug  4 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-2
 - update from releases/gcc-10 branch
   - PRs c++/95591, c++/95599, c++/95823, c++/95824, c++/95895, c/96377,
 	d/96140, fortran/89574, fortran/93567, fortran/93592, fortran/95585,
