@@ -1,10 +1,10 @@
-%global DATE 20200723
-%global gitrev 3fc88aa16f1bf661db4518d6d62869f081981981
+%global DATE 20200803
+%global gitrev 08d83635c2ab388f6139db6965e600b296ad85e6
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -115,7 +115,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.2
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -264,6 +264,8 @@ Patch8: gcc10-foffload-default.patch
 Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
+Patch12: gcc10-pr96383.patch
+Patch13: gcc10-pr96385.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -775,6 +777,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr96383~
+%patch13 -p0 -b .pr96385~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -814,7 +818,7 @@ export CONFIG_SITE=NONE
 CC=gcc
 CXX=g++
 OPT_FLAGS=`echo %{optflags}|sed -e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'`
-OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-flto//g;s/-ffat-lto-objects//g'`
+OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-flto=auto//g;s/-flto//g;s/-ffat-lto-objects//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-m64//g;s/-m32//g;s/-m31//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mfpmath=sse/-mfpmath=sse -msse2/g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/ -pipe / /g'`
@@ -3010,12 +3014,18 @@ end
 %endif
 
 %changelog
-* Sat Aug 01 2020 Fedora Release Engineering <releng@fedoraproject.org> - 10.2.1-1.2
-- Second attempt - Rebuilt for
-  https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
-
-* Mon Jul 27 2020 Fedora Release Engineering <releng@fedoraproject.org> - 10.2.1-1.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
+* Tue Aug  3 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-2
+- update from releases/gcc-10 branch
+  - PRs c++/95591, c++/95599, c++/95823, c++/95824, c++/95895, c/96377,
+	d/96140, fortran/89574, fortran/93567, fortran/93592, fortran/95585,
+	fortran/95612, fortran/95980, fortran/96018, fortran/96086,
+	fortran/96220, fortran/96319, lto/45375, middle-end/96335,
+	target/95435, target/96190, target/96236, target/96260, target/96402,
+	tree-optimization/96058
+- emit debug info for C/C++ external function declarations used in the TU
+  (PR debug/96383)
+- discard SHN_UNDEF global symbols from LTO debuginfo (PR lto/96385)
+- strip also -flto=auto from optflags
 
 * Thu Jul 23 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-1
 - update from releases/gcc-10 branch

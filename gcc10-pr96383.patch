@@ -1,0 +1,236 @@
+2020-07-30  Richard Biener  <rguenther@suse.de>
+
+	PR debug/96383
+	* langhooks-def.h (lhd_finalize_early_debug): Declare.
+	(LANG_HOOKS_FINALIZE_EARLY_DEBUG): Define.
+	(LANG_HOOKS_INITIALIZER): Amend.
+	* langhooks.c: Include cgraph.h and debug.h.
+	(lhd_finalize_early_debug): Default implementation from
+	former code in finalize_compilation_unit.
+	* langhooks.h (lang_hooks::finalize_early_debug): Add.
+	* cgraphunit.c (symbol_table::finalize_compilation_unit):
+	Call the finalize_early_debug langhook.
+
+gcc/c-family/
+	* c-common.h (c_common_finalize_early_debug): Declare.
+	* c-common.c: Include debug.h.
+	(c_common_finalize_early_debug): finalize_early_debug langhook
+	implementation generating debug for extern declarations.
+
+gcc/c/
+	* c-objc-common.h (LANG_HOOKS_FINALIZE_EARLY_DEBUG):
+	Define to c_common_finalize_early_debug.
+
+gcc/cp/
+	* cp-objcp-common.h (LANG_HOOKS_FINALIZE_EARLY_DEBUG):
+	Define to c_common_finalize_early_debug.
+
+gcc/testsuite/
+	* gcc.dg/debug/dwarf2/pr96383-1.c: New testcase.
+	* gcc.dg/debug/dwarf2/pr96383-2.c: Likewise.
+
+libstdc++-v3/
+	* testsuite/20_util/assume_aligned/3.cc: Use -g0.
+
+--- gcc/c-family/c-common.c
++++ gcc/c-family/c-common.c
+@@ -50,6 +50,7 @@ along with GCC; see the file COPYING3.  If not see
+ #include "spellcheck.h"
+ #include "c-spellcheck.h"
+ #include "selftest.h"
++#include "debug.h"
+ 
+ cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
+ 
+@@ -9086,4 +9087,20 @@ braced_lists_to_strings (tree type, tree ctor)
+   return braced_lists_to_strings (type, ctor, false);
+ }
+ 
++
++/* Emit debug for functions before finalizing early debug.  */
++
++void
++c_common_finalize_early_debug (void)
++{
++  /* Emit early debug for reachable functions, and by consequence,
++     locally scoped symbols.  Also emit debug for extern declared
++     functions that are still reachable at this point.  */
++  struct cgraph_node *cnode;
++  FOR_EACH_FUNCTION (cnode)
++    if (!cnode->alias && !cnode->thunk.thunk_p
++	&& (cnode->has_gimple_body_p () || !DECL_IS_BUILTIN (cnode->decl)))
++      (*debug_hooks->early_global_decl) (cnode->decl);
++}
++
+ #include "gt-c-family-c-common.h"
+--- gcc/c-family/c-common.h
++++ gcc/c-family/c-common.h
+@@ -885,6 +885,8 @@ extern bool bool_promoted_to_int_p (tree);
+ extern tree fold_for_warn (tree);
+ extern tree c_common_get_narrower (tree, int *);
+ extern bool get_attribute_operand (tree, unsigned HOST_WIDE_INT *);
++extern void c_common_finalize_early_debug (void);
++
+ 
+ #define c_sizeof(LOC, T)  c_sizeof_or_alignof_type (LOC, T, true, false, 1)
+ #define c_alignof(LOC, T) c_sizeof_or_alignof_type (LOC, T, false, false, 1)
+--- gcc/c/c-objc-common.h
++++ gcc/c/c-objc-common.h
+@@ -65,6 +65,8 @@ along with GCC; see the file COPYING3.  If not see
+   c_simulate_builtin_function_decl
+ #undef LANG_HOOKS_EMITS_BEGIN_STMT
+ #define LANG_HOOKS_EMITS_BEGIN_STMT true
++#undef LANG_HOOKS_FINALIZE_EARLY_DEBUG
++#define LANG_HOOKS_FINALIZE_EARLY_DEBUG c_common_finalize_early_debug
+ 
+ /* Attribute hooks.  */
+ #undef LANG_HOOKS_COMMON_ATTRIBUTE_TABLE
+--- gcc/cgraphunit.c
++++ gcc/cgraphunit.c
+@@ -2998,11 +2998,9 @@ symbol_table::finalize_compilation_unit (void)
+ 
+   if (!seen_error ())
+     {
+-      /* Emit early debug for reachable functions, and by consequence,
+-	 locally scoped symbols.  */
+-      struct cgraph_node *cnode;
+-      FOR_EACH_FUNCTION_WITH_GIMPLE_BODY (cnode)
+-	(*debug_hooks->early_global_decl) (cnode->decl);
++      /* Give the frontends the chance to emit early debug based on
++	 what is still reachable in the TU.  */
++      (*lang_hooks.finalize_early_debug) ();
+ 
+       /* Clean up anything that needs cleaning up after initial debug
+ 	 generation.  */
+--- gcc/cp/cp-objcp-common.h
++++ gcc/cp/cp-objcp-common.h
+@@ -115,6 +115,8 @@ extern tree cxx_simulate_enum_decl (location_t, const char *,
+ #define LANG_HOOKS_BLOCK_MAY_FALLTHRU cxx_block_may_fallthru
+ #undef LANG_HOOKS_EMITS_BEGIN_STMT
+ #define LANG_HOOKS_EMITS_BEGIN_STMT true
++#undef LANG_HOOKS_FINALIZE_EARLY_DEBUG
++#define LANG_HOOKS_FINALIZE_EARLY_DEBUG c_common_finalize_early_debug
+ 
+ /* Attribute hooks.  */
+ #undef LANG_HOOKS_COMMON_ATTRIBUTE_TABLE
+--- gcc/langhooks-def.h
++++ gcc/langhooks-def.h
+@@ -92,6 +92,7 @@ extern const char *lhd_get_substring_location (const substring_loc &,
+ 					       location_t *out_loc);
+ extern int lhd_decl_dwarf_attribute (const_tree, int);
+ extern int lhd_type_dwarf_attribute (const_tree, int);
++extern void lhd_finalize_early_debug (void);
+ 
+ #define LANG_HOOKS_NAME			"GNU unknown"
+ #define LANG_HOOKS_IDENTIFIER_SIZE	sizeof (struct lang_identifier)
+@@ -139,6 +140,7 @@ extern int lhd_type_dwarf_attribute (const_tree, int);
+ #define LANG_HOOKS_EMITS_BEGIN_STMT	false
+ #define LANG_HOOKS_RUN_LANG_SELFTESTS   lhd_do_nothing
+ #define LANG_HOOKS_GET_SUBSTRING_LOCATION lhd_get_substring_location
++#define LANG_HOOKS_FINALIZE_EARLY_DEBUG lhd_finalize_early_debug
+ 
+ /* Attribute hooks.  */
+ #define LANG_HOOKS_ATTRIBUTE_TABLE		NULL
+@@ -364,7 +366,8 @@ extern void lhd_end_section (void);
+   LANG_HOOKS_CUSTOM_FUNCTION_DESCRIPTORS, \
+   LANG_HOOKS_EMITS_BEGIN_STMT, \
+   LANG_HOOKS_RUN_LANG_SELFTESTS, \
+-  LANG_HOOKS_GET_SUBSTRING_LOCATION \
++  LANG_HOOKS_GET_SUBSTRING_LOCATION, \
++  LANG_HOOKS_FINALIZE_EARLY_DEBUG \
+ }
+ 
+ #endif /* GCC_LANG_HOOKS_DEF_H */
+--- gcc/langhooks.c
++++ gcc/langhooks.c
+@@ -36,6 +36,8 @@ along with GCC; see the file COPYING3.  If not see
+ #include "output.h"
+ #include "timevar.h"
+ #include "stor-layout.h"
++#include "cgraph.h"
++#include "debug.h"
+ 
+ /* Do nothing; in many cases the default hook.  */
+ 
+@@ -866,6 +868,18 @@ lhd_unit_size_without_reusable_padding (tree t)
+   return TYPE_SIZE_UNIT (t);
+ }
+ 
++/* Default implementation for the finalize_early_debug hook.  */
++
++void
++lhd_finalize_early_debug (void)
++{
++  /* Emit early debug for reachable functions, and by consequence,
++     locally scoped symbols.  */
++  struct cgraph_node *cnode;
++  FOR_EACH_FUNCTION_WITH_GIMPLE_BODY (cnode)
++    (*debug_hooks->early_global_decl) (cnode->decl);
++}
++
+ /* Returns true if the current lang_hooks represents the GNU C frontend.  */
+ 
+ bool
+--- gcc/langhooks.h
++++ gcc/langhooks.h
+@@ -580,6 +580,9 @@ struct lang_hooks
+   const char *(*get_substring_location) (const substring_loc &,
+ 					 location_t *out_loc);
+ 
++  /* Invoked before the early_finish debug hook is invoked.  */
++  void (*finalize_early_debug) (void);
++
+   /* Whenever you add entries here, make sure you adjust langhooks-def.h
+      and langhooks.c accordingly.  */
+ };
+--- gcc/testsuite/gcc.dg/debug/dwarf2/pr96383-1.c
++++ gcc/testsuite/gcc.dg/debug/dwarf2/pr96383-1.c
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++/* { dg-options "-g -gdwarf -dA" } */
++
++extern void foo (int);
++extern void unusedbar (int);
++
++int main()
++{
++  foo (1);
++}
++
++/* We want subprogram DIEs for both foo and main and a DIE for
++   the formal parameter of foo.  We do not want a DIE for
++   unusedbar.  */
++/* { dg-final { scan-assembler-times "DW_TAG_subprogram" 4 } } */
++/* { dg-final { scan-assembler-times "DW_TAG_formal_parameter" 2 } } */
++/* { dg-final { scan-assembler-not "unusedbar" } } */
+--- gcc/testsuite/gcc.dg/debug/dwarf2/pr96383-2.c
++++ gcc/testsuite/gcc.dg/debug/dwarf2/pr96383-2.c
+@@ -0,0 +1,17 @@
++/* { dg-do compile } */
++/* { dg-options "-g -O2 -gdwarf -dA" } */
++
++extern void foo (int);
++extern void unusedbar (int);
++
++int main()
++{
++  foo (1);
++}
++
++/* We want subprogram DIEs for both foo and main and a DIE for
++   the formal parameter of foo.  We do not want a DIE for
++   unusedbar.  */
++/* { dg-final { scan-assembler-times "DW_TAG_subprogram" 4 } } */
++/* { dg-final { scan-assembler-times "DW_TAG_formal_parameter" 2 } } */
++/* { dg-final { scan-assembler-not "unusedbar" } } */
+--- libstdc++-v3/testsuite/20_util/assume_aligned/3.cc
++++ libstdc++-v3/testsuite/20_util/assume_aligned/3.cc
+@@ -15,7 +15,7 @@
+ // with this library; see the file COPYING3.  If not see
+ // <http://www.gnu.org/licenses/>.
+ 
+-// { dg-options "-std=gnu++2a -O2" }
++// { dg-options "-std=gnu++2a -O2 -g0" }
+ // { dg-do compile { target c++2a } }
+ // { dg-final { scan-assembler-not "undefined" } }
+ 
