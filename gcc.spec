@@ -1,10 +1,10 @@
-%global DATE 20200804
-%global gitrev 08d83635c2ab388f6139db6965e600b296ad85e6
+%global DATE 20200826
+%global gitrev c59c8927f43fb78d6a72a0ff93a47b36e43282d5
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -266,6 +266,7 @@ Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
 Patch12: gcc10-pr96383.patch
 Patch13: gcc10-pr96385.patch
+Patch14: gcc10-pr96690.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -779,6 +780,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr96383~
 %patch13 -p0 -b .pr96385~
+%patch14 -p0 -b .pr96690~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3045,6 +3047,21 @@ end
 %endif
 
 %changelog
+* Wed Aug 26 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-3
+- update from releases/gcc-10 branch
+  - PRs c++/95428, c++/96082, c++/96106, c++/96164, c++/96199, c++/96497,
+	c/96545, c/96549, c/96571, d/96250, d/96254, d/96301, debug/96354,
+	fortran/93553, fortran/96312, fortran/96486, ipa/95320, ipa/96291,
+	ipa/96482, libstdc++/89760, libstdc++/95749, libstdc++/96303,
+	libstdc++/96484, libstdc++/96718, lto/95362, lto/95548,
+	middle-end/96426, middle-end/96459, target/93897, target/95450,
+	target/96191, target/96243, target/96446, target/96493, target/96506,
+	target/96525, target/96530, target/96536, target/96562, target/96682,
+	tree-optimization/96483, tree-optimization/96535,
+	tree-optimization/96722, tree-optimization/96730,
+	tree-optimization/96758
+- mangle some further symbols needed for debug info during early dwarf
+  (#1862029, PR debug/96690)
 - during %%check perform tests whether annobin is usable with the newly built
   compiler or whether it might need to be rebuilt
 

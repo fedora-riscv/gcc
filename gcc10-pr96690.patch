@@ -1,0 +1,70 @@
+2020-08-25  Richard Biener  <rguenther@suse.de>
+
+	PR debug/96690
+	* dwarf2out.c (reference_to_unused): Make FUNCTION_DECL
+	processing more consistent with respect to
+	symtab->global_info_ready.
+	(tree_add_const_value_attribute): Unconditionally call
+	rtl_for_decl_init to do all mangling early but throw
+	away the result if early_dwarf.
+
+	* g++.dg/lto/pr96690_0.C: New testcase.
+
+--- gcc/dwarf2out.c
++++ gcc/dwarf2out.c
+@@ -19756,7 +19756,7 @@ reference_to_unused (tree * tp, int * walk_subtrees,
+   /* ???  The C++ FE emits debug information for using decls, so
+      putting gcc_unreachable here falls over.  See PR31899.  For now
+      be conservative.  */
+-  else if (!symtab->global_info_ready && VAR_OR_FUNCTION_DECL_P (*tp))
++  else if (!symtab->global_info_ready && VAR_P (*tp))
+     return *tp;
+   else if (VAR_P (*tp))
+     {
+@@ -19771,7 +19771,7 @@ reference_to_unused (tree * tp, int * walk_subtrees,
+          optimizing and gimplifying the CU by now.
+ 	 So if *TP has no call graph node associated
+ 	 to it, it means *TP will not be emitted.  */
+-      if (!cgraph_node::get (*tp))
++      if (!symtab->global_info_ready || !cgraph_node::get (*tp))
+ 	return *tp;
+     }
+   else if (TREE_CODE (*tp) == STRING_CST && !TREE_ASM_WRITTEN (*tp))
+@@ -20295,12 +20295,11 @@ tree_add_const_value_attribute (dw_die_ref die, tree t)
+ 	  return true;
+ 	}
+     }
+-  if (! early_dwarf)
+-    {
+-      rtl = rtl_for_decl_init (init, type);
+-      if (rtl)
+-	return add_const_value_attribute (die, rtl);
+-    }
++  /* Generate the RTL even if early_dwarf to force mangling of all refered to
++     symbols.  */
++  rtl = rtl_for_decl_init (init, type);
++  if (rtl && !early_dwarf)
++    return add_const_value_attribute (die, rtl);
+   /* If the host and target are sane, try harder.  */
+   if (CHAR_BIT == 8 && BITS_PER_UNIT == 8
+       && initializer_constant_valid_p (init, type))
+--- gcc/testsuite/g++.dg/lto/pr96690_0.C
++++ gcc/testsuite/g++.dg/lto/pr96690_0.C
+@@ -0,0 +1,17 @@
++// { dg-lto-do assemble }
++// { dg-lto-options { { -flto -ffat-lto-objects -g } } }
++struct A { A (int); };
++template <class T> class B { T f; };
++unsigned char *foo (int *, bool *, const int &);
++template <typename, unsigned char *F (int *, bool *, const int &)> struct C {};
++struct D { B<C<unsigned char, foo> > d; };
++struct E { D e; };
++struct F {};
++struct G { static int bar (A, F, E, int); };
++
++void
++baz ()
++{
++  F f;
++  G::bar (0, f, E (), 0);
++}
