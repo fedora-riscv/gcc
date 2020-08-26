@@ -86,7 +86,11 @@
 %else
 %global build_libitm 0
 %endif
+%if 0%{?rhel} > 8
+%global build_isl 0
+%else
 %global build_isl 1
+%endif
 %global build_libstdcxx_docs 1
 %ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
 %global attr_ifunc 1
@@ -3064,6 +3068,7 @@ end
   (#1862029, PR debug/96690)
 - during %%check perform tests whether annobin is usable with the newly built
   compiler or whether it might need to be rebuilt
+- disable graphite for ELN
 
 * Tue Aug  4 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-2
 - update from releases/gcc-10 branch
