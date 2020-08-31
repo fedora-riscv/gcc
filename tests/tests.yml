@@ -1,0 +1,14 @@
+- hosts: localhost
+  roles:
+    - role: standard-test-basic                         
+      tags:
+        - classic
+      
+      required_packages:
+        - redhat-rpm-config
+        - annobin
+
+      tests:
+        - build_hello_world:
+            dir: .
+            run: "./build_hello_world.sh" 
