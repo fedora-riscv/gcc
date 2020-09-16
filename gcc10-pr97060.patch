@@ -1,0 +1,53 @@
+2020-09-16  Jakub Jelinek  <jakub@redhat.com>
+
+	PR debug/97060
+	* dwarf2out.c (dwarf2out_early_global_decl): For FUNCTION_DECLs
+	and their abstract origins, if they don't have gimple body,
+	set current_function_decl to NULL rather than the decl or origin.
+
+	* gcc.dg/debug/dwarf2/pr97060.c: New test.
+
+--- gcc/dwarf2out.c.jj	2020-09-07 13:17:58.383594248 +0200
++++ gcc/dwarf2out.c	2020-09-16 11:14:57.763550862 +0200
+@@ -26547,7 +26547,11 @@ dwarf2out_early_global_decl (tree decl)
+ 	      && ((origin_die = lookup_decl_die (origin)) == NULL
+ 		  || is_declaration_die (origin_die)))
+ 	    {
+-	      current_function_decl = origin;
++	      cgraph_node *cnode = cgraph_node::get (origin);
++	      if (cnode && cnode->has_gimple_body_p ())
++		current_function_decl = origin;
++	      else
++		current_function_decl = NULL_TREE;
+ 	      dwarf2out_decl (origin);
+ 	    }
+ 
+@@ -26556,7 +26560,11 @@ dwarf2out_early_global_decl (tree decl)
+ 	  if ((old_die = lookup_decl_die (decl)) == NULL
+ 	      || is_declaration_die (old_die))
+ 	    {
+-	      current_function_decl = decl;
++	      cgraph_node *cnode = cgraph_node::get (decl);
++	      if (cnode && cnode->has_gimple_body_p ())
++		current_function_decl = decl;
++	      else
++		current_function_decl = NULL_TREE;
+ 	      dwarf2out_decl (decl);
+ 	    }
+ 
+--- gcc/testsuite/gcc.dg/debug/dwarf2/pr97060.c.jj	2020-09-16 11:03:22.358420449 +0200
++++ gcc/testsuite/gcc.dg/debug/dwarf2/pr97060.c	2020-09-16 11:03:17.717486318 +0200
+@@ -0,0 +1,13 @@
++/* PR debug/97060 */
++/* { dg-do compile } */
++/* { dg-options "-g -dA" } */
++/* { dg-final { scan-assembler-times "DW_AT_declaration" 2 } } */
++
++extern int foo (unsigned int, unsigned int);
++
++int
++bar (void)
++{
++  foo (1, 2);
++  return 0;
++}

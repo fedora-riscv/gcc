@@ -1,0 +1,111 @@
+2020-09-13  Jakub Jelinek  <jakub@redhat.com>
+
+	* config/arm/arm.opt (arm_arch_specified, arm_cpu_specified,
+	arm_tune_specified): New TargetVariables.
+	* config/arm/arm.c (arm_configure_build_target): Comment out
+	opts_set argument name.  Use opts->x_arm_*_specified instead
+	of opts_set->x_arm_*_string.
+	* common/config/arm/arm-common.c (arm_handle_option): New function.
+	(TARGET_HANDLE_OPTION): Redefine.
+
+--- gcc/config/arm/arm.opt.jj	2020-09-12 13:36:27.619716335 +0200
++++ gcc/config/arm/arm.opt	2020-09-12 13:38:48.547661292 +0200
+@@ -30,6 +30,15 @@ const char *x_arm_cpu_string
+ TargetSave
+ const char *x_arm_tune_string
+ 
++TargetVariable
++unsigned char arm_arch_specified = 0
++
++TargetVariable
++unsigned char arm_cpu_specified = 0
++
++TargetVariable
++unsigned char arm_tune_specified = 0
++
+ Enum
+ Name(tls_type) Type(enum arm_tls_type)
+ TLS dialect to use:
+--- gcc/config/arm/arm.c.jj	2020-09-12 13:36:27.619716335 +0200
++++ gcc/config/arm/arm.c	2020-09-12 13:49:26.166363387 +0200
+@@ -3181,7 +3181,7 @@ static sbitmap isa_quirkbits;
+ void
+ arm_configure_build_target (struct arm_build_target *target,
+ 			    struct cl_target_option *opts,
+-			    struct gcc_options *opts_set,
++			    struct gcc_options */* opts_set */,
+ 			    bool warn_compatible)
+ {
+   const cpu_option *arm_selected_tune = NULL;
+@@ -3196,7 +3196,7 @@ arm_configure_build_target (struct arm_b
+   target->core_name = NULL;
+   target->arch_name = NULL;
+ 
+-  if (opts_set->x_arm_arch_string)
++  if (opts->x_arm_arch_specified)
+     {
+       arm_selected_arch = arm_parse_arch_option_name (all_architectures,
+ 						      "-march",
+@@ -3204,7 +3204,7 @@ arm_configure_build_target (struct arm_b
+       arch_opts = strchr (opts->x_arm_arch_string, '+');
+     }
+ 
+-  if (opts_set->x_arm_cpu_string)
++  if (opts->x_arm_cpu_specified)
+     {
+       arm_selected_cpu = arm_parse_cpu_option_name (all_cores, "-mcpu",
+ 						    opts->x_arm_cpu_string);
+@@ -3214,7 +3214,7 @@ arm_configure_build_target (struct arm_b
+ 	 options for tuning.  */
+     }
+ 
+-  if (opts_set->x_arm_tune_string)
++  if (opts->x_arm_tune_specified)
+     {
+       arm_selected_tune = arm_parse_cpu_option_name (all_cores, "-mtune",
+ 						     opts->x_arm_tune_string);
+--- gcc/common/config/arm/arm-common.c.jj	2020-07-28 15:39:09.705760394 +0200
++++ gcc/common/config/arm/arm-common.c	2020-09-12 13:50:09.021738456 +0200
+@@ -1021,6 +1021,34 @@ arm_asm_auto_mfpu (int argc, const char
+ 
+ #undef ARM_CPU_NAME_LENGTH
+ 
++bool
++arm_handle_option (struct gcc_options *opts,
++		   struct gcc_options *opts_set ATTRIBUTE_UNUSED,
++		   const struct cl_decoded_option *decoded,
++		   location_t loc ATTRIBUTE_UNUSED)
++{
++  size_t code = decoded->opt_index;
++  const char *arg = decoded->arg;
++  int val = decoded->value;
++
++  switch (code)
++    {
++    case OPT_march_:
++      opts->x_arm_arch_specified = true;
++      return true;
++
++    case OPT_mcpu_:
++      opts->x_arm_cpu_specified = true;
++      return true;
++
++    case OPT_mtune_:
++      opts->x_arm_tune_specified = true;
++      return true;
++
++    default:
++      return true;
++    }
++}
+ 
+ #undef  TARGET_DEFAULT_TARGET_FLAGS
+ #define TARGET_DEFAULT_TARGET_FLAGS (TARGET_DEFAULT | MASK_SCHED_PROLOG)
+@@ -1031,4 +1059,7 @@ arm_asm_auto_mfpu (int argc, const char
+ #undef TARGET_EXCEPT_UNWIND_INFO
+ #define TARGET_EXCEPT_UNWIND_INFO  arm_except_unwind_info
+ 
++#undef  TARGET_HANDLE_OPTION
++#define TARGET_HANDLE_OPTION arm_handle_option
++
+ struct gcc_targetm_common targetm_common = TARGETM_COMMON_INITIALIZER;

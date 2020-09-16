@@ -1,0 +1,64 @@
+2020-09-07  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/96939
+	* config/arm/arm.c (arm_override_options_after_change): Don't call
+	arm_configure_build_target here.
+	(arm_set_current_function): Call arm_override_options_after_change_1
+	at the end.
+
+	* gcc.target/arm/lto/pr96939_0.c: New test.
+	* gcc.target/arm/lto/pr96939_1.c: New file.
+
+--- gcc/config/arm/arm.c.jj	2020-07-30 15:04:38.136293101 +0200
++++ gcc/config/arm/arm.c	2020-09-07 10:43:54.809561852 +0200
+@@ -3037,10 +3037,6 @@ arm_override_options_after_change_1 (str
+ static void
+ arm_override_options_after_change (void)
+ {
+-  arm_configure_build_target (&arm_active_target,
+-			      TREE_TARGET_OPTION (target_option_default_node),
+-			      &global_options_set, false);
+-
+   arm_override_options_after_change_1 (&global_options);
+ }
+ 
+@@ -32338,6 +32334,8 @@ arm_set_current_function (tree fndecl)
+   cl_target_option_restore (&global_options, TREE_TARGET_OPTION (new_tree));
+ 
+   save_restore_target_globals (new_tree);
++
++  arm_override_options_after_change_1 (&global_options);
+ }
+ 
+ /* Implement TARGET_OPTION_PRINT.  */
+--- gcc/testsuite/gcc.target/arm/lto/pr96939_0.c.jj	2020-09-07 11:26:45.909937609 +0200
++++ gcc/testsuite/gcc.target/arm/lto/pr96939_0.c	2020-09-07 11:29:18.722706535 +0200
+@@ -0,0 +1,15 @@
++/* PR target/96939 */
++/* { dg-lto-do link } */
++/* { dg-require-effective-target arm_arch_v8a_ok } */
++/* { dg-lto-options { { -flto -O2 } } } */
++
++extern unsigned crc (unsigned, const void *);
++typedef unsigned (*fnptr) (unsigned, const void *);
++volatile fnptr fn;
++
++int
++main ()
++{
++  fn = crc;
++  return 0;
++}
+--- gcc/testsuite/gcc.target/arm/lto/pr96939_1.c.jj	2020-09-07 11:26:49.365887153 +0200
++++ gcc/testsuite/gcc.target/arm/lto/pr96939_1.c	2020-09-07 11:25:13.885281180 +0200
+@@ -0,0 +1,10 @@
++/* PR target/96939 */
++/* { dg-options "-march=armv8-a+crc" } */
++
++#include <arm_acle.h>
++
++unsigned
++crc (unsigned x, const void *y)
++{
++  return __crc32cw (x, *(unsigned *) y);
++}

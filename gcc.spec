@@ -1,10 +1,10 @@
-%global DATE 20200826
-%global gitrev c59c8927f43fb78d6a72a0ff93a47b36e43282d5
+%global DATE 20200916
+%global gitrev c65817433fde22de2a18a00be00c2c3d83228453
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -271,6 +271,11 @@ Patch11: gcc10-d-shared-libphobos.patch
 Patch12: gcc10-pr96383.patch
 Patch13: gcc10-pr96385.patch
 Patch14: gcc10-pr96690.patch
+Patch15: gcc10-pr96939.patch
+Patch16: gcc10-pr96939-2.patch
+Patch17: gcc10-pr96939-3.patch
+Patch18: gcc10-pr97032.patch
+Patch19: gcc10-pr97060.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -785,6 +790,12 @@ to NVidia PTX capable devices if available.
 %patch12 -p0 -b .pr96383~
 %patch13 -p0 -b .pr96385~
 %patch14 -p0 -b .pr96690~
+%patch15 -p0 -b .pr96939~
+%patch16 -p0 -b .pr96939-2~
+%patch17 -p0 -b .pr96939-3~
+%patch18 -p0 -b .pr97032~
+%patch19 -p0 -b .pr97060~
+find gcc/testsuite -name \*.pr96939~ | xargs rm -f
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3051,6 +3062,25 @@ end
 %endif
 
 %changelog
+* Wed Sep 16 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-4
+- update from releases/gcc-10 branch
+  - PRs bootstrap/96203, c++/95164, c++/96862, c++/96901, d/96157, d/96924,
+	debug/93865, debug/94235, debug/96729, fortran/94690, fortran/95109,
+	fortran/95398, fortran/95882, fortran/96859, libstdc++/71960,
+	libstdc++/92978, libstdc++/96766, libstdc++/96851, lto/94311,
+	middle-end/87256, middle-end/96369, target/85830, target/94538,
+	target/96357, target/96551, target/96574, target/96744, target/96808,
+	target/97028, tree-optimization/88240, tree-optimization/96349,
+	tree-optimization/96370, tree-optimization/96514,
+	tree-optimization/96522, tree-optimization/96579,
+	tree-optimization/96597, tree-optimization/96820,
+	tree-optimization/96854, tree-optimization/97043
+- fix up ARM target attribute/pragma handling (#1875814, PR target/96939)
+- don't ICE on sp clobbers with -mincoming-stack-boundary=2 on ia32
+  (#1862029, PR target/97032)
+- emit DW_AT_declaration on DIEs for external FUNCTION_DECLs without body
+  (PR debug/97060)
+
 * Wed Aug 26 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-3
 - update from releases/gcc-10 branch
   - PRs c++/95428, c++/96082, c++/96106, c++/96164, c++/96199, c++/96497,
