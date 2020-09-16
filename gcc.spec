@@ -269,13 +269,12 @@ Patch9: gcc10-Wno-format-security.patch
 Patch10: gcc10-rh1574936.patch
 Patch11: gcc10-d-shared-libphobos.patch
 Patch12: gcc10-pr96383.patch
-Patch13: gcc10-pr96385.patch
-Patch14: gcc10-pr96690.patch
-Patch15: gcc10-pr96939.patch
-Patch16: gcc10-pr96939-2.patch
-Patch17: gcc10-pr96939-3.patch
-Patch18: gcc10-pr97032.patch
-Patch19: gcc10-pr97060.patch
+Patch13: gcc10-pr96690.patch
+Patch14: gcc10-pr96939.patch
+Patch15: gcc10-pr96939-2.patch
+Patch16: gcc10-pr96939-3.patch
+Patch17: gcc10-pr97032.patch
+Patch18: gcc10-pr97060.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -788,13 +787,12 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr96383~
-%patch13 -p0 -b .pr96385~
-%patch14 -p0 -b .pr96690~
-%patch15 -p0 -b .pr96939~
-%patch16 -p0 -b .pr96939-2~
-%patch17 -p0 -b .pr96939-3~
-%patch18 -p0 -b .pr97032~
-%patch19 -p0 -b .pr97060~
+%patch13 -p0 -b .pr96690~
+%patch14 -p0 -b .pr96939~
+%patch15 -p0 -b .pr96939-2~
+%patch16 -p0 -b .pr96939-3~
+%patch17 -p0 -b .pr97032~
+%patch18 -p0 -b .pr97060~
 find gcc/testsuite -name \*.pr96939~ | xargs rm -f
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
