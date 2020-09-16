@@ -273,7 +273,6 @@ Patch13: gcc10-pr96939.patch
 Patch14: gcc10-pr96939-2.patch
 Patch15: gcc10-pr96939-3.patch
 Patch16: gcc10-pr97032.patch
-Patch17: gcc10-pr97060.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -790,7 +789,6 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .pr96939-2~
 %patch15 -p0 -b .pr96939-3~
 %patch16 -p0 -b .pr97032~
-%patch17 -p0 -b .pr97060~
 find gcc/testsuite -name \*.pr96939~ | xargs rm -f
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
@@ -3074,8 +3072,6 @@ end
 - fix up ARM target attribute/pragma handling (#1875814, PR target/96939)
 - don't ICE on sp clobbers with -mincoming-stack-boundary=2 on ia32
   (#1862029, PR target/97032)
-- emit DW_AT_declaration on DIEs for external FUNCTION_DECLs without body
-  (PR debug/97060)
 
 * Wed Aug 26 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-3
 - update from releases/gcc-10 branch
