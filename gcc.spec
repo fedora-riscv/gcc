@@ -1,10 +1,10 @@
-%global DATE 20191121
-%global SVNREV 278589
-%global gcc_version 8.3.1
+%global DATE 20200928
+%global gitrev 8ed81e8ef69a535cbc168f55d06941bf3e4ef8ee
+%global gcc_version 8.4.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -111,22 +111,23 @@ License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2
 Group: Development/Languages
 # The source for this package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-8-branch@%%{SVNREV} gcc-%%{version}-%%{DATE}
-# tar cf - gcc-%%{version}-%%{DATE} | xz -9e > gcc-%%{version}-%%{DATE}.tar.xz
+# git clone --depth 1 git://gcc.gnu.org/git/gcc.git gcc-dir.tmp
+# git --git-dir=gcc-dir.tmp/.git fetch --depth 1 origin %%{gitrev}
+# git --git-dir=gcc-dir.tmp/.git archive --prefix=%%{name}-%%{version}-%%{DATE}/ %%{gitrev} | xz -9e > %%{name}-%%{version}-%%{DATE}.tar.xz
+# rm -rf gcc-dir.tmp
 Source0: gcc-%{version}-%{DATE}.tar.xz
 # The source for nvptx-tools package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# git clone https://github.com/MentorEmbedded/nvptx-tools.git
-# cd nvptx-tools
-# git archive origin/master --prefix=nvptx-tools-%%{nvptx_tools_gitrev}/ | xz -9e > ../nvptx-tools-%%{nvptx_tools_gitrev}.tar.xz
-# cd ..; rm -rf nvptx-tools
+# git clone --depth 1 git://github.com/MentorEmbedded/nvptx-tools.git nvptx-tools-dir.tmp
+# git --git-dir=nvptx-tools-dir.tmp/.git fetch --depth 1 origin %%{nvptx_tools_gitrev}
+# git --git-dir=nvptx-tools-dir.tmp/.git archive --prefix=nvptx-tools-%%{nvptx_tools_gitrev}/ %%{nvptx_tools_gitrev} | xz -9e > nvptx-tools-%%{nvptx_tools_gitrev}.tar.xz
+# rm -rf nvptx-tools-dir.tmp
 Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
 # The source for nvptx-newlib package was pulled from upstream's vcs.  Use the
 # following commands to generate the tarball:
-# git clone https://github.com/MentorEmbedded/nvptx-newlib.git
-# cd nvptx-newlib
-# git archive origin/master --prefix=nvptx-newlib-%%{nvptx_newlib_gitrev}/ | xz -9 > ../nvptx-newlib-%%{nvptx_newlib_gitrev}.tar.xz
-# cd ..; rm -rf nvptx-newlib
+# git clone git://sourceware.org/git/newlib-cygwin.git newlib-cygwin-dir.tmp
+# git --git-dir=newlib-cygwin-dir.tmp/.git archive --prefix=newlib-cygwin-%%{newlib_cygwin_gitrev}/ %%{newlib_cygwin_gitrev} ":(exclude)newlib/libc/sys/linux/include/rpc/*.[hx]" | xz -9e > newlib-cygwin-%%{newlib_cygwin_gitrev}.tar.xz
+# rm -rf newlib-cygwin-dir.tmp
 Source2: nvptx-newlib-%{nvptx_newlib_gitrev}.tar.xz
 %global isl_version 0.16.1
 URL: http://gcc.gnu.org
@@ -3131,6 +3132,80 @@ fi
 %endif
 
 %changelog
+* Mon Sep 28 2020 Jakub Jelinek <jakub@redhat.com> 8.4.1-1
+- update from the 8 branch
+  - GCC 8.4 release
+  - PRs bootstrap/94918, c++/60228, c++/61414, c++/82643, c++/86429,
+	c++/86521, c++/86747, c++/87327, c++/87480, c++/87554, c++/87685,
+	c++/87748, c++/87770, c++/88380, c++/88394, c++/89831, c++/89917,
+	c++/90546, c++/90736, c++/90749, c++/90842, c++/90916, c++/90951,
+	c++/90995, c++/90998, c++/91377, c++/91529, c++/91826, c++/91966,
+	c++/92003, c++/92068, c++/92438, c++/92524, c++/92648, c++/92732,
+	c++/92745, c++/92852, c++/92909, c++/92992, c++/93140, c++/93228,
+	c++/93248, c++/93822, c++/93905, c++/93931, c++/94314, c++/94325,
+	c++/94546, c++/94571, c++/94742, c++/94951, c++/95328, c/87488,
+	c/93072, c/93241, c/93348, c/93576, c/93949, c/94172, c/94641,
+	c/94705, c/94842, c/96545, c/96571, debug/92664, debug/92763,
+	debug/93888, debug/94167, debug/94283, debug/94459, debug/95080,
+	debug/96729, driver/92757, fortran/39695, fortran/50392,
+	fortran/59107, fortran/71706, fortran/85982, fortran/88379,
+	fortran/89574, fortran/91944, fortran/92775, fortran/92781,
+	fortran/92899, fortran/92977, fortran/93329, fortran/93423,
+	fortran/93462, fortran/93463, fortran/93484, fortran/93541,
+	fortran/93553, fortran/93592, fortran/93714, fortran/93956,
+	fortran/94030, fortran/94109, fortran/94270, fortran/94361,
+	fortran/94397, fortran/94788, fortran/95614, fortran/95689,
+	fortran/95829, fortran/96041, gcov-profile/91601,
+	gcov-profile/95332, inline-asm/93202, ipa/12345, ipa/92357,
+	ipa/93087, ipa/93223, ipa/94445, libgomp/93065, libgomp/93515,
+	libstdc++/68737, libstdc++/71960, libstdc++/78552,
+	libstdc++/81091, libstdc++/91947, libstdc++/92376,
+	libstdc++/92886, libstdc++/93205, libstdc++/93245,
+	libstdc++/93325, libstdc++/93562, libstdc++/93960,
+	libstdc++/94033, libstdc++/94242, libstdc++/96484,
+	libstdc++/96803, lto/89358, lto/91576, lto/93966, lto/94249,
+	middle-end/90313, middle-end/91226, middle-end/92674,
+	middle-end/92768, middle-end/93054, middle-end/93246,
+	middle-end/93399, middle-end/93505, middle-end/93555,
+	middle-end/93566, middle-end/94111, middle-end/94303,
+	middle-end/94412, middle-end/94423, middle-end/95108,
+	middle-end/95903, middle-end/97073, other/85622, other/93168,
+	other/93965, other/94629, preprocessor/80005,
+	rtl-optimization/91838, rtl-optimization/93088,
+	rtl-optimization/93402, rtl-optimization/93908,
+	rtl-optimization/94002, rtl-optimization/94119,
+	rtl-optimization/94291, rtl-optimization/94618,
+	rtl-optimization/94873, sanitizer/92154, sanitizer/94910,
+	sanitizer/95634, target/12345, target/65782, target/71233,
+	target/87583, target/87763, target/90724, target/91276, target/91298,
+	target/91695, target/91833, target/91834, target/91913, target/92615,
+	target/92692, target/92723, target/92904, target/93053, target/93069,
+	target/93073, target/93274, target/93333, target/93492, target/93568,
+	target/93637, target/93656, target/93658, target/93670, target/93673,
+	target/93696, target/93704, target/93724, target/93819, target/93828,
+	target/94046, target/94052, target/94121, target/94134, target/94368,
+	target/94396, target/94417, target/94435, target/94438, target/94460,
+	target/94488, target/94500, target/94509, target/94514, target/94515,
+	target/94518, target/94556, target/94584, target/94591, target/94603,
+	target/94613, target/94707, target/94710, target/94780, target/94814,
+	target/94820, target/94826, target/94832, target/94833, target/94950,
+	target/95220, target/95258, target/95874, target/95952, target/96139,
+	target/96174, target/96402, target/96536, target/97032,
+	testsuite/94077, tree-optimization/90838, tree-optimization/92420,
+	tree-optimization/92704, tree-optimization/92706,
+	tree-optimization/92930, tree-optimization/93321,
+	tree-optimization/93381, tree-optimization/93434,
+	tree-optimization/93435, tree-optimization/93439,
+	tree-optimization/93667, tree-optimization/93674,
+	tree-optimization/93744, tree-optimization/93767,
+	tree-optimization/93820, tree-optimization/94114,
+	tree-optimization/94130, tree-optimization/94163,
+	tree-optimization/94211, tree-optimization/94329,
+	tree-optimization/94482, tree-optimization/94524,
+	tree-optimization/94809, tree-optimization/94969,
+	tree-optimization/95110, tree-optimization/95857,
+	tree-optimization/96722, tree-optimization/97053
+
 * Thu Nov 21 2019 Jakub Jelinek <jakub@redhat.com> 8.3.1-5
 - update from the 8 branch
   - PRs ada/80590, ada/91995, bootstrap/87030, bootstrap/89864, c++/79274,
