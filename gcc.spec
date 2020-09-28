@@ -260,6 +260,7 @@ Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
 Patch12: gcc8-mcet.patch
 Patch13: gcc8-rh1574936.patch
+Patch14: gcc8-pr95614-revert.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -828,6 +829,8 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch13 -p0 -b .rh1574936~
 %endif
+%patch14 -p0 -b .pr95614-revert~
+rm -f gcc/testsuite/gfortran.dg/pr95614_*.f90
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
