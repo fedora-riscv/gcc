@@ -1,10 +1,10 @@
-%global DATE 20200916
-%global gitrev c65817433fde22de2a18a00be00c2c3d83228453
+%global DATE 20201005
+%global gitrev 2417bb617beaf81ca86c86977e1589ee77c59a99
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -272,7 +272,6 @@ Patch12: gcc10-pr96383.patch
 Patch13: gcc10-pr96939.patch
 Patch14: gcc10-pr96939-2.patch
 Patch15: gcc10-pr96939-3.patch
-Patch16: gcc10-pr97032.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -788,7 +787,6 @@ to NVidia PTX capable devices if available.
 %patch13 -p0 -b .pr96939~
 %patch14 -p0 -b .pr96939-2~
 %patch15 -p0 -b .pr96939-3~
-%patch16 -p0 -b .pr97032~
 find gcc/testsuite -name \*.pr96939~ | xargs rm -f
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
@@ -3056,6 +3054,17 @@ end
 %endif
 
 %changelog
+* Mon Oct  5 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-5
+- update from releases/gcc-10 branch
+  - PRs bootstrap/97163, bootstrap/97183, c++/96994, c++/97145, c++/97195,
+	fortran/93423, fortran/95614, fortran/96041, gcov-profile/64636,
+	gcov-profile/96913, gcov-profile/97069, gcov-profile/97193,
+	libstdc++/94160, libstdc++/94681, libstdc++/96803, libstdc++/97101,
+	libstdc++/97167, middle-end/95464, middle-end/97054, middle-end/97073,
+	preprocessor/96935, target/71233, target/96683, target/96795,
+	target/96827, target/97166, target/97184, target/97231, target/97247,
+	tree-optimization/96979, tree-optimization/97053
+
 * Wed Sep 16 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-4
 - update from releases/gcc-10 branch
   - PRs bootstrap/96203, c++/95164, c++/96862, c++/96901, d/96157, d/96924,
