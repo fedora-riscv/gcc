@@ -995,7 +995,7 @@ CONFIGURE_OPTS="\
 %ifarch s390 s390x
 %if 0%{?rhel} >= 7
 %if 0%{?rhel} > 7
-	--with-arch=zEC12 --with-tune=z13 \
+	--with-arch=z13 --with-tune=z14 \
 %else
 	--with-arch=z196 --with-tune=zEC12 \
 %endif
