@@ -1,10 +1,10 @@
-%global DATE 20201005
-%global gitrev 2417bb617beaf81ca86c86977e1589ee77c59a99
+%global DATE 20201016
+%global gitrev b55a9d01144097312b48281486c03e83cf03fde5
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3054,6 +3054,15 @@ end
 %endif
 
 %changelog
+* Fri Oct 16 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-6
+- update from releases/gcc-10 branch
+  - PRs c++/88115, c++/96229, fortran/97272, libstdc++/95788, libstdc++/97273,
+	lto/97290, middle-end/95189, middle-end/95886, rtl-optimization/97313,
+	target/96313, target/96456, target/97150, target/97251, target/97302,
+	target/97349, tree-optimization/97236, tree-optimization/97255,
+	tree-optimization/97357
+  - fix ICE on building Firefox with LTO+PGO (#1886399, PR ipa/97295)
+
 * Mon Oct  5 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-5
 - update from releases/gcc-10 branch
   - PRs bootstrap/97163, bootstrap/97183, c++/96994, c++/97145, c++/97195,
