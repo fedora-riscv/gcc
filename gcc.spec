@@ -269,6 +269,7 @@ Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-plugins.patch
+Patch13: gcc11-sys-timeb.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -781,6 +782,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .plugins~
+%patch13 -p0 -b .sys-timeb~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 

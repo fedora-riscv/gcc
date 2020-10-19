@@ -1,0 +1,34 @@
+2020-10-19  Jakub Jelinek  <jakub@redhat.com>
+
+	PR sanitizer/97478
+	* sanitizer_common/sanitizer_platform_limits_posix.cpp: Don't include
+	sys/timeb.h for glibc 2.32 or later nor check struct timeb offsets and
+	sizes.
+
+--- libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp.jj	2020-10-19 09:32:35.842909854 +0200
++++ libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp	2020-10-19 21:29:49.803974760 +0200
+@@ -60,7 +60,9 @@
+ #if !SANITIZER_ANDROID
+ #include <fstab.h>
+ #include <sys/mount.h>
++#if !SANITIZER_LINUX || !__GLIBC_PREREQ (2, 32)
+ #include <sys/timeb.h>
++#endif
+ #include <utmpx.h>
+ #endif
+ 
+@@ -1188,12 +1190,14 @@ COMPILER_CHECK(sizeof(__sanitizer_struct
+ #endif
+ 
+ #if !SANITIZER_ANDROID
++#if !SANITIZER_LINUX || !__GLIBC_PREREQ (2, 32)
+ CHECK_TYPE_SIZE(timeb);
+ CHECK_SIZE_AND_OFFSET(timeb, time);
+ CHECK_SIZE_AND_OFFSET(timeb, millitm);
+ CHECK_SIZE_AND_OFFSET(timeb, timezone);
+ CHECK_SIZE_AND_OFFSET(timeb, dstflag);
+ #endif
++#endif
+ 
+ CHECK_TYPE_SIZE(passwd);
+ CHECK_SIZE_AND_OFFSET(passwd, pw_name);
