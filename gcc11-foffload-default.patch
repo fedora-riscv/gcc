@@ -44,7 +44,7 @@ libgomp/
  		    strlen (offload_targets) + 1);
        xputenv (XOBFINISH (&collect_obstack, char *));
 +      if (offload_targets_default)
-+	  xputenv ("OFFLOAD_TARGET_DEFAULT=1");
++	xputenv ("OFFLOAD_TARGET_DEFAULT=1");
      }
  
    free (offload_targets);
@@ -56,9 +56,9 @@ libgomp/
  #define OFFLOAD_TARGET_NAMES_ENV	"OFFLOAD_TARGET_NAMES"
 +#define OFFLOAD_TARGET_DEFAULT_ENV	"OFFLOAD_TARGET_DEFAULT"
  
- enum lto_mode_d {
-   LTO_MODE_NONE,			/* Not doing LTO.  */
-@@ -822,6 +823,12 @@ compile_offload_image (const char *targe
+ /* By default there is no special suffix for target executables.  */
+ #ifdef TARGET_EXECUTABLE_SUFFIX
+@@ -906,6 +907,12 @@ compile_offload_image (const char *targe
  	break;
        }
  
@@ -71,44 +71,38 @@ libgomp/
    if (!compiler)
      fatal_error (input_location,
  		 "could not find %s in %s (consider using %<-B%>)",
-@@ -885,6 +892,7 @@ compile_images_for_offload_targets (unsi
+@@ -975,6 +982,7 @@ compile_images_for_offload_targets (unsi
+   if (!target_names)
+     return;
    unsigned num_targets = parse_env_var (target_names, &names, NULL);
++  int next_name_entry = 0;
  
-   int next_name_entry = 0;
-+  bool hsa_seen = false;
    const char *compiler_path = getenv ("COMPILER_PATH");
    if (!compiler_path)
-     goto out;
-@@ -897,18 +905,26 @@ compile_images_for_offload_targets (unsi
-       /* HSA does not use LTO-like streaming and a different compiler, skip
- 	 it. */
-       if (strcmp (names[i], "hsa") == 0)
--	continue;
-+	{
-+	  hsa_seen = true;
-+	  continue;
-+	}
- 
-       offload_names[next_name_entry]
+@@ -985,13 +993,19 @@ compile_images_for_offload_targets (unsi
+   offload_names = XCNEWVEC (char *, num_targets + 1);
+   for (unsigned i = 0; i < num_targets; i++)
+     {
+-      offload_names[i]
++      offload_names[next_name_entry]
  	= compile_offload_image (names[i], compiler_path, in_argc, in_argv,
  				 compiler_opts, compiler_opt_count,
  				 linker_opts, linker_opt_count);
-       if (!offload_names[next_name_entry])
+-      if (!offload_names[i])
 -	fatal_error (input_location,
 -		     "problem with building target image for %s", names[i]);
++      if (!offload_names[next_name_entry])
 +	continue;
-       next_name_entry++;
-     }
- 
-+  if (next_name_entry == 0 && !hsa_seen)
++      next_name_entry++;
++    }
++
++  if (next_name_entry == 0)
 +    {
 +      free (offload_names);
 +      offload_names = NULL;
-+    }
-+
+     }
+ 
   out:
-   free_array_of_ptrs ((void **) names, num_targets);
- }
 --- libgomp/target.c.jj	2017-01-01 12:45:52.000000000 +0100
 +++ libgomp/target.c	2017-01-20 20:12:13.756710875 +0100
 @@ -2356,7 +2356,7 @@ gomp_load_plugin_for_device (struct gomp
