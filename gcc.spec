@@ -270,6 +270,7 @@ Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-plugins.patch
 Patch13: gcc11-sys-timeb.patch
+Patch14: gcc11-pr97502-workaround.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -783,6 +784,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .plugins~
 %patch13 -p0 -b .sys-timeb~
+%patch14 -p0 -b .pr97502-workaround~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 

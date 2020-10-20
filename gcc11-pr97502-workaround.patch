@@ -1,0 +1,16 @@
+Add workaround for PR bootstrap/97502.
+
+--- gcc/config/s390/s390.c.jj	2020-10-20 09:11:31.903877892 +0200
++++ gcc/config/s390/s390.c	2020-10-20 15:38:10.860835675 +0200
+@@ -9778,7 +9778,10 @@ s390_register_info ()
+       clobbered_regs[i] = df_regs_ever_live_p (i);
+ 
+   for (i = 0; i < 32; i++)
+-    clobbered_regs[i] = clobbered_regs[i] && !global_regs[i];
++    {
++      volatile char gr = global_regs[i];
++      clobbered_regs[i] = clobbered_regs[i] && !gr;
++    }
+ 
+   /* Mark the call-saved FPRs which need to be saved.
+      This needs to be done before checking the special GPRs since the
