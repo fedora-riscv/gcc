@@ -979,6 +979,9 @@ CONFIGURE_OPTS="\
 	--with-arch=x86-64 \
 %endif
 %ifarch x86_64
+%if 0%{?rhel} > 8
+	--with-arch_64=x86-64-v2 \
+%endif
 	--with-arch_32=x86-64 \
 %endif
 %else
@@ -992,7 +995,11 @@ CONFIGURE_OPTS="\
 %ifarch s390 s390x
 %if 0%{?rhel} >= 7
 %if 0%{?rhel} > 7
+%if 0%{?rhel} > 8
+	--with-arch=z13 --with-tune=arch13 \
+%else
 	--with-arch=z13 --with-tune=z14 \
+%endif
 %else
 	--with-arch=z196 --with-tune=zEC12 \
 %endif
@@ -3059,5 +3066,8 @@ end
 %endif
 
 %changelog
+- for ELN default to -march=x86-64-v2 for x86 64-bit compilation and
+  for s390x to -march=z13 -mtune=arch13
+
 * Mon Oct 19 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.2
 - new package
