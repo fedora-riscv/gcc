@@ -1,5 +1,5 @@
-%global DATE 20201019
-%global gitrev 6e9eb3e01f683e4b1b40018476c72bed7a9a35f7
+%global DATE 20201029
+%global gitrev eb27c0bb1399d89f3abc91a4cafd0e9c7158ed03
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.2%{?dist}
+Release: %{gcc_release}.3%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -268,9 +268,7 @@ Patch8: gcc11-foffload-default.patch
 Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
-Patch12: gcc11-plugins.patch
-Patch13: gcc11-sys-timeb.patch
-Patch14: gcc11-pr97502-workaround.patch
+Patch12: gcc11-sys-timeb.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -782,9 +780,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .plugins~
-%patch13 -p0 -b .sys-timeb~
-%patch14 -p0 -b .pr97502-workaround~
+%patch12 -p0 -b .sys-timeb~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -2198,6 +2194,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/x86gprintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/uintrintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/hresetintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/keylockerintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3066,6 +3063,32 @@ end
 %endif
 
 %changelog
+* Thu Oct 29 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.3
+- update from trunk
+  - PRs ada/97504, analyzer/96608, analyzer/97489, analyzer/97514,
+	analyzer/97568, analyzer/97608, bootstrap/97451, c++/82239, c++/86773,
+	c++/91741, c++/94799, c++/95132, c++/96241, c++/96575, c++/96675,
+	c++/96742, c++/97328, c++/97438, c++/97511, c++/97573, c/94722,
+	c/97463, fortran/45516, fortran/97454, gcov-profile/97461, ipa/97445,
+	ipa/97576, ipa/97586, libstdc++/94268, libstdc++/95592,
+	libstdc++/95609, libstdc++/95917, libstdc++/96713, libstdc++/97512,
+	libstdc++/97570, lto/96680, lto/97524, middle-end/92942,
+	middle-end/97521, middle-end/97552, rtl-optimization/97249,
+	rtl-optimization/97439, rtl-optimization/97497, sanitizer/97414,
+	target/87767, target/95151, target/95458, target/97360, target/97502,
+	target/97506, target/97535, testsuite/81690, testsuite/97590,
+	tree-optimization/66552, tree-optimization/97164,
+	tree-optimization/97360, tree-optimization/97456,
+	tree-optimization/97457, tree-optimization/97466,
+	tree-optimization/97467, tree-optimization/97486,
+	tree-optimization/97488, tree-optimization/97496,
+	tree-optimization/97500, tree-optimization/97501,
+	tree-optimization/97503, tree-optimization/97505,
+	tree-optimization/97515, tree-optimization/97520,
+	tree-optimization/97538, tree-optimization/97539,
+	tree-optimization/97546, tree-optimization/97555,
+	tree-optimization/97560, tree-optimization/97567,
+	tree-optimization/97615
 - for ELN default to -march=x86-64-v2 for x86 64-bit compilation and
   for s390x to -march=z13 -mtune=arch13
 
