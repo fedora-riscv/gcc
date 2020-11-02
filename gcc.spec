@@ -1,10 +1,10 @@
-%global DATE 20201016
-%global gitrev b55a9d01144097312b48281486c03e83cf03fde5
+%global DATE 20201102
+%global gitrev 736fd853f0e75ad3f91bdc7156f6b4475a1b60c1
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3054,6 +3054,15 @@ end
 %endif
 
 %changelog
+* Mon Nov  2 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-7
+- update from releases/gcc-10 branch
+  - PRs c++/95132, c++/96241, c++/97010, c++/97197, c++/97328, fortran/95979,
+	ipa/96394, ipa/97404, libstdc++/97132, lto/97508,
+	rtl-optimization/97386, rtl-optimization/97439, sanitizer/97294,
+	sanitizer/97414, target/96759, target/96914, target/97291,
+	target/97327, target/97506, testsuite/95886, tree-optimization/97081,
+	tree-optimization/97456
+
 * Fri Oct 16 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-6
 - update from releases/gcc-10 branch
   - PRs c++/88115, c++/96229, fortran/97272, libstdc++/95788, libstdc++/97273,
