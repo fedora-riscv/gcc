@@ -1,0 +1,34 @@
+2020-11-11  Jason Merrill  <jason@redhat.com>
+
+	PR debug/97060
+	* dwarf2out.c (gen_subprogram_die): It's a declaration
+	if DECL_INITIAL isn't set.
+
+	* gcc.dg/debug/dwarf2/pr97060.c: New test.
+
+--- gcc/dwarf2out.c
++++ gcc/dwarf2out.c
+@@ -22859,6 +22859,7 @@ gen_subprogram_die (tree decl, dw_die_ref context_die)
+           available.
+   */
+   int declaration = (current_function_decl != decl
++		     || (!DECL_INITIAL (decl) && !origin)
+ 		     || class_or_namespace_scope_p (context_die));
+ 
+   /* A declaration that has been previously dumped needs no
+--- gcc/testsuite/gcc.dg/debug/dwarf2/pr97060.c
++++ gcc/testsuite/gcc.dg/debug/dwarf2/pr97060.c
+@@ -0,0 +1,13 @@
++/* PR debug/97060 */
++/* { dg-do compile } */
++/* { dg-options "-g -dA" } */
++/* { dg-final { scan-assembler-times "DW_AT_declaration" 2 } } */
++
++extern int foo (unsigned int, unsigned int);
++
++int
++bar (void)
++{
++  foo (1, 2);
++  return 0;
++}

@@ -1,10 +1,10 @@
-%global DATE 20201102
-%global gitrev 736fd853f0e75ad3f91bdc7156f6b4475a1b60c1
+%global DATE 20201112
+%global gitrev 86495efb7a403b1ee3419fb3b3b1aaf26345ada5
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -171,7 +171,7 @@ BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 BuildRequires: systemtap-sdt-devel >= 1.3
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 3.1.0, libmpc-devel >= 0.8.1
 BuildRequires: python3-devel, /usr/bin/python
-BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++, make
 %if %{build_go}
 BuildRequires: hostname, procps
 %endif
@@ -248,6 +248,8 @@ Requires: glibc >= 2.16
 %endif
 Requires: libgcc >= %{version}-%{release}
 Requires: libgomp = %{version}-%{release}
+# lto-wrapper invokes make
+Requires: make
 %if !%{build_ada}
 Obsoletes: gcc-gnat < %{version}-%{release}
 %endif
@@ -272,6 +274,7 @@ Patch12: gcc10-pr96383.patch
 Patch13: gcc10-pr96939.patch
 Patch14: gcc10-pr96939-2.patch
 Patch15: gcc10-pr96939-3.patch
+Patch16: gcc10-pr97060.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -788,6 +791,7 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .pr96939-2~
 %patch15 -p0 -b .pr96939-3~
 find gcc/testsuite -name \*.pr96939~ | xargs rm -f
+%patch16 -p0 -b .pr97060~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3054,6 +3058,18 @@ end
 %endif
 
 %changelog
+* Thu Nov 12 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-8
+- update from releases/gcc-10 branch
+  - PRs c++/97412, fortran/92793, fortran/97652, libstdc++/92285,
+	libstdc++/96269, libstdc++/97362, libstdc++/97731, middle-end/97392,
+	target/85486, target/97360, target/97638, target/97685,
+	testsuite/80219, testsuite/85303, testsuite/97688, testsuite/97797,
+	tree-optimization/97633, tree-optimization/97764
+  - fix up Fortran ICE on operator with CHARACTER operand (#1895612,
+    PR fortran/97768)
+- emit DW_AT_declaration on declaration-only DIEs (#1889516, PR debug/97060)
+- add BuildRequires: make and Requires: make, the latter for -flto reasons
+
 * Mon Nov  2 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-7
 - update from releases/gcc-10 branch
   - PRs c++/95132, c++/96241, c++/97010, c++/97197, c++/97328, fortran/95979,
