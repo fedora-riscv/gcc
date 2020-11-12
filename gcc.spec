@@ -171,7 +171,7 @@ BuildRequires: texinfo, texinfo-tex, /usr/bin/pod2man
 BuildRequires: systemtap-sdt-devel >= 1.3
 BuildRequires: gmp-devel >= 4.1.2-8, mpfr-devel >= 3.1.0, libmpc-devel >= 0.8.1
 BuildRequires: python3-devel, /usr/bin/python
-BuildRequires: gcc, gcc-c++
+BuildRequires: gcc, gcc-c++, make
 %if %{build_go}
 BuildRequires: hostname, procps
 %endif
@@ -248,6 +248,8 @@ Requires: glibc >= 2.16
 %endif
 Requires: libgcc >= %{version}-%{release}
 Requires: libgomp = %{version}-%{release}
+# lto-wrapper invokes make
+Requires: make
 %if !%{build_ada}
 Obsoletes: gcc-gnat < %{version}-%{release}
 %endif
@@ -3063,6 +3065,8 @@ end
 %endif
 
 %changelog
+- add BuildRequires: make and Requires: make, the latter for -flto reasons
+
 * Thu Oct 29 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.3
 - update from trunk
   - PRs ada/97504, analyzer/96608, analyzer/97489, analyzer/97514,
