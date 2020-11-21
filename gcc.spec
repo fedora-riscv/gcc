@@ -1,5 +1,5 @@
-%global DATE 20201029
-%global gitrev eb27c0bb1399d89f3abc91a4cafd0e9c7158ed03
+%global DATE 20201121
+%global gitrev 884acdd732d4260800c53157343bd282806ad041
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.3%{?dist}
+Release: %{gcc_release}.4%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2197,6 +2197,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/uintrintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/hresetintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/keylockerintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avxvnniintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3065,6 +3066,61 @@ end
 %endif
 
 %changelog
+* Sat Nov 21 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.4
+- update from trunk
+  - PRs ada/97805, ada/97859, analyzer/97668, analyzer/97893, bootstrap/57076,
+	bootstrap/97666, bootstrap/97857, c++/25814, c++/52830, c++/63287,
+	c++/67453, c++/78209, c++/81660, c++/87765, c++/88115, c++/88982,
+	c++/89565, c++/90799, c++/91318, c++/93107, c++/93907, c++/95808,
+	c++/97388, c++/97412, c++/97453, c++/97479, c++/97518, c++/97523,
+	c++/97632, c++/97663, c++/97670, c++/97675, c++/97762, c++/97790,
+	c++/97871, c++/97877, c++/97895, c++/97905, c++/97918, c/90628,
+	c/97748, c/97860, d/97644, d/97842, d/97843, debug/97060, debug/97599,
+	debug/97718, driver/97574, fortran/90111, fortran/92793,
+	fortran/94358, fortran/95847, fortran/97652, fortran/97655,
+	fortran/97768, fortran/97782, ipa/97578, ipa/97660, ipa/97695,
+	ipa/97698, ipa/97816, jit/87291, libstdc++/55394, libstdc++/66146,
+	libstdc++/83938, libstdc++/84323, libstdc++/88101, libstdc++/92285,
+	libstdc++/92546, libstdc++/93421, libstdc++/93456, libstdc++/94971,
+	libstdc++/95989, libstdc++/96269, libstdc++/96958, libstdc++/97415,
+	libstdc++/97600, libstdc++/97613, libstdc++/97719, libstdc++/97729,
+	libstdc++/97731, libstdc++/97758, libstdc++/97798, libstdc++/97828,
+	libstdc++/97869, lto/97290, lto/97508, middle-end/85811,
+	middle-end/95673, middle-end/97267, middle-end/97556,
+	middle-end/97579, middle-end/97840, middle-end/97862,
+	middle-end/97879, objc/77404, objc/90707, objc/97854, other/97911,
+	pch/86674, pch/97593, preprocessor/97858, rtl-optimization/92180,
+	rtl-optimization/97705, sanitizer/95634, target/31799, target/85486,
+	target/91489, target/93449, target/96307, target/96770, target/96791,
+	target/96933, target/96967, target/96998, target/97140, target/97194,
+	target/97205, target/97326, target/97528, target/97532, target/97540,
+	target/97638, target/97682, target/97685, target/97715, target/97726,
+	target/97727, target/97730, target/97870, target/97873,
+	testsuite/80219, testsuite/85303, testsuite/97117, testsuite/97688,
+	testsuite/97788, testsuite/97797, testsuite/97803,
+	tree-optimization/80928, tree-optimization/83072,
+	tree-optimization/91029, tree-optimization/93781,
+	tree-optimization/94406, tree-optimization/96671,
+	tree-optimization/96789, tree-optimization/97223,
+	tree-optimization/97424, tree-optimization/97558,
+	tree-optimization/97609, tree-optimization/97623,
+	tree-optimization/97626, tree-optimization/97633,
+	tree-optimization/97650, tree-optimization/97678,
+	tree-optimization/97690, tree-optimization/97693,
+	tree-optimization/97706, tree-optimization/97709,
+	tree-optimization/97721, tree-optimization/97725,
+	tree-optimization/97732, tree-optimization/97733,
+	tree-optimization/97736, tree-optimization/97737,
+	tree-optimization/97741, tree-optimization/97746,
+	tree-optimization/97753, tree-optimization/97760,
+	tree-optimization/97761, tree-optimization/97764,
+	tree-optimization/97765, tree-optimization/97767,
+	tree-optimization/97769, tree-optimization/97780,
+	tree-optimization/97806, tree-optimization/97812,
+	tree-optimization/97830, tree-optimization/97835,
+	tree-optimization/97838, tree-optimization/97886,
+	tree-optimization/97888, tree-optimization/97897,
+	tree-optimization/97901
 - add BuildRequires: make and Requires: make, the latter for -flto reasons
 
 * Thu Oct 29 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.3
