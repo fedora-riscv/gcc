@@ -1,5 +1,5 @@
-%global DATE 20201121
-%global gitrev 884acdd732d4260800c53157343bd282806ad041
+%global DATE 20201124
+%global gitrev 008beaed5690eb209350ca87f9bc7d22687553dd
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.4%{?dist}
+Release: %{gcc_release}.5%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -782,7 +782,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .sys-timeb~
+#%patch12 -p0 -b .sys-timeb~
+rm -f libstdc++-v3/testsuite/29_atomics/atomic_float/1.cc libstdc++-v3/testsuite/29_atomics/atomic_ref/wait_notify.cc
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3066,6 +3067,11 @@ end
 %endif
 
 %changelog
+* Tue Nov 24 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.5
+- update from trunk
+  - PRs c++/94695, c++/97427, c++/97839, c++/97846, c++/97881, c++/97904,
+	c/95630, d/97889, libstdc++/97948, tree-optimization/95853
+
 * Sat Nov 21 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.4
 - update from trunk
   - PRs ada/97805, ada/97859, analyzer/97668, analyzer/97893, bootstrap/57076,
