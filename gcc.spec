@@ -1,10 +1,10 @@
-%global DATE 20201112
-%global gitrev 86495efb7a403b1ee3419fb3b3b1aaf26345ada5
+%global DATE 20201125
+%global gitrev 2cd1f70a7b47cb9bd8da4aa4663e7d75b0cfcac5
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -791,7 +791,7 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .pr96939-2~
 %patch15 -p0 -b .pr96939-3~
 find gcc/testsuite -name \*.pr96939~ | xargs rm -f
-%patch16 -p0 -b .pr97060~
+#%patch16 -p0 -b .pr97060~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3058,6 +3058,17 @@ end
 %endif
 
 %changelog
+* Wed Nov 25 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-9
+- update from releases/gcc-10 branch
+  - PRs c++/67453, c++/96805, c++/97663, c++/97790, c/97748, c/97958, d/97842,
+	d/97843, d/97889, fortran/95847, fortran/97782, libstdc++/93456,
+	libstdc++/95989, libstdc++/96042, libstdc++/97798, libstdc++/97828,
+	libstdc++/97869, libstdc++/97876, target/97528, target/97534,
+	target/97535, target/97682, target/97727, target/97730, target/97887
+  - fix LTO -g ICE on firefox 83 (#1899294, PR c++/97918)
+  - fix DW_TAG_unspecified_parameters for LTO or function clones
+    (#1893340, PR debug/97599)
+
 * Thu Nov 12 2020 Jakub Jelinek <jakub@redhat.com> 10.2.1-8
 - update from releases/gcc-10 branch
   - PRs c++/97412, fortran/92793, fortran/97652, libstdc++/92285,
