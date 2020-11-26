@@ -1,5 +1,5 @@
-%global DATE 20201124
-%global gitrev 008beaed5690eb209350ca87f9bc7d22687553dd
+%global DATE 20201126
+%global gitrev 561c0f66b6c791fe35981f8bda9cc532fc407e6d
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.5%{?dist}
+Release: %{gcc_release}.6%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3067,6 +3067,15 @@ end
 %endif
 
 %changelog
+* Thu Nov 26 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.6
+- update from trunk
+  - PRs bootstrap/94982, bootstrap/97622, bootstrap/97933, c++/97899, c/97958,
+	fortran/85796, libstdc++/67791, libstdc++/97935, libstdc++/97936,
+	libstdc++/97944, middle-end/97943, middle-end/97956,
+	rtl-optimization/95862, target/91816, target/97534, target/97950,
+	tree-optimization/96929, tree-optimization/97849,
+	tree-optimization/97964
+
 * Tue Nov 24 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.5
 - update from trunk
   - PRs c++/94695, c++/97427, c++/97839, c++/97846, c++/97881, c++/97904,
