@@ -27,10 +27,10 @@
  # and compile them.
 --- gcc/graphite.h.jj	2016-01-27 12:44:06.000000000 +0100
 +++ gcc/graphite.h	2016-01-27 13:26:38.309876856 +0100
-@@ -39,6 +39,590 @@ along with GCC; see the file COPYING3.
- #include <isl/schedule_node.h>
- #include <isl/id.h>
- #include <isl/space.h>
+@@ -24,6 +24,591 @@ along with GCC; see the file COPYING3.
+ 
+ #include "sese.h"
+ 
 +#include <isl/version.h>
 +#include <dlfcn.h>
 +
@@ -615,10 +615,11 @@
 +#define isl_version (*isl_pointers__.p_isl_version)
 +#define isl_options_get_on_error (*isl_pointers__.p_isl_options_get_on_error)
 +#define isl_ctx_reset_error (*isl_pointers__.p_isl_ctx_reset_error)
- 
++
  typedef struct poly_dr *poly_dr_p;
  
-@@ -461,5 +1045,6 @@ extern void build_scops (vec<scop_p> *);
+ typedef struct poly_bb *poly_bb_p;
+@@ -448,5 +1033,6 @@ extern tree cached_scalar_evolution_in_r
  extern void dot_all_sese (FILE *, vec<sese_l> &);
  extern void dot_sese (sese_l &);
  extern void dot_cfg ();
