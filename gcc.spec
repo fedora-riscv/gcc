@@ -1,5 +1,5 @@
-%global DATE 20201204
-%global gitrev d35391d824edee33b5fbce3df058f4fafd9b9fa6
+%global DATE 20201216
+%global gitrev ada196afb999077a634220ace175f349418e3078
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.7%{?dist}
+Release: %{gcc_release}.8%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -272,6 +272,7 @@ Patch8: gcc11-foffload-default.patch
 Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
+Patch12: gcc11-pr98282.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -783,6 +784,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr98282~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -2403,6 +2405,7 @@ end
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}
 %dir %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 %{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cc1plus
+%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/g++-mapper-server
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++.so
@@ -3066,6 +3069,40 @@ end
 %endif
 
 %changelog
+* Wed Dec 17 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.8
+- update from trunk
+  - PRs ada/98230, bootstrap/98188, c++/57111, c++/59238, c++/68451,
+	c++/78173, c++/91506, c++/93083, c++/96299, c++/97093, c++/97517,
+	c++/98043, c++/98103, c++/98122, c++/98126, c++/98130, c++/98187,
+	c++/98193, c/97981, c/98200, d/98277, fortran/90207, fortran/98016,
+	fortran/98022, gcov-profile/98273, libstdc++/98108, libstdc++/98226,
+	lto/98275, middle-end/94600, middle-end/98160, middle-end/98166,
+	middle-end/98183, middle-end/98190, middle-end/98205,
+	middle-end/98264, rtl-optimization/97092, rtl-optimization/97421,
+	rtl-optimization/98212, rtl-optimization/98229, sanitizer/98204,
+	target/58901, target/66791, target/92469, target/94440, target/95294,
+	target/96226, target/96470, target/97865, target/97872, target/98100,
+	target/98147, target/98152, target/98161, target/98162, target/98219,
+	target/98274, testsuite/95900, testsuite/98123, testsuite/98156,
+	testsuite/98239, testsuite/98240, testsuite/98242, testsuite/98244,
+	tree-optimization/95582, tree-optimization/96094,
+	tree-optimization/96232, tree-optimization/96272,
+	tree-optimization/96344, tree-optimization/96685,
+	tree-optimization/97559, tree-optimization/97929,
+	tree-optimization/98069, tree-optimization/98113,
+	tree-optimization/98117, tree-optimization/98137,
+	tree-optimization/98169, tree-optimization/98174,
+	tree-optimization/98180, tree-optimization/98182,
+	tree-optimization/98191, tree-optimization/98192,
+	tree-optimization/98199, tree-optimization/98211,
+	tree-optimization/98213, tree-optimization/98235,
+	tree-optimization/98256
+  - C++20 modules support
+  - fix up __patchable_function_entries handling when gcc is configured
+    against recent binutils (#1907945)
+- fix up handling of non-memory VIEW_CONVERT_EXPRs in PRE
+  (PR tree-optimization/98282)
+
 * Fri Dec  4 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.7
 - update from trunk
   - PRs bootstrap/97983, c++/80780, c++/90629, c++/93093, c++/97187,
