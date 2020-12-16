@@ -3069,7 +3069,7 @@ end
 %endif
 
 %changelog
-* Wed Dec 17 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.8
+* Wed Dec 16 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.8
 - update from trunk
   - PRs ada/98230, bootstrap/98188, c++/57111, c++/59238, c++/68451,
 	c++/78173, c++/91506, c++/93083, c++/96299, c++/97093, c++/97517,
