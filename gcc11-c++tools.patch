@@ -28,9 +28,9 @@
 -libexecsubdir := $(libexecdir)/gcc/$(target_noncanonical)/$(version)
 +gcc_version := $(shell @get_gcc_base_ver@ $(srcdir)/../gcc/BASE-VER)
 +libexecsubdir := $(libexecdir)/gcc/$(target_noncanonical)/$(gcc_version)
- INSTALL_PROGRAM := @INSTALL_PROGRAM@
- INSTALL_STRIP_PROGRAM := $(srcdir)/../install-sh -c -s
+ INSTALL := @INSTALL@
  AUTOCONF := @AUTOCONF@
+ AUTOHEADER := @AUTOHEADER@
 --- c++tools/configure.jj	2020-12-16 23:38:34.091923526 +0100
 +++ c++tools/configure	2020-12-17 00:02:53.849599006 +0100
 @@ -585,6 +585,7 @@ ac_unique_file="c++tools"
