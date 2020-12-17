@@ -1,5 +1,5 @@
-%global DATE 20201217
-%global gitrev cefb7ee9ef972ce42e8e54a65ef972386b8897d9
+%global DATE 20201216
+%global gitrev ada196afb999077a634220ace175f349418e3078
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.9%{?dist}
+Release: %{gcc_release}.10%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -274,6 +274,7 @@ Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98282.patch
 Patch13: gcc11-pr98338-workaround.patch
+Patch14: gcc11-c++tools.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -787,6 +788,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98282~
 %patch13 -p0 -b .pr98338-workaround~
+%patch14 -p0 -b .c++tools~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3071,13 +3073,9 @@ end
 %endif
 
 %changelog
-* Thu Dec 17 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.9
-- update from trunk
-  - PRs c/98047, c/98260, fortran/98284, libstdc++/46447, libstdc++/93151,
-	libstdc++/96083, libstdc++/98319, rtl-optimization/98271,
-	rtl-optimization/98276, sanitizer/97868, target/98146, target/98280,
-	tree-optimization/96239, tree-optimization/98272,
-	tree-optimization/98279
+* Thu Dec 17 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.10
+- apply workaround for profiledbootstrap x86_64 failure
+- put g++-mapper-server into the right directory
 
 * Wed Dec 16 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.8
 - update from trunk
