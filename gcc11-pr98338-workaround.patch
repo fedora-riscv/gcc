@@ -1,0 +1,17 @@
+2020-12-17  Jakub Jelinek  <jakub@redhat.com>
+
+	PR bootstrap/98338
+	* range-op.cc (operator_plus::op2_range): Tail-call op1_range
+	to work-around ICF profile merging ICE during profiledbootstrap.
+
+--- gcc/range-op.cc.jj	2020-12-17 16:06:39.789526868 +0100
++++ gcc/range-op.cc	2020-12-17 16:19:18.127240700 +0100
+@@ -950,7 +950,7 @@ operator_plus::op2_range (irange &r, tre
+ 			  const irange &lhs,
+ 			  const irange &op1) const
+ {
+-  return range_op_handler (MINUS_EXPR, type)->fold_range (r, type, lhs, op1);
++  return op1_range (r, type, lhs, op1);
+ }
+ 
+ 
