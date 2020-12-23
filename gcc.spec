@@ -1,5 +1,5 @@
-%global DATE 20201216
-%global gitrev ada196afb999077a634220ace175f349418e3078
+%global DATE 20201223
+%global gitrev 9265a9d6eb38913206ddc37009fd548c2e4f5de0
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.10%{?dist}
+Release: %{gcc_release}.11%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -274,7 +274,6 @@ Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98282.patch
 Patch13: gcc11-pr98338-workaround.patch
-Patch14: gcc11-c++tools.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -788,7 +787,6 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98282~
 %patch13 -p0 -b .pr98338-workaround~
-%patch14 -p0 -b .c++tools~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3073,6 +3071,22 @@ end
 %endif
 
 %changelog
+* Wed Dec 23 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.11
+- update from trunk
+  - PRs bootstrap/98300, bootstrap/98380, bootstrap/98412, c++/67343,
+	c++/93480, c++/96840, c++/98340, c++/98343, c++/98353, c++/98383,
+	c/98047, c/98260, d/98067, fortran/83118, fortran/92587,
+	fortran/96012, fortran/98284, fortran/98307, go/98402,
+	libstdc++/46447, libstdc++/93151, libstdc++/96083, libstdc++/98319,
+	libstdc++/98344, libstdc++/98370, libstdc++/98374, libstdc++/98377,
+	middle-end/98366, other/98400, other/98409, rtl-optimization/98271,
+	rtl-optimization/98276, rtl-optimization/98289,
+	rtl-optimization/98347, sanitizer/97868, target/96793, target/98146,
+	target/98177, target/98280, tree-optimization/96239,
+	tree-optimization/97750, tree-optimization/98272,
+	tree-optimization/98279, tree-optimization/98378,
+	tree-optimization/98407
+
 * Thu Dec 17 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.10
 - apply workaround for profiledbootstrap x86_64 failure
 - put g++-mapper-server into the right directory
