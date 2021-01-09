@@ -1,5 +1,5 @@
-%global DATE 20201223
-%global gitrev 9265a9d6eb38913206ddc37009fd548c2e4f5de0
+%global DATE 20210109
+%global gitrev 9971024e74d1681c78e9b1f0b7ea1e8a6cda7304
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.11%{?dist}
+Release: %{gcc_release}.12%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -272,8 +272,7 @@ Patch8: gcc11-foffload-default.patch
 Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
-Patch12: gcc11-pr98282.patch
-Patch13: gcc11-pr98338-workaround.patch
+Patch12: gcc11-pr98338-workaround.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -785,8 +784,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr98282~
-%patch13 -p0 -b .pr98338-workaround~
+%patch12 -p0 -b .pr98338-workaround~
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3071,6 +3069,36 @@ end
 %endif
 
 %changelog
+* Sat Jan  9 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.12
+- update from trunk
+  - PRs analyzer/97072, analyzer/97074, analyzer/98073, analyzer/98223,
+	analyzer/98293, analyzer/98564, analyzer/98580, bootstrap/98324,
+	bootstrap/98506, c++/82099, c++/95768, c++/96045, c++/96504,
+	c++/97597, c++/98206, c++/98305, c++/98316, c++/98329, c++/98332,
+	c++/98353, c++/98413, c++/98441, c++/98469, c++/98515, c++/98551,
+	c/98029, d/98427, fortran/83118, fortran/93701, fortran/93794,
+	fortran/93833, fortran/97612, fortran/97694, fortran/97723,
+	fortran/98022, fortran/98458, libstdc++/98384, middle-end/98160,
+	middle-end/98578, other/98437, rtl-optimization/97144,
+	rtl-optimization/97978, rtl-optimization/98214,
+	rtl-optimization/98334, rtl-optimization/98403, target/89057,
+	target/96793, target/97269, target/98461, target/98482, target/98495,
+	target/98521, target/98522, target/98567, target/98585,
+	testsuite/98489, testsuite/98566, tree-optimization/56719,
+	tree-optimization/94785, tree-optimization/94802,
+	tree-optimization/94994, tree-optimization/95401,
+	tree-optimization/95582, tree-optimization/95771,
+	tree-optimization/96239, tree-optimization/96782,
+	tree-optimization/96928, tree-optimization/96930,
+	tree-optimization/98282, tree-optimization/98291,
+	tree-optimization/98302, tree-optimization/98308,
+	tree-optimization/98371, tree-optimization/98381,
+	tree-optimization/98393, tree-optimization/98428,
+	tree-optimization/98464, tree-optimization/98474,
+	tree-optimization/98513, tree-optimization/98514,
+	tree-optimization/98516, tree-optimization/98544,
+	tree-optimization/98560, tree-optimization/98568
+
 * Wed Dec 23 2020 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.11
 - update from trunk
   - PRs bootstrap/98300, bootstrap/98380, bootstrap/98412, c++/67343,
