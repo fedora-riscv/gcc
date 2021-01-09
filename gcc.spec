@@ -294,7 +294,7 @@ Patch12: gcc11-pr98338-workaround.patch
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
 %global __os_install_post \
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.18.* \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.* \
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -302,7 +302,7 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
 %__os_install_post \
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.18.* \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.* \
 chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -1388,7 +1388,7 @@ ln -sf ../../../libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../libgfortran.so.5.* libgfortran.so
 ln -sf ../../../libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../libgo.so.18.* libgo.so
+ln -sf ../../../libgo.so.19.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../libquadmath.so.0.* libquadmath.so
@@ -1418,7 +1418,7 @@ ln -sf ../../../../%{_lib}/libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../../%{_lib}/libgfortran.so.5.* libgfortran.so
 ln -sf ../../../../%{_lib}/libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../../%{_lib}/libgo.so.18.* libgo.so
+ln -sf ../../../../%{_lib}/libgo.so.19.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../../%{_lib}/libquadmath.so.0.* libquadmath.so
@@ -1538,8 +1538,8 @@ ln -sf ../`echo ../../../../lib/libgfortran.so.5.* | sed s~/lib/~/lib64/~` 64/li
 ln -sf ../`echo ../../../../lib/libgomp.so.1.* | sed s~/lib/~/lib64/~` 64/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.18.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.18.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1637,8 +1637,8 @@ ln -sf ../`echo ../../../../lib64/libgfortran.so.5.* | sed s~/../lib64/~/~` 32/l
 ln -sf ../`echo ../../../../lib64/libgomp.so.1.* | sed s~/../lib64/~/~` 32/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.18.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.18.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1825,7 +1825,7 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.18.*
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.*
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
@@ -2961,7 +2961,7 @@ end
 %doc rpm.doc/go/*
 
 %files -n libgo
-%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.18*
+%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.19*
 %doc rpm.doc/libgo/*
 
 %files -n libgo-devel
