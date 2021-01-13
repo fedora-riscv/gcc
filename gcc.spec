@@ -1,5 +1,5 @@
-%global DATE 20210109
-%global gitrev 9971024e74d1681c78e9b1f0b7ea1e8a6cda7304
+%global DATE 20210113
+%global gitrev 12a2ec94f0612806441cdf5a9aab09ecf9b23deb
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.12%{?dist}
+Release: %{gcc_release}.13%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3069,6 +3069,17 @@ end
 %endif
 
 %changelog
+* Wed Jan 13 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.13
+- update from trunk
+  - PRs analyzer/98628, c++/97284, c++/98481, c++/98556, c++/98611, c++/98620,
+	c/98592, debug/97714, jit/98615, libstdc++/98613,
+	rtl-optimization/98603, target/97875, target/97969, target/98612,
+	testsuite/98225, testsuite/98602, tree-optimization/91403,
+	tree-optimization/95731, tree-optimization/95852,
+	tree-optimization/95867, tree-optimization/98526,
+	tree-optimization/98550, tree-optimization/98629
+  - fix ICEs in print_mem_ref (#1915400, #1915437, #1915781, PR c/98597)
+
 * Sat Jan  9 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.12
 - update from trunk
   - PRs analyzer/97072, analyzer/97074, analyzer/98073, analyzer/98223,
