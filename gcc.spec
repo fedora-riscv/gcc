@@ -261,7 +261,6 @@ Provides: bundled(libiberty)
 Provides: gcc(major) = %{gcc_major}
 
 Patch0: gcc11-hack.patch
-Patch1: gcc11-i386-libgomp.patch
 Patch2: gcc11-sparc-config-detection.patch
 Patch3: gcc11-libgomp-omp_h-multilib.patch
 Patch4: gcc11-libtool-no-rpath.patch
@@ -767,7 +766,6 @@ to NVidia PTX capable devices if available.
 %prep
 %setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
 %patch0 -p0 -b .hack~
-%patch1 -p0 -b .i386-libgomp~
 %patch2 -p0 -b .sparc-config-detection~
 %patch3 -p0 -b .libgomp-omp_h-multilib~
 %patch4 -p0 -b .libtool-no-rpath~
