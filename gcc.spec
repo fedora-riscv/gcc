@@ -1,5 +1,5 @@
-%global DATE 20210113
-%global gitrev 12a2ec94f0612806441cdf5a9aab09ecf9b23deb
+%global DATE 20210116
+%global gitrev d42629234e8a859ed1be99bf5e06bce1a4e3fb0c
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.13%{?dist}
+Release: %{gcc_release}.14%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3069,6 +3069,21 @@ end
 %endif
 
 %changelog
+* Sat Jan 16 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.14
+- update from trunk
+  - PRs ada/98595, analyzer/98679, bootstrap/98696, c++/63707, c++/98231,
+	c++/98372, c++/98538, c++/98591, c++/98626, c++/98642, fortran/98661,
+	ipa/98652, jit/98586, libgomp/65099, libstdc++/98466, libstdc++/98471,
+	preprocessor/95253, target/70454, target/71233, target/88836,
+	target/95905, target/96938, target/98667, target/98671, target/98676,
+	testsuite/96098, testsuite/96147, tree-optimization/92645,
+	tree-optimization/96376, tree-optimization/96669,
+	tree-optimization/96681, tree-optimization/96688,
+	tree-optimization/96691, tree-optimization/98455,
+	tree-optimization/98597, tree-optimization/98640,
+	tree-optimization/98674, tree-optimization/98685
+  - fix up pmovzx permutation SSE4.1 patterns (#1916240, PR target/98670)
+
 * Wed Jan 13 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.13
 - update from trunk
   - PRs analyzer/98628, c++/97284, c++/98481, c++/98556, c++/98611, c++/98620,
