@@ -1,0 +1,130 @@
+My recent patch that introduced push_using_decl_bindings didn't
+handle USING_DECL redeclaration, therefore things broke.  This
+patch amends that.  Note that I don't know if the other parts of
+finish_nonmember_using_decl are needed (e.g. the binding->type
+setting) -- I couldn't trigger it by any of my hand-made testcases.
+
+Sorry for not thinking harder about redeclarations in the original
+patch :(.
+
+2021-01-15  Marek Polacek  <polacek@redhat.com>
+
+	PR c++/98687
+	* name-lookup.c (push_using_decl_bindings): If we found an
+	existing local binding, update it if it's not identical.
+
+	* g++.dg/lookup/using64.C: New test.
+	* g++.dg/lookup/using65.C: New test.
+
+--- gcc/cp/name-lookup.c
++++ gcc/cp/name-lookup.c
+@@ -9285,8 +9285,24 @@ push_operator_bindings ()
+ void
+ push_using_decl_bindings (tree decl)
+ {
+-  push_local_binding (DECL_NAME (decl), USING_DECL_DECLS (decl),
+-		      /*using*/true);
++  tree name = DECL_NAME (decl);
++  tree value = USING_DECL_DECLS (decl);
++
++  cxx_binding *binding = find_local_binding (current_binding_level, name);
++  if (binding)
++    {
++      if (value == binding->value)
++	/* Redeclaration of this USING_DECL.  */;
++      else if (binding->value && TREE_CODE (value) == OVERLOAD)
++	{
++	  /* We already have this binding, so replace it.  */
++	  update_local_overload (IDENTIFIER_BINDING (name), value);
++	  IDENTIFIER_BINDING (name)->value = value;
++	}
++    }
++  else
++    /* Install the new binding.  */
++    push_local_binding (DECL_NAME (decl), value, /*using*/true);
+ }
+ 
+ #include "gt-cp-name-lookup.h"
+--- gcc/testsuite/g++.dg/lookup/using64.C
++++ gcc/testsuite/g++.dg/lookup/using64.C
+@@ -0,0 +1,60 @@
++// PR c++/98687
++// { dg-do compile }
++
++struct S { };
++
++namespace N {
++  template <typename T>
++  bool operator==(T, int);
++
++  template <typename T>
++  void X(T);
++}
++
++namespace M {
++  template <typename T>
++  bool operator==(T, double);
++}
++
++template<typename T>
++bool fn1 (T t)
++{
++  using N::operator==;
++  return t == 1;
++}
++
++template<typename T>
++bool fn2 (T t)
++{
++  // Redeclaration.
++  using N::operator==;
++  using N::operator==;
++  return t == 1;
++}
++
++template<typename T>
++bool fn3 (T t)
++{
++  // Need update_local_overload.
++  using N::operator==;
++  using M::operator==;
++  return t == 1;
++}
++
++template<typename T>
++void fn4 (T t)
++{
++  struct X { };
++  using N::X;
++  X(1);
++}
++
++void
++g ()
++{
++  S s;
++  fn1 (s);
++  fn2 (s);
++  fn3 (s);
++  fn4 (s);
++}
+--- gcc/testsuite/g++.dg/lookup/using65.C
++++ gcc/testsuite/g++.dg/lookup/using65.C
+@@ -0,0 +1,17 @@
++// PR c++/98687
++// { dg-do compile }
++
++extern "C" namespace std {
++  double log1p(double);
++}
++namespace std_fallback {
++  template <typename> void log1p();
++}
++template <typename> struct log1p_impl {
++  static int run() {
++    using std::log1p;
++    using std_fallback::log1p;
++    return 0;
++  }
++};
++void log1p() { log1p_impl<int>::run(); }

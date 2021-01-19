@@ -1,0 +1,91 @@
+2021-01-19  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/98721
+	* builtins.c (access_ref::inform_access): Don't assume
+	SSA_NAME_IDENTIFIER must be non-NULL.  Print messages about
+	object whenever allocfn is NULL, rather than only when DECL_P
+	is true.  Use %qE instead of %qD for that.  Formatting fixes.
+
+	* gcc.dg/pr98721-1.c: New test.
+	* gcc.dg/pr98721-2.c: New test.
+
+--- gcc/builtins.c.jj	2021-01-18 19:07:16.022895507 +0100
++++ gcc/builtins.c	2021-01-19 11:56:52.247070923 +0100
+@@ -4414,8 +4414,8 @@ access_ref::inform_access (access_mode m
+ 	 MAXREF on which the result is based.  */
+       const offset_int orng[] =
+ 	{
+-	 offrng[0] - maxref.offrng[0],
+-	 wi::smax (offrng[1] - maxref.offrng[1], offrng[0]),
++	  offrng[0] - maxref.offrng[0],
++	  wi::smax (offrng[1] - maxref.offrng[1], offrng[0]),
+ 	};
+ 
+       /* Add the final PHI's offset to that of each of the arguments
+@@ -4493,12 +4493,15 @@ access_ref::inform_access (access_mode m
+ 	      /* Strip the SSA_NAME suffix from the variable name and
+ 		 recreate an identifier with the VLA's original name.  */
+ 	      ref = gimple_call_lhs (stmt);
+-	      ref = SSA_NAME_IDENTIFIER (ref);
+-	      const char *id = IDENTIFIER_POINTER (ref);
+-	      size_t len = strcspn (id, ".$");
+-	      if (!len)
+-		len = strlen (id);
+-	      ref = get_identifier_with_length (id, len);
++	      if (SSA_NAME_IDENTIFIER (ref))
++		{
++		  ref = SSA_NAME_IDENTIFIER (ref);
++		  const char *id = IDENTIFIER_POINTER (ref);
++		  size_t len = strcspn (id, ".$");
++		  if (!len)
++		    len = strlen (id);
++		  ref = get_identifier_with_length (id, len);
++		}
+ 	    }
+ 	  else
+ 	    {
+@@ -4557,13 +4560,13 @@ access_ref::inform_access (access_mode m
+       return;
+     }
+ 
+-  if (DECL_P (ref))
++  if (allocfn == NULL_TREE)
+     {
+       if (*offstr)
+-	inform (loc, "at offset %s into source object %qD of size %s",
++	inform (loc, "at offset %s into source object %qE of size %s",
+ 		offstr, ref, sizestr);
+       else
+-	inform (loc, "source object %qD of size %s", ref,  sizestr);
++	inform (loc, "source object %qE of size %s", ref, sizestr);
+ 
+       return;
+     }
+--- gcc/testsuite/gcc.dg/pr98721-1.c.jj	2021-01-19 12:15:03.825600828 +0100
++++ gcc/testsuite/gcc.dg/pr98721-1.c	2021-01-19 12:14:24.730045488 +0100
+@@ -0,0 +1,14 @@
++/* PR tree-optimization/98721 */
++/* { dg-do compile } */
++/* { dg-options "-O2" } */
++
++int
++foo (int n)
++{
++  if (n <= 0)
++    {
++      char vla[n];			/* { dg-message "source object 'vla' of size 0" } */
++      return __builtin_strlen (vla);	/* { dg-warning "'__builtin_strlen' reading 1 or more bytes from a region of size 0" } */
++    }
++  return -1;
++}
+--- gcc/testsuite/gcc.dg/pr98721-2.c.jj	2021-01-19 12:00:16.005742548 +0100
++++ gcc/testsuite/gcc.dg/pr98721-2.c	2021-01-19 11:59:29.372275423 +0100
+@@ -0,0 +1,8 @@
++/* PR tree-optimization/98721 */
++/* { dg-do compile } */
++
++int
++foo (void)
++{
++  return __builtin_strlen (__builtin_alloca_with_align (0, 16));	/* { dg-warning "'__builtin_strlen' reading 1 or more bytes from a region of size 0" } */
++}	/* { dg-message "source object '<unknown>' of size 0" "" { target *-*-* } .-1 } */

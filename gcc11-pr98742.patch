@@ -1,0 +1,42 @@
+2021-01-19  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/98742
+	* semantics.c (finish_omp_clauses) <case OMP_CLAUSE_DETACH>: If
+	error_operand_p, remove clause without further checking.  Check
+	for non-NULL TYPE_NAME.
+
+	* c-c++-common/gomp/task-detach-2.c: New test.
+
+--- gcc/cp/semantics.c.jj	2021-01-16 22:52:33.608413922 +0100
++++ gcc/cp/semantics.c	2021-01-19 10:53:07.979801786 +0100
+@@ -7430,12 +7430,18 @@ finish_omp_clauses (tree clauses, enum c
+ 	      remove = true;
+ 	      break;
+ 	    }
++	  else if (error_operand_p (t))
++	    {
++	      remove = true;
++	      break;
++	    }
+ 	  else
+ 	    {
+ 	      tree type = TYPE_MAIN_VARIANT (TREE_TYPE (t));
+ 	      if (!type_dependent_expression_p (t)
+ 		  && (!INTEGRAL_TYPE_P (type)
+ 		      || TREE_CODE (type) != ENUMERAL_TYPE
++		      || TYPE_NAME (type) == NULL_TREE
+ 		      || (DECL_NAME (TYPE_NAME (type))
+ 			  != get_identifier ("omp_event_handle_t"))))
+ 		{
+--- gcc/testsuite/c-c++-common/gomp/task-detach-2.c.jj	2021-01-19 11:07:29.345948289 +0100
++++ gcc/testsuite/c-c++-common/gomp/task-detach-2.c	2021-01-19 11:06:57.090317518 +0100
+@@ -0,0 +1,9 @@
++/* PR c++/98742 */
++/* { dg-do compile } */
++
++void
++foo ()
++{
++#pragma omp task detach(0)	/* { dg-error "before numeric constant" } */
++  ;
++}

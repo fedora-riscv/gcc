@@ -1,5 +1,5 @@
-%global DATE 20210116
-%global gitrev d42629234e8a859ed1be99bf5e06bce1a4e3fb0c
+%global DATE 20210119
+%global gitrev 4b9bffe2c626b87d403f11674a5bd63c6078c777
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.14%{?dist}
+Release: %{gcc_release}.15%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -272,6 +272,10 @@ Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98338-workaround.patch
+Patch13: gcc11-pr98672.patch
+Patch14: gcc11-pr98687.patch
+Patch15: gcc11-pr98721.patch
+Patch16: gcc11-pr98742.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -783,6 +787,12 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98338-workaround~
+%patch13 -p0 -b .pr98672~
+%patch14 -p0 -b .pr98687~
+%patch15 -p0 -b .pr98721~
+%patch16 -p0 -b .pr98742~
+
+rm -f libgomp/testsuite/*/*task-detach*
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
@@ -3067,6 +3077,16 @@ end
 %endif
 
 %changelog
+* Tue Jan 19 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.15
+- update from trunk
+  - PRs debug/98708, debug/98716, ipa/98222, libstdc++/98725, target/97847,
+	testsuite/97299, testsuite/97494, testsuite/97987,
+	tree-optimization/96271
+  - fix miscompilation of portable signed multiplication overflow check
+    (#1916576, PR tree-optimization/98727)
+  - switch to DWARF 5 by default
+- fix PRs c++/98672, c++/98687, c++/98742, tree-optimization/98721
+
 * Sat Jan 16 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.14
 - update from trunk
   - PRs ada/98595, analyzer/98679, bootstrap/98696, c++/63707, c++/98231,

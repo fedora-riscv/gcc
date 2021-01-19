@@ -1,0 +1,87 @@
+2021-01-15  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/98672
+	* constexpr.c (potential_constant_expression_1) <case FOR_STMT>,
+	<case WHILE_STMT>: If the condition isn't constant true, check if
+	the loop body can contain a return stmt.
+
+	* g++.dg/cpp1y/constexpr-98672.C: New test.
+
+--- gcc/cp/constexpr.c.jj	2021-01-13 19:19:44.368469462 +0100
++++ gcc/cp/constexpr.c	2021-01-14 12:02:27.347042704 +0100
+@@ -8190,7 +8190,17 @@ potential_constant_expression_1 (tree t,
+ 	  /* If we couldn't evaluate the condition, it might not ever be
+ 	     true.  */
+ 	  if (!integer_onep (tmp))
+-	    return true;
++	    {
++	      /* Before returning true, check if the for body can contain
++		 a return.  */
++	      hash_set<tree> pset;
++	      check_for_return_continue_data data = { &pset, NULL_TREE };
++	      if (tree ret_expr
++		  = cp_walk_tree (&FOR_BODY (t), check_for_return_continue,
++				  &data, &pset))
++		*jump_target = ret_expr;
++	      return true;
++	    }
+ 	}
+       if (!RECUR (FOR_EXPR (t), any))
+ 	return false;
+@@ -8219,7 +8229,17 @@ potential_constant_expression_1 (tree t,
+ 	tmp = cxx_eval_outermost_constant_expr (tmp, true);
+       /* If we couldn't evaluate the condition, it might not ever be true.  */
+       if (!integer_onep (tmp))
+-	return true;
++	{
++	  /* Before returning true, check if the while body can contain
++	     a return.  */
++	  hash_set<tree> pset;
++	  check_for_return_continue_data data = { &pset, NULL_TREE };
++	  if (tree ret_expr
++	      = cp_walk_tree (&WHILE_BODY (t), check_for_return_continue,
++			      &data, &pset))
++	    *jump_target = ret_expr;
++	  return true;
++	}
+       if (!RECUR (WHILE_BODY (t), any))
+ 	return false;
+       if (breaks (jump_target) || continues (jump_target))
+--- gcc/testsuite/g++.dg/cpp1y/constexpr-98672.C.jj	2021-01-14 12:19:24.842438847 +0100
++++ gcc/testsuite/g++.dg/cpp1y/constexpr-98672.C	2021-01-14 12:07:33.935551155 +0100
+@@ -0,0 +1,35 @@
++// PR c++/98672
++// { dg-do compile { target c++14 } }
++
++void
++foo ()
++{
++}
++
++constexpr int
++bar ()
++{
++  for (int i = 0; i < 5; ++i)
++    return i;
++  foo ();
++  return 0;
++}
++
++constexpr int
++baz ()
++{
++  int i = 0;
++  while (i < 5)
++    {
++      if (i == 3)
++	return i;
++      else
++	++i;
++    }
++  foo ();
++  return 0;
++}
++
++constexpr int i = bar ();
++constexpr int j = baz ();
++static_assert (i == 0 && j == 3, "");
