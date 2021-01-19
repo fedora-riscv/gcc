@@ -276,6 +276,7 @@ Patch13: gcc11-pr98672.patch
 Patch14: gcc11-pr98687.patch
 Patch15: gcc11-pr98721.patch
 Patch16: gcc11-pr98742.patch
+Patch17: gcc11-pr98638.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -791,6 +792,7 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .pr98687~
 %patch15 -p0 -b .pr98721~
 %patch16 -p0 -b .pr98742~
+%patch17 -p0 -b .pr98638~
 
 rm -f libgomp/testsuite/*/*task-detach*
 
@@ -3085,7 +3087,8 @@ end
   - fix miscompilation of portable signed multiplication overflow check
     (#1916576, PR tree-optimization/98727)
   - switch to DWARF 5 by default
-- fix PRs c++/98672, c++/98687, c++/98742, tree-optimization/98721
+- fix PRs c++/98672, c++/98687, c++/98742, middle-end/98638,
+	  tree-optimization/98721
 
 * Sat Jan 16 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.14
 - update from trunk
