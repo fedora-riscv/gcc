@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.15%{?dist}
+Release: %{gcc_release}.16%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -277,6 +277,9 @@ Patch14: gcc11-pr98687.patch
 Patch15: gcc11-pr98721.patch
 Patch16: gcc11-pr98742.patch
 Patch17: gcc11-pr98638.patch
+Patch18: gcc11-pr98765.patch
+Patch19: gcc11-libgomp-task.patch
+Patch20: gcc11-pr98751.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -793,6 +796,9 @@ to NVidia PTX capable devices if available.
 %patch15 -p0 -b .pr98721~
 %patch16 -p0 -b .pr98742~
 %patch17 -p0 -b .pr98638~
+%patch18 -p0 -b .pr98765~
+%patch19 -p0 -b .libgomp-task~
+%patch20 -p0 -b .pr98751~
 
 rm -f libgomp/testsuite/*/*task-detach*
 
@@ -3079,6 +3085,12 @@ end
 %endif
 
 %changelog
+* Wed Jan 20 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.16
+- fix DWARF5 -g -flto -ffat-lto-objects, so that LTO sections can be stripped off
+  later (PR debug/98765)
+- fix GOMP_task caller stack corruption on s390x
+- libgccjit DWARF5 fixes (PR debug/98751)
+
 * Tue Jan 19 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.15
 - update from trunk
   - PRs debug/98708, debug/98716, ipa/98222, libstdc++/98725, target/97847,
