@@ -1,5 +1,5 @@
-%global DATE 20210119
-%global gitrev 4b9bffe2c626b87d403f11674a5bd63c6078c777
+%global DATE 20210123
+%global gitrev 6efa61bd94ae86200aaed7ec513de6b3726220bf
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.16%{?dist}
+Release: %{gcc_release}.17%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -272,14 +272,7 @@ Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98338-workaround.patch
-Patch13: gcc11-pr98672.patch
-Patch14: gcc11-pr98687.patch
-Patch15: gcc11-pr98721.patch
-Patch16: gcc11-pr98742.patch
-Patch17: gcc11-pr98638.patch
-Patch18: gcc11-pr98765.patch
-Patch19: gcc11-libgomp-task.patch
-Patch20: gcc11-pr98751.patch
+Patch13: gcc11-pr98681.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -791,14 +784,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98338-workaround~
-%patch13 -p0 -b .pr98672~
-%patch14 -p0 -b .pr98687~
-%patch15 -p0 -b .pr98721~
-%patch16 -p0 -b .pr98742~
-%patch17 -p0 -b .pr98638~
-%patch18 -p0 -b .pr98765~
-%patch19 -p0 -b .libgomp-task~
-%patch20 -p0 -b .pr98751~
+%patch13 -p0 -b .pr98681~
 
 rm -f libgomp/testsuite/*/*task-detach*
 
@@ -3085,9 +3071,29 @@ end
 %endif
 
 %changelog
+* Sat Jan 23 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.17
+- update from trunk
+  - PRs ada/98740, c++/41437, c++/58993, c++/71879, c++/82613, c++/95434,
+	c++/96623, c++/97399, c++/97966, c++/98333, c++/98530, c++/98545,
+	c++/98624, c++/98659, c++/98744, fortran/96320, fortran/98476,
+	fortran/98565, fortran/98757, fortran/98763, gcov-profile/98739,
+	ipa/97673, ipa/98330, ipa/98690, middle-end/98664, middle-end/98773,
+	middle-end/98793, rtl-optimization/92294, rtl-optimization/98694,
+	rtl-optimization/98722, rtl-optimization/98777, sanitizer/95693,
+	target/79251, target/96372, target/96891, target/98065, target/98093,
+	target/98348, target/98636, testsuite/97301, testsuite/98241,
+	testsuite/98795, tree-optimization/47059, tree-optimization/90248,
+	tree-optimization/96674, tree-optimization/98255,
+	tree-optimization/98535, tree-optimization/98758,
+	tree-optimization/98766, tree-optimization/98786
+  - ensure for empty CUs -gdwarf-5 emits at least the required 0th directory
+    and filename entry in the .debug_line section (#1919243, PR debug/98796)
+- fix aarch64 bug where emitted ubfix insn can't be assembled
+  (PR target/98681)
+
 * Wed Jan 20 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.16
-- fix DWARF5 -g -flto -ffat-lto-objects, so that LTO sections can be stripped off
-  later (PR debug/98765)
+- fix DWARF5 -g -flto -ffat-lto-objects, so that LTO sections can be stripped
+  off later (PR debug/98765)
 - fix GOMP_task caller stack corruption on s390x
 - libgccjit DWARF5 fixes (PR debug/98751)
 
