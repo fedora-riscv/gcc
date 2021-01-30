@@ -1,5 +1,5 @@
-%global DATE 20210123
-%global gitrev 6efa61bd94ae86200aaed7ec513de6b3726220bf
+%global DATE 20210130
+%global gitrev 17ea13f46910e81a4891636c35aec2b3dabe5879
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.17%{?dist}.1
+Release: %{gcc_release}.18%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -272,7 +272,6 @@ Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98338-workaround.patch
-Patch13: gcc11-pr98681.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -784,7 +783,6 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98338-workaround~
-%patch13 -p0 -b .pr98681~
 
 rm -f libgomp/testsuite/*/*task-detach*
 
@@ -3071,8 +3069,20 @@ end
 %endif
 
 %changelog
-* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 11.0.0-0.17.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
+* Sat Jan 30 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.18
+- update from trunk
+  - PRs ada/98228, bootstrap/98839, c++/33661, c++/88548, c++/94775,
+	c++/96137, c++/97474, c++/97566, c++/97874, c++/98463, c++/98646,
+	c++/98770, c++/98841, c++/98843, c++/98847, d/98806, debug/98331,
+	debug/98811, fortran/67539, fortran/70070, fortran/86470,
+	fortran/93924, fortran/93925, fortran/96843, fortran/98472,
+	fortran/98517, libstdc++/66414, lto/85574, middle-end/98726,
+	middle-end/98807, rtl-optimization/80960, rtl-optimization/97684,
+	rtl-optimization/98144, rtl-optimization/98863, sanitizer/98828,
+	target/97701, target/98730, target/98799, target/98827, target/98833,
+	target/98849, target/98853, testsuite/98771, testsuite/98870,
+	tree-optimization/97260, tree-optimization/97627,
+	tree-optimization/98854, tree-optimization/98866
 
 * Sat Jan 23 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.17
 - update from trunk
