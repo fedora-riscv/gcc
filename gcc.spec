@@ -1,10 +1,10 @@
-%global DATE 20210119
-%global gitrev b20e1b1195c2e30a3f90d49a1503acec4dc72842
+%global DATE 20210130
+%global gitrev 966e4575ccd8b618811b4871e44c31bb2d11a82a
 %global gcc_version 10.2.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 11
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3058,6 +3058,16 @@ end
 %endif
 
 %changelog
+* Sat Jan 30 2021 Jakub Jelinek <jakub@redhat.com> 10.2.1-11
+- update from releases/gcc-10 branch
+  - PRs ada/98228, c++/33661, c++/63707, c++/97474, c++/98463, c++/98642,
+	c++/98672, c++/98790, c++/98847, d/98806, debug/98331, fortran/86470,
+	fortran/93833, fortran/98022, fortran/98517, gcov-profile/98739,
+	lto/85574, sanitizer/95693, target/98681, target/98853,
+	testsuite/97301, testsuite/98771, tree-optimization/90248,
+	tree-optimization/97627, tree-optimization/98255,
+	tree-optimization/98535, tree-optimization/98766
+
 * Tue Jan 19 2021 Jakub Jelinek <jakub@redhat.com> 10.2.1-10
 - update from releases/gcc-10 branch
   - PRs ada/98230, ada/98740, c++/64194, c++/82099, c++/90254, c++/93083,
