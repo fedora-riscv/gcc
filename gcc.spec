@@ -795,7 +795,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98338-workaround~
 
-%if %{?rhel} >= 9
+%if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
 %patch101 -p1 -b .fortran-flogical-as-integer~
 %patch102 -p1 -b .fortran-fdec-ichar~
