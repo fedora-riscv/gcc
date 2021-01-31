@@ -273,6 +273,17 @@ Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
 Patch12: gcc11-pr98338-workaround.patch
 
+Patch100: gcc11-fortran-fdec-duplicates.patch
+Patch101: gcc11-fortran-flogical-as-integer.patch
+Patch102: gcc11-fortran-fdec-ichar.patch
+Patch103: gcc11-fortran-fdec-non-integer-index.patch
+Patch104: gcc11-fortran-fdec-old-init.patch
+Patch105: gcc11-fortran-fdec-override-kind.patch
+Patch106: gcc11-fortran-fdec-non-logical-if.patch
+Patch107: gcc11-fortran-fdec-promotion.patch
+Patch108: gcc11-fortran-fdec-sequence.patch
+Patch109: gcc11-fortran-fdec-add-missing-indexes.patch
+
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
 %ifnarch %{arm}
@@ -783,6 +794,19 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr98338-workaround~
+
+%if %{?rhel} >= 9
+%patch100 -p1 -b .fortran-fdec-duplicates~
+%patch101 -p1 -b .fortran-flogical-as-integer~
+%patch102 -p1 -b .fortran-fdec-ichar~
+%patch103 -p1 -b .fortran-fdec-non-integer-index~
+%patch104 -p1 -b .fortran-fdec-old-init~
+%patch105 -p1 -b .fortran-fdec-override-kind~
+%patch106 -p1 -b .fortran-fdec-non-logical-if~
+%patch107 -p1 -b .fortran-fdec-promotion~
+%patch108 -p1 -b .fortran-fdec-sequence~
+%patch109 -p1 -b .fortran-fdec-add-missing-indexes~
+%endif
 
 rm -f libgomp/testsuite/*/*task-detach*
 
