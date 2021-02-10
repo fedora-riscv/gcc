@@ -100,7 +100,7 @@
  
 --- libcpp/expr.c.jj	2019-01-09 13:01:22.415535734 +0100
 +++ libcpp/expr.c	2019-01-11 18:16:23.444726882 +0100
-@@ -788,16 +788,17 @@ cpp_classify_number (cpp_reader *pfile,
+@@ -803,16 +803,17 @@ cpp_classify_number (cpp_reader *pfile,
        if ((result & CPP_N_WIDTH) == CPP_N_LARGE
  	  && CPP_OPTION (pfile, cpp_warn_long_long))
          {
@@ -123,4 +123,4 @@
 +				      : N_("use of C99 long long integer constant"));
          }
  
-       result |= CPP_N_INTEGER;
+       if ((result & CPP_N_SIZE_T) == CPP_N_SIZE_T
