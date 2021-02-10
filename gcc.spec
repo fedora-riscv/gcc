@@ -1,5 +1,5 @@
-%global DATE 20210130
-%global gitrev 17ea13f46910e81a4891636c35aec2b3dabe5879
+%global DATE 20210210
+%global gitrev ca24474172e3b0805f9f016bf2a6ef0352aeb755
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.18%{?dist}
+Release: %{gcc_release}.19%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3093,6 +3093,25 @@ end
 %endif
 
 %changelog
+* Wed Feb 10 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.19
+- update from trunk
+  - PRs analyzer/93355, analyzer/96374, analyzer/98575, analyzer/98918,
+	c++/20408, c++/84494, c++/90926, c++/95192, c++/96199, c++/96462,
+	c++/96905, c++/97804, c++/97878, c++/98295, c++/98326, c++/98355,
+	c++/98531, c++/98570, c++/98717, c++/98802, c++/98835, c++/98899,
+	c++/98926, c++/98929, c++/98944, c++/98947, c++/98951, c++/98994,
+	c/97882, c/97932, d/98910, d/98921, debug/98656, driver/98943,
+	fortran/91862, fortran/98913, libstdc++/70303, libstdc++/99021,
+	lto/96591, lto/98912, lto/98971, middle-end/97172, middle-end/97487,
+	middle-end/97971, middle-end/98465, middle-end/98974,
+	middle-end/99004, preprocessor/98882, rtl-optimization/96015,
+	target/97510, target/98172, target/98537, target/98743, target/98957,
+	testsuite/98243, testsuite/98325, tree-optimization/97960,
+	tree-optimization/98287, tree-optimization/98499,
+	tree-optimization/98848, tree-optimization/98855,
+	tree-optimization/98863, tree-optimization/98928,
+	tree-optimization/98937, tree-optimization/99017
+
 * Sat Jan 30 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.18
 - update from trunk
   - PRs ada/98228, bootstrap/98839, c++/33661, c++/88548, c++/94775,
