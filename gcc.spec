@@ -809,6 +809,9 @@ to NVidia PTX capable devices if available.
 %endif
 
 rm -f libgomp/testsuite/*/*task-detach*
+%ifarch %{arm}
+rm -f gcc/testsuite/go.test/test/fixedbugs/issue19182.go
+%endif
 
 echo 'Red Hat %{version}-%{gcc_release}' > gcc/DEV-PHASE
 
