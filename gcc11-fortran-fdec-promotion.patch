@@ -335,7 +335,7 @@ index d886c2f33ed..4ca2f93f2df 100644
  
 +fdec-promotion
 +Fortran Var(flag_dec_promotion)
-+Add support for type promotion in intrinsic arguments
++Add support for type promotion in intrinsic arguments.
 +
  fdec-structure
  Fortran Var(flag_dec_structure)
