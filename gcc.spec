@@ -1,5 +1,5 @@
-%global DATE 20210210
-%global gitrev ca24474172e3b0805f9f016bf2a6ef0352aeb755
+%global DATE 20210225
+%global gitrev 441dcf7e3bfd4aae42bb0d520cfc904fb14f84aa
 %global gcc_version 11.0.0
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.19%{?dist}
+Release: %{gcc_release}.20%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3096,6 +3096,38 @@ end
 %endif
 
 %changelog
+* Thu Feb 25 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.20
+- update from trunk
+  - PRs analyzer/94596, analyzer/98969, analyzer/99196, c++/94034, c++/94546,
+	c++/95468, c++/95888, c++/96251, c++/96926, c++/97246, c++/97582,
+	c++/97742, c++/98718, c++/98741, c++/98988, c++/99023, c++/99030,
+	c++/99031, c++/99033, c++/99035, c++/99039, c++/99040, c++/99062,
+	c++/99063, c++/99071, c++/99072, c++/99074, c++/99116, c++/99132,
+	c++/99150, c++/99153, c++/99174, c++/99208, c/97172, c/99055, c/99136,
+	c/99224, debug/96997, debug/98755, fortran/98342, fortran/98686,
+	fortran/98897, fortran/98979, fortran/99010, fortran/99027,
+	fortran/99043, fortran/99060, fortran/99111, fortran/99124,
+	fortran/99146, fortran/99171, fortran/99206, fortran/99226,
+	inline-asm/98096, inline-asm/99123, ipa/97346, ipa/99003, ipa/99029,
+	ipa/99034, jit/99126, libfortran/95647, libfortran/98825,
+	libgcc/99236, libstdc++/88881, libstdc++/97549, libstdc++/98389,
+	libstdc++/99058, libstdc++/99077, libstdc++/99096, libstdc++/99181,
+	libstdc++/99261, middle-end/38474, middle-end/99007, middle-end/99109,
+	middle-end/99122, preprocessor/96391, rtl-optimization/96264,
+	rtl-optimization/98439, rtl-optimization/98791,
+	rtl-optimization/98872, rtl-optimization/99054, sanitizer/99106,
+	sanitizer/99168, target/85074, target/96166, target/97417,
+	target/98491, target/98657, target/98931, target/98998, target/99025,
+	target/99041, target/99100, target/99104, target/99113, target/99134,
+	target/99157, testsuite/99173, translation/99167,
+	tree-optimization/38474, tree-optimization/92879,
+	tree-optimization/98772, tree-optimization/99002,
+	tree-optimization/99024, tree-optimization/99026,
+	tree-optimization/99079, tree-optimization/99142,
+	tree-optimization/99149, tree-optimization/99165,
+	tree-optimization/99204, tree-optimization/99220,
+	tree-optimization/99225
+
 * Wed Feb 10 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.19
 - update from trunk
   - PRs analyzer/93355, analyzer/96374, analyzer/98575, analyzer/98918,
