@@ -1,6 +1,6 @@
-%global DATE 20210225
-%global gitrev 441dcf7e3bfd4aae42bb0d520cfc904fb14f84aa
-%global gcc_version 11.0.0
+%global DATE 20210307
+%global gitrev e13870b7c083e39ab17cc827bab5cb45387e8f19
+%global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.20%{?dist}
+Release: %{gcc_release}.1%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -271,7 +271,8 @@ Patch8: gcc11-foffload-default.patch
 Patch9: gcc11-Wno-format-security.patch
 Patch10: gcc11-rh1574936.patch
 Patch11: gcc11-d-shared-libphobos.patch
-Patch12: gcc11-pr98338-workaround.patch
+Patch12: gcc11-pr99378-revert.patch
+Patch13: gcc11-pr99388.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -793,7 +794,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr98338-workaround~
+%patch12 -p0 -b .pr99378-revert~
+%patch13 -p0 -b .pr99388~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -808,7 +810,6 @@ to NVidia PTX capable devices if available.
 %patch109 -p1 -b .fortran-fdec-add-missing-indexes~
 %endif
 
-rm -f libgomp/testsuite/*/*task-detach*
 %ifarch %{arm}
 rm -f gcc/testsuite/go.test/test/fixedbugs/issue19182.go
 %endif
@@ -3096,6 +3097,32 @@ end
 %endif
 
 %changelog
+* Sun Mar  7 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.1
+- update from trunk
+  - PRs ada/98996, ada/99020, ada/99095, ada/99264, analyzer/96374,
+	analyzer/99193, bootstrap/92002, bootstrap/98590, c++/82959,
+	c++/88146, c++/90333, c++/94521, c++/95451, c++/95615, c++/95616,
+	c++/95675, c++/95822, c++/96078, c++/96330, c++/96443, c++/96474,
+	c++/96960, c++/97034, c++/97587, c++/98118, c++/98318, c++/98810,
+	c++/98990, c++/99009, c++/99103, c++/99120, c++/99166, c++/99170,
+	c++/99176, c++/99213, c++/99245, c++/99251, c++/99287, c++/99294,
+	c++/99344, c++/99362, c++/99365, c++/99374, c++/99377, c++/99389,
+	c/99137, c/99275, c/99304, c/99323, c/99324, c/99325, c/99363,
+	d/99337, debug/66668, debug/99090, debug/99319, fortran/57871,
+	fortran/99300, fortran/99303, fortran/99355, gcov-profile/97461,
+	gcov-profile/99105, gcov-profile/99385, gcov-profile/99406, ipa/98078,
+	ipa/98338, libbacktrace/98818, libfortran/81986, libfortran/99218,
+	libgomp/98738, libstdc++/99265, libstdc++/99270, libstdc++/99301,
+	libstdc++/99382, libstdc++/99396, middle-end/93235, middle-end/94655,
+	middle-end/95757, middle-end/96963, middle-end/97172,
+	middle-end/97855, middle-end/99276, middle-end/99281,
+	middle-end/99295, middle-end/99322, other/99288,
+	rtl-optimization/99376, target/44107, target/48097, target/95798,
+	target/98996, target/99085, target/99234, target/99271, target/99279,
+	target/99313, target/99321, target/99381, testsuite/99233,
+	tree-optimization/80635, tree-optimization/99253
+- fix debug info for __fp16 constants (PR debug/99388)
+
 * Thu Feb 25 2021 Jakub Jelinek <jakub@redhat.com> 11.0.0-0.20
 - update from trunk
   - PRs analyzer/94596, analyzer/98969, analyzer/99196, c++/94034, c++/94546,
