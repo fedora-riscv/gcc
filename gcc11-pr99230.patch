@@ -1,0 +1,137 @@
+2021-03-18  Jakub Jelinek  <jakub@redhat.com>
+
+	PR debug/99230
+	* c-gimplify.c (c_genericize_control_stmt): Handle STATEMENT_LIST.
+
+	* cp-gimplify.c (cp_genericize_r) <case STATEMENT_LIST>: Remove
+	special code, instead call c_genericize_control_stmt.
+
+	* gcc.dg/pr99230.c: New test.
+
+--- gcc/c-family/c-gimplify.c.jj	2021-01-04 10:25:50.402102825 +0100
++++ gcc/c-family/c-gimplify.c	2021-03-17 19:19:20.052702095 +0100
+@@ -497,6 +497,35 @@ c_genericize_control_stmt (tree *stmt_p,
+       genericize_omp_for_stmt (stmt_p, walk_subtrees, data, func, lh);
+       break;
+ 
++    case STATEMENT_LIST:
++      if (TREE_SIDE_EFFECTS (stmt))
++	{
++	  tree_stmt_iterator i;
++	  int nondebug_stmts = 0;
++	  bool clear_side_effects = true;
++	  /* Genericization can clear TREE_SIDE_EFFECTS, e.g. when
++	     transforming an IF_STMT into COND_EXPR.  If such stmt
++	     appears in a STATEMENT_LIST that contains only that
++	     stmt and some DEBUG_BEGIN_STMTs, without -g where the
++	     STATEMENT_LIST wouldn't be present at all the resulting
++	     expression wouldn't have TREE_SIDE_EFFECTS set, so make sure
++	     to clear it even on the STATEMENT_LIST in such cases.  */
++	  for (i = tsi_start (stmt); !tsi_end_p (i); tsi_next (&i))
++	    {
++	      tree t = tsi_stmt (i);
++	      if (TREE_CODE (t) != DEBUG_BEGIN_STMT && nondebug_stmts < 2)
++		nondebug_stmts++;
++	      walk_tree_1 (tsi_stmt_ptr (i), func, data, NULL, lh);
++	      if (TREE_CODE (t) != DEBUG_BEGIN_STMT
++		  && (nondebug_stmts > 1 || TREE_SIDE_EFFECTS (tsi_stmt (i))))
++		clear_side_effects = false;
++	    }
++	  if (clear_side_effects)
++	    TREE_SIDE_EFFECTS (stmt) = 0;
++	  *walk_subtrees = 0;
++	}
++      break;
++
+     default:
+       break;
+     }
+--- gcc/cp/cp-gimplify.c.jj	2021-03-04 09:42:27.602123905 +0100
++++ gcc/cp/cp-gimplify.c	2021-03-17 19:38:42.743888589 +0100
+@@ -1464,35 +1464,6 @@ cp_genericize_r (tree *stmt_p, int *walk
+       walk_subtrees = 0;
+       break;
+ 
+-    case STATEMENT_LIST:
+-      if (TREE_SIDE_EFFECTS (stmt))
+-	{
+-	  tree_stmt_iterator i;
+-	  int nondebug_stmts = 0;
+-	  bool clear_side_effects = true;
+-	  /* Genericization can clear TREE_SIDE_EFFECTS, e.g. when
+-	     transforming an IF_STMT into COND_EXPR.  If such stmt
+-	     appears in a STATEMENT_LIST that contains only that
+-	     stmt and some DEBUG_BEGIN_STMTs, without -g where the
+-	     STATEMENT_LIST wouldn't be present at all the resulting
+-	     expression wouldn't have TREE_SIDE_EFFECTS set, so make sure
+-	     to clear it even on the STATEMENT_LIST in such cases.  */
+-	  for (i = tsi_start (stmt); !tsi_end_p (i); tsi_next (&i))
+-	    {
+-	      tree t = tsi_stmt (i);
+-	      if (TREE_CODE (t) != DEBUG_BEGIN_STMT && nondebug_stmts < 2)
+-		nondebug_stmts++;
+-	      cp_walk_tree (tsi_stmt_ptr (i), cp_genericize_r, data, NULL);
+-	      if (TREE_CODE (t) != DEBUG_BEGIN_STMT
+-		  && (nondebug_stmts > 1 || TREE_SIDE_EFFECTS (tsi_stmt (i))))
+-		clear_side_effects = false;
+-	    }
+-	  if (clear_side_effects)
+-	    TREE_SIDE_EFFECTS (stmt) = 0;
+-	  *walk_subtrees = 0;
+-	}
+-      break;
+-
+     case OMP_DISTRIBUTE:
+       /* Need to explicitly instantiate copy ctors on class iterators of
+ 	 composite distribute parallel for.  */
+@@ -1566,6 +1537,7 @@ cp_genericize_r (tree *stmt_p, int *walk
+     case OMP_SIMD:
+     case OMP_LOOP:
+     case OACC_LOOP:
++    case STATEMENT_LIST:
+       /* These cases are handled by shared code.  */
+       c_genericize_control_stmt (stmt_p, walk_subtrees, data,
+ 				 cp_genericize_r, cp_walk_subtrees);
+--- gcc/testsuite/gcc.dg/pr99230.c.jj	2021-03-17 19:34:26.633711074 +0100
++++ gcc/testsuite/gcc.dg/pr99230.c	2021-03-17 19:33:30.210332887 +0100
+@@ -0,0 +1,40 @@
++/* PR debug/99230 */
++/* { dg-do compile } */
++/* { dg-options "-O2 --param logical-op-non-short-circuit=0 -fcompare-debug --param=jump-table-max-growth-ratio-for-speed=5000" } */
++
++extern void fn2 (void);
++extern void fn3 (int);
++int a, b;
++void
++fn1 (void)
++{
++  int c;
++  short d;
++  switch (a) {
++  case 22000:
++    fn2 ();
++  case 22300:
++    b = 0;
++  case 22600:
++  case 22601:
++  case 22900:
++    fn3 (1);
++  case 20100:
++    fn3 (2);
++  case 20200:
++    fn3 (3);
++  case 20300:
++    fn3 (4);
++  case 20400:
++    fn3 (5);
++  case 20310:
++    fn3 (4);
++  case 20410:
++    fn3 (5);
++  }
++  if (d || c) {
++    do
++      ;
++    while (0);
++  }
++}

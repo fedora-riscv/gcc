@@ -1,4 +1,4 @@
-%global DATE 20210307
+%global DATE 20210319
 %global gitrev e13870b7c083e39ab17cc827bab5cb45387e8f19
 %global gcc_version 11.0.1
 %global gcc_major 11
@@ -145,7 +145,8 @@ Source1: nvptx-tools-%{nvptx_tools_gitrev}.tar.xz
 # git --git-dir=newlib-cygwin-dir.tmp/.git archive --prefix=newlib-cygwin-%%{newlib_cygwin_gitrev}/ %%{newlib_cygwin_gitrev} ":(exclude)newlib/libc/sys/linux/include/rpc/*.[hx]" | xz -9e > newlib-cygwin-%%{newlib_cygwin_gitrev}.tar.xz
 # rm -rf newlib-cygwin-dir.tmp
 Source2: newlib-cygwin-%{newlib_cygwin_gitrev}.tar.xz
-%global isl_version 0.16.1
+%global isl_version 0.18
+Source3: https://gcc.gnu.org/pub/gcc/infrastructure/isl-%{isl_version}.tar.bz2
 URL: http://gcc.gnu.org
 # Need binutils with -pie support >= 2.14.90.0.4-4
 # Need binutils which can omit dot symbols and overlap .opd on ppc64 >= 2.15.91.0.2-4
@@ -200,15 +201,6 @@ BuildRequires: gcc-gnat >= 3.1, libgnat >= 3.1
 %endif
 %ifarch ia64
 BuildRequires: libunwind >= 0.98
-%endif
-%if %{build_isl}
-BuildRequires: isl = %{isl_version}
-BuildRequires: isl-devel = %{isl_version}
-%if 0%{?__isa_bits} == 64
-Requires: libisl.so.15()(64bit)
-%else
-Requires: libisl.so.15
-%endif
 %endif
 %if %{build_libstdcxx_docs}
 BuildRequires: doxygen >= 1.7.1
@@ -265,14 +257,20 @@ Patch2: gcc11-sparc-config-detection.patch
 Patch3: gcc11-libgomp-omp_h-multilib.patch
 Patch4: gcc11-libtool-no-rpath.patch
 Patch5: gcc11-isl-dl.patch
-Patch6: gcc11-libstdc++-docs.patch
-Patch7: gcc11-no-add-needed.patch
-Patch8: gcc11-foffload-default.patch
-Patch9: gcc11-Wno-format-security.patch
-Patch10: gcc11-rh1574936.patch
-Patch11: gcc11-d-shared-libphobos.patch
-Patch12: gcc11-pr99378-revert.patch
-Patch13: gcc11-pr99388.patch
+Patch6: gcc11-isl-dl2.patch
+Patch7: gcc11-libstdc++-docs.patch
+Patch8: gcc11-no-add-needed.patch
+Patch9: gcc11-foffload-default.patch
+Patch10: gcc11-Wno-format-security.patch
+Patch11: gcc11-rh1574936.patch
+Patch12: gcc11-d-shared-libphobos.patch
+Patch13: gcc11-pr99378-revert.patch
+Patch14: gcc11-pr99388.patch
+Patch15: gcc11-pr91710.patch
+Patch16: gcc11-pr99230.patch
+Patch17: gcc11-pr99490.patch
+Patch18: gcc11-pr99562.patch
+Patch19: gcc11-pr99650.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -776,26 +774,32 @@ by default add PTX code into the binaries, which can be offloaded
 to NVidia PTX capable devices if available.
 
 %prep
-%setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2
+%setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2 -a 3
 %patch0 -p0 -b .hack~
 %patch2 -p0 -b .sparc-config-detection~
 %patch3 -p0 -b .libgomp-omp_h-multilib~
 %patch4 -p0 -b .libtool-no-rpath~
 %if %{build_isl}
 %patch5 -p0 -b .isl-dl~
+%patch6 -p0 -b .isl-dl2~
 %endif
 %if %{build_libstdcxx_docs}
-%patch6 -p0 -b .libstdc++-docs~
+%patch7 -p0 -b .libstdc++-docs~
 %endif
-%patch7 -p0 -b .no-add-needed~
-%patch8 -p0 -b .foffload-default~
-%patch9 -p0 -b .Wno-format-security~
+%patch8 -p0 -b .no-add-needed~
+%patch9 -p0 -b .foffload-default~
+%patch10 -p0 -b .Wno-format-security~
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
-%patch10 -p0 -b .rh1574936~
+%patch11 -p0 -b .rh1574936~
 %endif
-%patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr99378-revert~
-%patch13 -p0 -b .pr99388~
+%patch12 -p0 -b .d-shared-libphobos~
+%patch13 -p0 -b .pr99378-revert~
+%patch14 -p0 -b .pr99388~
+%patch15 -p0 -b .pr91710~
+%patch16 -p0 -b .pr99230~
+%patch17 -p0 -b .pr99490~
+%patch18 -p0 -b .pr99562~
+%patch19 -p0 -b .pr99650~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -910,6 +914,28 @@ rm -rf obj-%{gcc_target_platform}
 mkdir obj-%{gcc_target_platform}
 cd obj-%{gcc_target_platform}
 
+%if %{build_isl}
+mkdir isl-build isl-install
+%ifarch s390 s390x
+ISL_FLAG_PIC=-fPIC
+%else
+ISL_FLAG_PIC=-fpic
+%endif
+cd isl-build
+sed -i 's|libisl|libgcc11privateisl|g' \
+  ../../isl-%{isl_version}/Makefile.{am,in}
+../../isl-%{isl_version}/configure \
+  CC=/usr/bin/gcc CXX=/usr/bin/g++ \
+  CFLAGS="${CFLAGS:-%optflags} $ISL_FLAG_PIC" --prefix=`cd ..; pwd`/isl-install
+make %{?_smp_mflags}
+make install
+cd ../isl-install/lib
+rm libgcc11privateisl.so{,.15}
+mv libgcc11privateisl.so.15.3.0 libisl.so.15
+ln -sf libisl.so.15 libisl.so
+cd ../..
+%endif
+
 enablelgo=
 enablelada=
 enablelobjc=
@@ -953,7 +979,7 @@ CONFIGURE_OPTS="\
 %endif
 	--enable-plugin --enable-initfini-array \
 %if %{build_isl}
-	--with-isl \
+	--with-isl=`pwd`/isl-install \
 %else
 	--without-isl \
 %endif
@@ -1097,6 +1123,10 @@ make jit.sphinx.html
 make jit.sphinx.install-html jit_htmldir=`pwd`/../../rpm.doc/libgccjit-devel/html
 cd ..
 
+%if %{build_isl}
+cp -a isl-install/lib/libisl.so.15 gcc/
+%endif
+
 # Make generated man pages even if Pod::Man is not new enough
 perl -pi -e 's/head3/head2/' ../contrib/texi2pod.pl
 for i in ../gcc/doc/*.texi; do
@@ -1222,6 +1252,10 @@ chmod 644 %{buildroot}%{_infodir}/gnat*
 
 FULLPATH=%{buildroot}%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
 FULLEPATH=%{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
+
+%if %{build_isl}
+cp -a isl-install/lib/libisl.so.15 $FULLPATH/
+%endif
 
 # fix some things
 ln -sf gcc %{buildroot}%{_prefix}/bin/cc
@@ -2296,6 +2330,9 @@ end
 %if %{build_libasan}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libsanitizer.spec
 %endif
+%if %{build_isl}
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libisl.so.*
+%endif
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/crt*.o
@@ -3097,6 +3134,36 @@ end
 %endif
 
 %changelog
+* Fri Mar 19 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.2
+- update from trunk
+  - PRs c++/90448, c++/96268, c++/96749, c++/97973, c++/98480, c++/98704,
+	c++/99047, c++/99108, c++/99238, c++/99248, c++/99285, c++/99423,
+	c++/99436, c++/99459, c++/99472, c++/99496, c++/99500, c++/99507,
+	c++/99508, c++/99509, c++/99528, c++/99601, c++/99613, c++/99617,
+	fortran/49278, fortran/96983, fortran/97927, fortran/98858,
+	fortran/99125, fortran/99205, fortran/99345, fortran/99514,
+	fortran/99545, ipa/99517, libstdc++/99172, libstdc++/99341,
+	libstdc++/99413, libstdc++/99536, libstdc++/99537, middle-end/97631,
+	middle-end/98266, middle-end/99502, middle-end/99641, objc++/49070,
+	sanitizer/98920, target/98092, target/98959, target/99070,
+	target/99094, target/99102, target/99422, target/99437, target/99454,
+	target/99463, target/99464, target/99492, target/99504, target/99542,
+	target/99563, target/99592, target/99600, testsuite/97680,
+	testsuite/98245, testsuite/99292, testsuite/99498, testsuite/99626,
+	testsuite/99636, tree-optimization/98834, tree-optimization/99305,
+	tree-optimization/99489, tree-optimization/99510,
+	tree-optimization/99523, tree-optimization/99544
+  - fix ARM ICE in neon_output_shift_immediate (#1922599, PR target/99593)
+- avoid false positive aarch64 -Wpsabi notes in some cases (PR target/91710)
+- fix a -fcompare-debug failure caused by C FE bug (PR debug/99230)
+- fix up -gdwarf-5 -gsplit-dwarf ranges handling (PR debug/99490)
+- fix up handling of > 64 bit constants in dwarf2out (PR debug/99562,
+  PR debug/66728)
+- reject invalid C++ structured bindings that need reference to void
+  (PR c++/99650)
+- include private isl 0.18 in the package instead of relying on old
+  distro version
+
 * Sun Mar  7 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.1
 - update from trunk
   - PRs ada/98996, ada/99020, ada/99095, ada/99264, analyzer/96374,
