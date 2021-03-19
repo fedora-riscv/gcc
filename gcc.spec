@@ -271,6 +271,7 @@ Patch16: gcc11-pr99230.patch
 Patch17: gcc11-pr99490.patch
 Patch18: gcc11-pr99562.patch
 Patch19: gcc11-pr99650.patch
+Patch20: gcc11-pr99341-revert.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -800,6 +801,7 @@ to NVidia PTX capable devices if available.
 %patch17 -p0 -b .pr99490~
 %patch18 -p0 -b .pr99562~
 %patch19 -p0 -b .pr99650~
+%patch20 -p0 -b .pr99341-revert~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
