@@ -1,5 +1,5 @@
 %global DATE 20210319
-%global gitrev e13870b7c083e39ab17cc827bab5cb45387e8f19
+%global gitrev e4dd2d1e93fef51f05cef0ed942fdc7dfd83dafd
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.1%{?dist}
+Release: %{gcc_release}.2%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
