@@ -1,5 +1,5 @@
-%global DATE 20210319
-%global gitrev e4dd2d1e93fef51f05cef0ed942fdc7dfd83dafd
+%global DATE 20210324
+%global gitrev aae01c864baeefadc9bb5312de389116f77ccb83
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.2%{?dist}
+Release: %{gcc_release}.3%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -264,14 +264,9 @@ Patch9: gcc11-foffload-default.patch
 Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
-Patch13: gcc11-pr99378-revert.patch
-Patch14: gcc11-pr99388.patch
-Patch15: gcc11-pr91710.patch
-Patch16: gcc11-pr99230.patch
-Patch17: gcc11-pr99490.patch
-Patch18: gcc11-pr99562.patch
-Patch19: gcc11-pr99650.patch
-Patch20: gcc11-pr99341-revert.patch
+Patch13: gcc11-pr91710.patch
+Patch14: gcc11-pr99490.patch
+Patch15: gcc11-pr99341-revert.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -794,14 +789,9 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .rh1574936~
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
-%patch13 -p0 -b .pr99378-revert~
-%patch14 -p0 -b .pr99388~
-%patch15 -p0 -b .pr91710~
-%patch16 -p0 -b .pr99230~
-%patch17 -p0 -b .pr99490~
-%patch18 -p0 -b .pr99562~
-%patch19 -p0 -b .pr99650~
-%patch20 -p0 -b .pr99341-revert~
+%patch13 -p0 -b .pr91710~
+%patch14 -p0 -b .pr99490~
+%patch15 -p0 -b .pr99341-revert~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3136,6 +3126,16 @@ end
 %endif
 
 %changelog
+* Wed Mar 24 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.3
+- update from trunk
+  - PRs analyzer/99614, c++/99239, c++/99283, c++/99318, c++/99425, c++/99456,
+	c++/99480, c++/99687, c/99588, fortran/93660, fortran/99688,
+	rtl-optimization/99680, target/97252, target/97926, target/98914,
+	target/99540, target/99581, target/99652, target/99660, target/99661,
+	target/99663, target/99679, target/99702, target/99704, target/99733,
+	tree-optimization/99296, tree-optimization/99656,
+	tree-optimization/99694, tree-optimization/99721
+
 * Fri Mar 19 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.2
 - update from trunk
   - PRs c++/90448, c++/96268, c++/96749, c++/97973, c++/98480, c++/98704,
