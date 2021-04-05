@@ -1,5 +1,5 @@
-%global DATE 20210324
-%global gitrev aae01c864baeefadc9bb5312de389116f77ccb83
+%global DATE 20210405
+%global gitrev 669f363681ba1022eb5fcdb2502ad0ef01cb8f37
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.3%{?dist}
+Release: %{gcc_release}.4%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -265,8 +265,7 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr91710.patch
-Patch14: gcc11-pr99490.patch
-Patch15: gcc11-pr99341-revert.patch
+Patch14: gcc11-pr99341-revert.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -790,8 +789,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr91710~
-%patch14 -p0 -b .pr99490~
-%patch15 -p0 -b .pr99341-revert~
+%patch14 -p0 -b .pr99341-revert~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3126,6 +3124,33 @@ end
 %endif
 
 %changelog
+* Mon Apr  5 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.4
+- update from trunk
+  - PRs ada/99802, analyzer/93695, analyzer/99044, analyzer/99716,
+	analyzer/99771, bootstrap/98860, c++/90664, c++/91217, c++/91416,
+	c++/94751, c++/97900, c++/97938, c++/98352, c++/99331, c++/99445,
+	c++/99565, c++/99583, c++/99584, c++/99586, c++/99643, c++/99672,
+	c++/99705, c++/99745, c++/99790, c++/99815, c++/99831, c++/99869,
+	d/91595, d/99691, debug/99334, fortran/99369, fortran/99602,
+	fortran/99651, fortran/99818, fortran/99840, ipa/98265, ipa/99122,
+	ipa/99466, ipa/99751, libstdc++/99533, lto/99447, middle-end/65182,
+	rtl-optimization/97141, rtl-optimization/98726,
+	rtl-optimization/99863, target/96974, target/97653, target/98119,
+	target/98136, target/98209, target/99037, target/99133, target/99216,
+	target/99555, target/99718, target/99724, target/99727, target/99744,
+	target/99753, target/99766, target/99773, target/99786, target/99808,
+	target/99813, target/99820, target/99822, testsuite/98125,
+	tree-optimization/48483, tree-optimization/55060,
+	tree-optimization/59970, tree-optimization/61112,
+	tree-optimization/61677, tree-optimization/61869,
+	tree-optimization/96573, tree-optimization/96974,
+	tree-optimization/97009, tree-optimization/98268,
+	tree-optimization/99726, tree-optimization/99746,
+	tree-optimization/99777, tree-optimization/99807,
+	tree-optimization/99824, tree-optimization/99825,
+	tree-optimization/99856, tree-optimization/99863,
+	tree-optimization/99882
+
 * Wed Mar 24 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.3
 - update from trunk
   - PRs analyzer/99614, c++/99239, c++/99283, c++/99318, c++/99425, c++/99456,
