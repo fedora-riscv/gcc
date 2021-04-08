@@ -1009,7 +1009,11 @@ CONFIGURE_OPTS="\
 %endif
 %endif
 %ifarch ppc64le
+%if 0%{?rhel} >= 9
+	--with-cpu-32=power9 --with-tune-32=power9 --with-cpu-64=power9 --with-tune-64=power9 \
+%else
 	--with-cpu-32=power8 --with-tune-32=power8 --with-cpu-64=power8 --with-tune-64=power8 \
+%endif
 %endif
 %ifarch ppc
 	--build=%{gcc_target_platform} --target=%{gcc_target_platform} --with-cpu=default32
@@ -1040,7 +1044,7 @@ CONFIGURE_OPTS="\
 %if 0%{?rhel} >= 7
 %if 0%{?rhel} > 7
 %if 0%{?rhel} > 8
-	--with-arch=z13 --with-tune=arch13 \
+	--with-arch=z14 --with-tune=z15 \
 %else
 	--with-arch=z13 --with-tune=z14 \
 %endif
@@ -3124,6 +3128,9 @@ end
 %endif
 
 %changelog
+- for %%{rhel} >= 9, default to -march=z14 -mtune=z15 on s390x and
+  to -mcpu=power9 -mtune=power9 on ppc64le
+
 * Mon Apr  5 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.4
 - update from trunk
   - PRs ada/99802, analyzer/93695, analyzer/99044, analyzer/99716,
