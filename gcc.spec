@@ -1,5 +1,5 @@
-%global DATE 20210405
-%global gitrev 669f363681ba1022eb5fcdb2502ad0ef01cb8f37
+%global DATE 20210418
+%global gitrev 8047a824dd92293d2ab13b33e1a0c5c8b4c83256
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.4%{?dist}
+Release: %{gcc_release}.5%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -264,8 +264,7 @@ Patch9: gcc11-foffload-default.patch
 Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
-Patch13: gcc11-pr91710.patch
-Patch14: gcc11-pr99341-revert.patch
+Patch13: gcc11-pr99341-revert.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -788,8 +787,7 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .rh1574936~
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
-%patch13 -p0 -b .pr91710~
-%patch14 -p0 -b .pr99341-revert~
+%patch13 -p0 -b .pr99341-revert~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3132,6 +3130,41 @@ end
 %endif
 
 %changelog
+* Sun Apr 18 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.5
+- update from trunk
+  - PRs analyzer/98599, analyzer/99042, analyzer/99212, analyzer/99774,
+	analyzer/99886, analyzer/99906, analyzer/100011, c++/41723, c++/49951,
+	c++/52202, c++/52625, c++/58123, c++/80456, c++/83476, c++/88742,
+	c++/90215, c++/90479, c++/90674, c++/91241, c++/91849, c++/91933,
+	c++/92918, c++/93085, c++/93295, c++/93314, c++/93867, c++/94529,
+	c++/95317, c++/95486, c++/95870, c++/96311, c++/96673, c++/96873,
+	c++/97121, c++/97134, c++/97679, c++/97974, c++/98440, c++/98800,
+	c++/98852, c++/99008, c++/99066, c++/99118, c++/99180, c++/99201,
+	c++/99380, c++/99478, c++/99700, c++/99803, c++/99806, c++/99833,
+	c++/99844, c++/99850, c++/99859, c++/99874, c++/99885, c++/99899,
+	c++/99901, c++/99961, c++/99994, c++/100006, c++/100032, c++/100054,
+	c++/100078, c++/100079, c++/100091, c++/100101, c++/100111, c/98852,
+	c/99420, c/99972, c/99990, d/99812, d/99914, d/99917, debug/99830,
+	fortran/63797, fortran/99307, fortran/99817, fortran/100018,
+	fortran/100094, jit/100096, libfortran/78314, libgomp/99984,
+	libstdc++/96657, libstdc++/99402, libstdc++/99433, libstdc++/99805,
+	libstdc++/99985, libstdc++/99995, libstdc++/100044, libstdc++/100060,
+	lto/98599, lto/99849, lto/99857, middle-end/55288, middle-end/84877,
+	middle-end/84991, middle-end/84992, middle-end/86058,
+	middle-end/90779, middle-end/98088, middle-end/99883,
+	middle-end/99989, preprocessor/99446, rtl-optimization/98601,
+	rtl-optimization/98689, rtl-optimization/99596,
+	rtl-optimization/99905, rtl-optimization/99929,
+	rtl-optimization/100066, sanitizer/99877, sanitizer/100114,
+	target/87763, target/99246, target/99647, target/99648, target/99748,
+	target/99767, target/99781, target/99872, target/100028,
+	target/100048, target/100056, target/100067, target/100075,
+	testsuite/99955, testsuite/100071, testsuite/100073,
+	tree-optimization/82800, tree-optimization/97513,
+	tree-optimization/98736, tree-optimization/99873,
+	tree-optimization/99880, tree-optimization/99924,
+	tree-optimization/99947, tree-optimization/99954,
+	tree-optimization/100053
 - for %%{rhel} == 9, default to -march=z14 -mtune=z15 on s390x and
   to -mcpu=power9 -mtune=power9 on ppc64le
 
