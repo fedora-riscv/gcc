@@ -1,10 +1,10 @@
-%global DATE 20210130
-%global gitrev 966e4575ccd8b618811b4871e44c31bb2d11a82a
-%global gcc_version 10.2.1
+%global DATE 20210422
+%global gitrev dc5e381a715a658cfcc08ba3cbaa6bc53adc596f
+%global gcc_version 10.3.1
 %global gcc_major 10
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 11
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3058,6 +3058,62 @@ end
 %endif
 
 %changelog
+* Thu Apr 22 2021 Jakub Jelinek <jakub@redhat.com> 10.3.1-1
+- update from releases/gcc-10 branch
+  - GCC 10.3 release
+  - PRs ada/99095, ada/99264, bootstrap/99983, c++/20408, c++/82959,
+	c++/83476, c++/88146, c++/91416, c++/95434, c++/95451, c++/95468,
+	c++/95486, c++/95615, c++/95616, c++/95675, c++/95822, c++/95888,
+	c++/96078, c++/96251, c++/96282, c++/96531, c++/96749, c++/96905,
+	c++/97051, c++/97052, c++/97103, c++/97246, c++/97587, c++/97742,
+	c++/97804, c++/97878, c++/97966, c++/97973, c++/98118, c++/98295,
+	c++/98326, c++/98333, c++/98355, c++/98480, c++/98481, c++/98611,
+	c++/98704, c++/98717, c++/98802, c++/98810, c++/98947, c++/98988,
+	c++/98990, c++/99031, c++/99033, c++/99035, c++/99047, c++/99062,
+	c++/99120, c++/99176, c++/99318, c++/99331, c++/99362, c++/99374,
+	c++/99507, c++/99613, c++/99650, c++/99705, c++/99745, c++/99790,
+	c++/99806, c++/99831, c++/99833, c++/99859, c++/99885, c++/100111,
+	c/97880, c/99136, c/99137, c/99224, c/99324, c/99363, c/99588,
+	c/99990, d/98457, d/98921, d/99337, debug/96997, debug/98656,
+	debug/99334, debug/99388, debug/99830, fortran/63797, fortran/93660,
+	fortran/97927, fortran/98897, fortran/99027, fortran/99043,
+	fortran/99060, fortran/99111, fortran/99124, fortran/99171,
+	fortran/99205, fortran/99369, fortran/99545, fortran/99651,
+	fortran/99688, fortran/99817, fortran/99840, go/99458, ipa/98078,
+	ipa/98265, ipa/98338, ipa/99034, ipa/99466, ipa/99517, jit/100096,
+	libfortran/95647, libfortran/99218, libstdc++/82584, libstdc++/88881,
+	libstdc++/93151, libstdc++/95592, libstdc++/95765, libstdc++/96029,
+	libstdc++/96592, libstdc++/97570, libstdc++/97600, libstdc++/98226,
+	libstdc++/98319, libstdc++/99021, libstdc++/99058, libstdc++/99077,
+	libstdc++/99096, libstdc++/99181, libstdc++/99402, libstdc++/99533,
+	libstdc++/99536, libstdc++/99537, libstdc++/99805, libstdc++/99985,
+	libstdc++/100044, libstdc++/100060, libstdc++/100180, lto/96591,
+	lto/99849, lto/99898, middle-end/84991, middle-end/84992,
+	middle-end/90779, middle-end/93235, middle-end/97487,
+	middle-end/97971, middle-end/98088, middle-end/99007,
+	middle-end/99641, objc++/49070, preprocessor/95253,
+	rtl-optimization/96015, rtl-optimization/96264,
+	rtl-optimization/98144, rtl-optimization/98601,
+	rtl-optimization/98791, rtl-optimization/98863,
+	rtl-optimization/99863, rtl-optimization/99905,
+	rtl-optimization/100148, sanitizer/96318, sanitizer/99106,
+	sanitizer/100114, target/44107, target/48097, target/85074,
+	target/95842, target/96307, target/96974, target/97252, target/97329,
+	target/97653, target/97701, target/98959, target/99037, target/99041,
+	target/99085, target/99157, target/99234, target/99271, target/99279,
+	target/99381, target/99540, target/99542, target/99563, target/99702,
+	target/99704, target/99753, target/99767, target/99808, target/99813,
+	target/100048, testsuite/99233, testsuite/99626, testsuite/99636,
+	testsuite/100176, tree-optimization/96974, tree-optimization/97009,
+	tree-optimization/97849, tree-optimization/97897,
+	tree-optimization/98287, tree-optimization/98526,
+	tree-optimization/98640, tree-optimization/98758,
+	tree-optimization/98834, tree-optimization/99079,
+	tree-optimization/99204, tree-optimization/99225,
+	tree-optimization/99253, tree-optimization/99694,
+	tree-optimization/99777, tree-optimization/99824,
+	tree-optimization/99856
+
 * Sat Jan 30 2021 Jakub Jelinek <jakub@redhat.com> 10.2.1-11
 - update from releases/gcc-10 branch
   - PRs ada/98228, c++/33661, c++/63707, c++/97474, c++/98463, c++/98642,
