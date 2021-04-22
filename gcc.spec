@@ -1,5 +1,5 @@
-%global DATE 20210418
-%global gitrev 8047a824dd92293d2ab13b33e1a0c5c8b4c83256
+%global DATE 20210422
+%global gitrev 8047c64ba5baee42eb0744563b2f44da8b464154
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.5%{?dist}
+Release: %{gcc_release}.6%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -265,6 +265,8 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
+Patch14: gcc11-pr100148.patch
+Patch15: gcc11-dg-ice.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -788,6 +790,8 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
+%patch14 -p0 -b .pr100148~
+%patch15 -p0 -b .dg-ice~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3130,6 +3134,16 @@ end
 %endif
 
 %changelog
+* Wed Apr 22 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.6
+- update from trunk and releases/gcc-11 branch
+  - GCC 11.1-rc1
+  - PRs ada/99360, c++/97536, c/100143, d/98058, d/98457, d/98494, d/98584,
+	d/99794, demangler/100177, fortran/100110, libstdc++/95983,
+	libstdc++/100146, libstdc++/100164, preprocessor/100142,
+	rtl-optimization/99927, target/100108, testsuite/100176,
+	tree-optimization/100081
+- fix a cprop -fcompare-debug bug (PR rtl-optimization/100148)
+
 * Sun Apr 18 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.5
 - update from trunk
   - PRs analyzer/98599, analyzer/99042, analyzer/99212, analyzer/99774,
