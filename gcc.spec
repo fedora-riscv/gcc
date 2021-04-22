@@ -3134,7 +3134,7 @@ end
 %endif
 
 %changelog
-* Wed Apr 22 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.6
+* Thu Apr 22 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.6
 - update from trunk and releases/gcc-11 branch
   - GCC 11.1-rc1
   - PRs ada/99360, c++/97536, c/100143, d/98058, d/98457, d/98494, d/98584,
