@@ -1,10 +1,10 @@
-%global DATE 20200928
-%global gitrev 8ed81e8ef69a535cbc168f55d06941bf3e4ef8ee
+%global DATE 20210423
+%global gitrev 81036e6dfb5dac2e9186f0071f7f2048e81e65fa
 %global gcc_version 8.4.1
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -260,7 +260,6 @@ Patch10: gcc8-Wno-format-security.patch
 Patch11: gcc8-rh1512529-aarch64.patch
 Patch12: gcc8-mcet.patch
 Patch13: gcc8-rh1574936.patch
-Patch14: gcc8-pr95614-revert.patch
 
 Patch1000: nvptx-tools-no-ptxas.patch
 Patch1001: nvptx-tools-build.patch
@@ -829,8 +828,6 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch13 -p0 -b .rh1574936~
 %endif
-%patch14 -p0 -b .pr95614-revert~
-rm -f gcc/testsuite/gfortran.dg/pr95614_*.f90
 
 cd nvptx-tools-%{nvptx_tools_gitrev}
 %patch1000 -p1 -b .nvptx-tools-no-ptxas~
@@ -3135,6 +3132,39 @@ fi
 %endif
 
 %changelog
+* Fri Apr 23 2021 Jakub Jelinek <jakub@redhat.com> 8.4.1-2
+- update from the 8 branch
+  - PRs ada/98230, bootstrap/97163, c++/33661, c++/82959, c++/88115,
+	c++/91953, c++/95158, c++/95451, c++/97663, c++/97878, c++/97918,
+	c++/98353, c++/98556, c++/98847, c++/99033, c++/99035, c++/99613,
+	c++/99650, c++/99745, c++/99790, c++/99833, c/97958, c/99136,
+	c/99324, c/99588, c/99990, debug/97599, debug/98331, debug/99334,
+	debug/99388, debug/99830, fortran/86470, fortran/98307, fortran/99840,
+	ipa/94947, ipa/99034, jit/100096, libfortran/99218, libgomp/65099,
+	libstdc++/65480, libstdc++/68735, libstdc++/92978, libstdc++/97273,
+	libstdc++/97362, libstdc++/97570, libstdc++/97731, libstdc++/98001,
+	libstdc++/98319, libstdc++/98605, libstdc++/99058, libstdc++/99181,
+	lto/97290, lto/99849, middle-end/93235, middle-end/94479,
+	middle-end/94964, middle-end/96369, middle-end/97487,
+	middle-end/97554, middle-end/98183, middle-end/98205,
+	middle-end/99007, rtl-optimization/97386, rtl-optimization/97421,
+	rtl-optimization/97439, rtl-optimization/98601,
+	rtl-optimization/99863, rtl-optimization/99905, sanitizer/95693,
+	sanitizer/97294, sanitizer/99106, sanitizer/100114, target/85074,
+	target/91816, target/94791, target/94891, target/96191, target/96313,
+	target/96793, target/97150, target/97184, target/97231, target/97349,
+	target/97528, target/97535, target/98063, target/98100, target/98618,
+	target/98681, target/99704, testsuite/80219, testsuite/85303,
+	testsuite/97301, testsuite/97688, testsuite/98002, testsuite/100176,
+	tree-optimization/90248, tree-optimization/93964,
+	tree-optimization/95133, tree-optimization/96370,
+	tree-optimization/96579, tree-optimization/97081,
+	tree-optimization/97236, tree-optimization/97255,
+	tree-optimization/97633, tree-optimization/98282,
+	tree-optimization/98474, tree-optimization/99079,
+	tree-optimization/99204, tree-optimization/99225,
+	tree-optimization/99777
+
 * Mon Sep 28 2020 Jakub Jelinek <jakub@redhat.com> 8.4.1-1
 - update from the 8 branch
   - GCC 8.4 release
