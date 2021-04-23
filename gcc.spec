@@ -1,5 +1,5 @@
-%global DATE 20210422
-%global gitrev 8047c64ba5baee42eb0744563b2f44da8b464154
+%global DATE 20210423
+%global gitrev c76c301ee2291a548ade37778a77407e520967e5
 %global gcc_version 11.0.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.6%{?dist}
+Release: %{gcc_release}.7%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3134,6 +3134,11 @@ end
 %endif
 
 %changelog
+* Fri Apr 23 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.7
+- update from trunk and releases/gcc-11 branch
+  - GCC 11.1-rc2
+  - PRs libstdc++/100179, target/100182
+
 * Thu Apr 22 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.6
 - update from trunk and releases/gcc-11 branch
   - GCC 11.1-rc1
