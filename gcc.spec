@@ -1,10 +1,10 @@
-%global DATE 20210423
-%global gitrev c76c301ee2291a548ade37778a77407e520967e5
-%global gcc_version 11.0.1
+%global DATE 20210428
+%global gitrev eb4b27fdf644012c40fe49ba8440594770dd8289
+%global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.7%{?dist}
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -265,8 +265,8 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
-Patch14: gcc11-pr100148.patch
-Patch15: gcc11-dg-ice.patch
+Patch14: gcc11-pr100302.patch
+Patch15: gcc11-pr100298.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -790,8 +790,8 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
-%patch14 -p0 -b .pr100148~
-%patch15 -p0 -b .dg-ice~
+%patch14 -p0 -b .pr100302~
+%patch15 -p0 -b .pr100298~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3134,6 +3134,15 @@ end
 %endif
 
 %changelog
+* Wed Apr 28 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-1
+- update from releases/gcc-11-branch
+  - GCC 11.1 release
+  - PRs c++/93383, c++/95291, c++/96380, c++/99200, c++/99683, c++/100161,
+	debug/100255, fortran/100154, fortran/100218, libstdc++/100290,
+	rtl-optimization/100254, target/98952, target/100200,
+	tree-optimization/100239
+- fix ICE in aarch64_add_offset_1_temporaries (PR target/100302)
+
 * Fri Apr 23 2021 Jakub Jelinek <jakub@redhat.com> 11.0.1-0.7
 - update from trunk and releases/gcc-11 branch
   - GCC 11.1-rc2
