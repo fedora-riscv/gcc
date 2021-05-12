@@ -1,10 +1,10 @@
-%global DATE 20210428
-%global gitrev eb4b27fdf644012c40fe49ba8440594770dd8289
+%global DATE 20210512
+%global gitrev 2274d6c6dc94803fb17a8466bace08a15b387509
 %global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -265,8 +265,7 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
-Patch14: gcc11-pr100302.patch
-Patch15: gcc11-pr100298.patch
+Patch14: gcc11-pr100379.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -790,8 +789,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
-%patch14 -p0 -b .pr100302~
-%patch15 -p0 -b .pr100298~
+%patch14 -p0 -b .pr100379~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3134,6 +3132,20 @@ end
 %endif
 
 %changelog
+* Wed May 12 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-2
+- update from releases/gcc-11-branch
+  - PRs c++/98032, c++/100319, c++/100362, c/100450, fortran/100274,
+	ipa/100308, libgomp/100352, libstdc++/99006, libstdc++/99453,
+	libstdc++/100259, libstdc++/100298, libstdc++/100384,
+	rtl-optimization/84878, rtl-optimization/100225,
+	rtl-optimization/100230, rtl-optimization/100263,
+	rtl-optimization/100411, target/99988, target/100217, target/100232,
+	target/100236, target/100270, target/100305, target/100311,
+	target/100375, target/100402, tree-optimization/96513,
+	tree-optimization/100253, tree-optimization/100278,
+	tree-optimization/100329, tree-optimization/100414
+- fix build with removed linux/cyclades.h header (PR sanitizer/100379)
+
 * Wed Apr 28 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-1
 - update from releases/gcc-11-branch
   - GCC 11.1 release

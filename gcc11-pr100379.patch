@@ -1,0 +1,115 @@
+2021-05-10  Tamar Christina  <tamar.christina@arm.com>
+
+	PR sanitizer/100379
+	* sanitizer_common/sanitizer_platform.h: Define
+	SANITIZER_LINUX_CYCLADES to one if linux/cyclades.h header exist.
+	* sanitizer_common/sanitizer_platform_limits_posix.h: Conditionalize
+	cyclades support on SANITIZER_LINUX_CYCLADES.
+	* sanitizer_common/sanitizer_platform_limits_posix.cpp: Likewise.
+	* sanitizer_common/sanitizer_common_interceptors_ioctl.inc: Likewise.
+
+--- libsanitizer/sanitizer_common/sanitizer_platform.h.jj	2021-04-20 10:33:08.702324327 +0200
++++ libsanitizer/sanitizer_common/sanitizer_platform.h	2021-05-12 15:44:53.035964205 +0200
+@@ -367,4 +367,17 @@
+ #define SANITIZER_SUPPORTS_INIT_FOR_DLOPEN 0
+ #endif
+ 
++// Kernel has removed this header, as such check for it's existance
++// before trying to include defines from it.
++// https://lkml.org/lkml/2021/3/2/153
++#ifdef __has_include
++# if __has_include(<linux/cyclades.h>) && !SANITIZER_ANDROID
++#  define SANITIZER_LINUX_CYCLADES 1
++# else
++#  define SANITIZER_LINUX_CYCLADES 0
++# endif
++#else
++#  define SANITIZER_LINUX_CYCLADES 0
++#endif
++
+ #endif // SANITIZER_PLATFORM_H
+--- libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.h.jj	2021-04-20 10:33:08.703324315 +0200
++++ libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.h	2021-05-12 15:44:53.039964162 +0200
+@@ -981,7 +981,9 @@ extern unsigned struct_vt_mode_sz;
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
+ extern unsigned struct_ax25_parms_struct_sz;
++#if SANITIZER_LINUX_CYCLADES
+ extern unsigned struct_cyclades_monitor_sz;
++#endif
+ extern unsigned struct_input_keymap_entry_sz;
+ extern unsigned struct_ipx_config_data_sz;
+ extern unsigned struct_kbdiacrs_sz;
+@@ -1326,6 +1328,7 @@ extern unsigned IOCTL_VT_WAITACTIVE;
+ #endif  // SANITIZER_LINUX
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
++#if SANITIZER_LINUX_CYCLADES
+ extern unsigned IOCTL_CYGETDEFTHRESH;
+ extern unsigned IOCTL_CYGETDEFTIMEOUT;
+ extern unsigned IOCTL_CYGETMON;
+@@ -1335,6 +1338,7 @@ extern unsigned IOCTL_CYSETDEFTHRESH;
+ extern unsigned IOCTL_CYSETDEFTIMEOUT;
+ extern unsigned IOCTL_CYSETTHRESH;
+ extern unsigned IOCTL_CYSETTIMEOUT;
++#endif
+ extern unsigned IOCTL_EQL_EMANCIPATE;
+ extern unsigned IOCTL_EQL_ENSLAVE;
+ extern unsigned IOCTL_EQL_GETMASTRCFG;
+--- libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp.jj	2021-04-20 10:33:08.703324315 +0200
++++ libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cpp	2021-05-12 15:44:53.040964151 +0200
+@@ -131,7 +131,9 @@ typedef struct user_fpregs elf_fpregset_
+ # include <sys/procfs.h>
+ #endif
+ #include <sys/user.h>
+-#include <linux/cyclades.h>
++#if SANITIZER_LINUX_CYCLADES
++# include <linux/cyclades.h>
++#endif
+ #include <linux/if_eql.h>
+ #include <linux/if_plip.h>
+ #include <linux/lp.h>
+@@ -449,7 +451,9 @@ unsigned struct_ElfW_Phdr_sz = sizeof(El
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
+   unsigned struct_ax25_parms_struct_sz = sizeof(struct ax25_parms_struct);
++#if SANITIZER_LINUX_CYCLADES
+   unsigned struct_cyclades_monitor_sz = sizeof(struct cyclades_monitor);
++#endif
+ #if EV_VERSION > (0x010000)
+   unsigned struct_input_keymap_entry_sz = sizeof(struct input_keymap_entry);
+ #else
+@@ -815,6 +819,7 @@ unsigned struct_ElfW_Phdr_sz = sizeof(El
+ #endif // SANITIZER_LINUX
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
++#if SANITIZER_LINUX_CYCLADES
+   unsigned IOCTL_CYGETDEFTHRESH = CYGETDEFTHRESH;
+   unsigned IOCTL_CYGETDEFTIMEOUT = CYGETDEFTIMEOUT;
+   unsigned IOCTL_CYGETMON = CYGETMON;
+@@ -824,6 +829,7 @@ unsigned struct_ElfW_Phdr_sz = sizeof(El
+   unsigned IOCTL_CYSETDEFTIMEOUT = CYSETDEFTIMEOUT;
+   unsigned IOCTL_CYSETTHRESH = CYSETTHRESH;
+   unsigned IOCTL_CYSETTIMEOUT = CYSETTIMEOUT;
++#endif
+   unsigned IOCTL_EQL_EMANCIPATE = EQL_EMANCIPATE;
+   unsigned IOCTL_EQL_ENSLAVE = EQL_ENSLAVE;
+   unsigned IOCTL_EQL_GETMASTRCFG = EQL_GETMASTRCFG;
+--- libsanitizer/sanitizer_common/sanitizer_common_interceptors_ioctl.inc.jj	2021-04-20 10:33:08.698324371 +0200
++++ libsanitizer/sanitizer_common/sanitizer_common_interceptors_ioctl.inc	2021-05-12 15:44:53.027964291 +0200
+@@ -366,6 +366,7 @@ static void ioctl_table_fill() {
+ 
+ #if SANITIZER_LINUX && !SANITIZER_ANDROID
+   // _(SIOCDEVPLIP, WRITE, struct_ifreq_sz); // the same as EQL_ENSLAVE
++#if SANITIZER_LINUX_CYCLADES
+   _(CYGETDEFTHRESH, WRITE, sizeof(int));
+   _(CYGETDEFTIMEOUT, WRITE, sizeof(int));
+   _(CYGETMON, WRITE, struct_cyclades_monitor_sz);
+@@ -375,6 +376,7 @@ static void ioctl_table_fill() {
+   _(CYSETDEFTIMEOUT, NONE, 0);
+   _(CYSETTHRESH, NONE, 0);
+   _(CYSETTIMEOUT, NONE, 0);
++#endif
+   _(EQL_EMANCIPATE, WRITE, struct_ifreq_sz);
+   _(EQL_ENSLAVE, WRITE, struct_ifreq_sz);
+   _(EQL_GETMASTRCFG, WRITE, struct_ifreq_sz);
