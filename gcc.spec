@@ -266,6 +266,7 @@ Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
 Patch14: gcc11-pr100379.patch
+Patch15: gcc11-pr100566.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -790,6 +791,7 @@ to NVidia PTX capable devices if available.
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
 %patch14 -p0 -b .pr100379~
+%patch15 -p0 -b .pr100566~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3145,6 +3147,7 @@ end
 	tree-optimization/100253, tree-optimization/100278,
 	tree-optimization/100329, tree-optimization/100414
 - fix build with removed linux/cyclades.h header (PR sanitizer/100379)
+- fix up mausezahn miscompilation (#1958887, PR tree-optimization/100566)
 
 * Wed Apr 28 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-1
 - update from releases/gcc-11-branch

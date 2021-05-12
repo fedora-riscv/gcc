@@ -1,0 +1,69 @@
+2021-05-12  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/100566
+	* tree-ssa-sccvn.c (dominated_by_p_w_unex): Properly handle
+	allow_back for all edge queries.
+
+	* gcc.dg/torture/pr100566.c: New testcase.
+
+--- gcc/tree-ssa-sccvn.c
++++ gcc/tree-ssa-sccvn.c
+@@ -4529,7 +4529,8 @@ dominated_by_p_w_unex (basic_block bb1, basic_block bb2, bool allow_back)
+   /* Iterate to the single executable bb2 successor.  */
+   edge succe = NULL;
+   FOR_EACH_EDGE (e, ei, bb2->succs)
+-    if (e->flags & EDGE_EXECUTABLE)
++    if ((e->flags & EDGE_EXECUTABLE)
++	|| (!allow_back && (e->flags & EDGE_DFS_BACK)))
+       {
+ 	if (succe)
+ 	  {
+@@ -4547,7 +4548,8 @@ dominated_by_p_w_unex (basic_block bb1, basic_block bb2, bool allow_back)
+ 	{
+ 	  FOR_EACH_EDGE (e, ei, succe->dest->preds)
+ 	    if (e != succe
+-		&& (e->flags & EDGE_EXECUTABLE))
++		&& ((e->flags & EDGE_EXECUTABLE)
++		    || (!allow_back && (e->flags & EDGE_DFS_BACK))))
+ 	      {
+ 		succe = NULL;
+ 		break;
+--- gcc/testsuite/gcc.dg/torture/pr100566.c
++++ gcc/testsuite/gcc.dg/torture/pr100566.c
+@@ -0,0 +1,36 @@
++/* { dg-do run } */
++
++volatile int s, c;
++
++__attribute__((noipa)) void
++foo (void)
++{
++  if (c++ > 1)
++    __builtin_abort ();
++}
++
++__attribute__((noipa)) int
++bar (void)
++{
++  int i = 0, j = s;
++  if (j == 0)
++    goto lab;
++  for (i = 0; i < j; i++)
++    {
++    lab:
++      foo ();
++      if (!j)
++        goto lab;
++    }
++  return 0;
++}
++
++int
++main ()
++{
++  s = 1;
++  bar ();
++  if (c != 1)
++    __builtin_abort ();
++  return 0;
++}
