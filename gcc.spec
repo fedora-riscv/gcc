@@ -1,10 +1,10 @@
-%global DATE 20210423
-%global gitrev 81036e6dfb5dac2e9186f0071f7f2048e81e65fa
-%global gcc_version 8.4.1
+%global DATE 20210514
+%global gitrev a3253c88425835d5b339d6998a1110a66ccd8b44
+%global gcc_version 8.5.0
 %global gcc_major 8
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 1
 %global nvptx_tools_gitrev c28050f60193b3b95a18866a96f03334e874e78f
 %global nvptx_newlib_gitrev aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
 %global _unpackaged_files_terminate_build 0
@@ -3132,6 +3132,21 @@ fi
 %endif
 
 %changelog
+* Fri May 14 2021 Jakub Jelinek <jakub@redhat.com> 8.5.0-1
+- update from the 8 branch
+  - GCC 8.5 release
+  - PRs bootstrap/87338, c++/95719, c++/98032, c++/98358, c/100450,
+	debug/100255, lto/96385, lto/96591, middle-end/86159,
+	rtl-optimization/81025, rtl-optimization/85899,
+	rtl-optimization/94605, rtl-optimization/99929,
+	rtl-optimization/100148, rtl-optimization/100225,
+	rtl-optimization/100230, rtl-optimization/100254,
+	rtl-optimization/100263, target/87839, target/98136, target/98952,
+	target/99037, target/99808, target/100182, target/100302,
+	target/100375, target/100441, tree-optimization/86877,
+	tree-optimization/98117, tree-optimization/98786,
+	tree-optimization/99954
+
 * Fri Apr 23 2021 Jakub Jelinek <jakub@redhat.com> 8.4.1-2
 - update from the 8 branch
   - PRs ada/98230, bootstrap/97163, c++/33661, c++/82959, c++/88115,
