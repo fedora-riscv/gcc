@@ -1,10 +1,10 @@
-%global DATE 20210512
-%global gitrev 2274d6c6dc94803fb17a8466bace08a15b387509
+%global DATE 20210531
+%global gitrev e8a00355f6fd6fe219de22855d92c351911519da
 %global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -265,8 +265,7 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
-Patch14: gcc11-pr100379.patch
-Patch15: gcc11-pr100566.patch
+Patch14: gcc11-pr100797.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -790,8 +789,7 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
-%patch14 -p0 -b .pr100379~
-%patch15 -p0 -b .pr100566~
+%patch14 -p0 -b .pr100797~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3134,6 +3132,18 @@ end
 %endif
 
 %changelog
+* Mon May 31 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-3
+- update from releases/gcc-11-branch
+  - PRs bootstrap/100552, c++/100205, c++/100261, c++/100281, c++/100367,
+	c++/100372, c++/100489, c++/100502, c++/100634, c++/100644,
+	c++/100659, c/100550, fortran/98411, fortran/100551, fortran/100602,
+	fortran/100633, fortran/100656, ipa/100513, libstdc++/100361,
+	libstdc++/100479, libstdc++/100630, middle-end/100471,
+	middle-end/100508, middle-end/100509, preprocessor/100392,
+	target/94177, target/99725, target/99960, target/99977, target/100419,
+	target/100563, target/100626, target/100767, testsuite/96488,
+	tree-optimization/100492, tree-optimization/100519
+
 * Wed May 12 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-2
 - update from releases/gcc-11-branch
   - PRs c++/98032, c++/100319, c++/100362, c/100450, fortran/100274,

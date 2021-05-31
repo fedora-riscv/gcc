@@ -1,0 +1,91 @@
+2021-05-27  Jason Merrill  <jason@redhat.com>
+
+	PR c++/100797
+	PR c++/95719
+	* call.c (build_over_call): Adjust base_binfo in
+	resolves_to_fixed_type_p case.
+
+	* g++.dg/inherit/virtual15.C: New test.
+
+--- gcc/cp/call.c
++++ gcc/cp/call.c
+@@ -9152,18 +9152,32 @@ build_over_call (struct z_candidate *cand, int flags, tsubst_flags_t complain)
+ 	  if (base_binfo == error_mark_node)
+ 	    return error_mark_node;
+ 	}
+-      tree converted_arg = build_base_path (PLUS_EXPR, arg,
+-					    base_binfo, 1, complain);
+ 
+       /* If we know the dynamic type of the object, look up the final overrider
+ 	 in the BINFO.  */
+       if (DECL_VINDEX (fn) && (flags & LOOKUP_NONVIRTUAL) == 0
+ 	  && resolves_to_fixed_type_p (arg))
+ 	{
+-	  fn = lookup_vfn_in_binfo (DECL_VINDEX (fn), base_binfo);
+-	  flags |= LOOKUP_NONVIRTUAL;
++	  tree ov = lookup_vfn_in_binfo (DECL_VINDEX (fn), base_binfo);
++
++	  /* And unwind base_binfo to match.  If we don't find the type we're
++	     looking for in BINFO_INHERITANCE_CHAIN, we're looking at diamond
++	     inheritance; for now do a normal virtual call in that case.  */
++	  tree octx = DECL_CONTEXT (ov);
++	  tree obinfo = base_binfo;
++	  while (obinfo && !SAME_BINFO_TYPE_P (BINFO_TYPE (obinfo), octx))
++	    obinfo = BINFO_INHERITANCE_CHAIN (obinfo);
++	  if (obinfo)
++	    {
++	      fn = ov;
++	      base_binfo = obinfo;
++	      flags |= LOOKUP_NONVIRTUAL;
++	    }
+ 	}
+ 
++      tree converted_arg = build_base_path (PLUS_EXPR, arg,
++					    base_binfo, 1, complain);
++
+       argarray[j++] = converted_arg;
+       parm = TREE_CHAIN (parm);
+       if (first_arg != NULL_TREE)
+--- gcc/testsuite/g++.dg/inherit/virtual15.C
++++ gcc/testsuite/g++.dg/inherit/virtual15.C
+@@ -0,0 +1,18 @@
++// PR c++/100797
++// { dg-do run }
++
++bool ok = false;
++struct S1 { virtual ~S1() {} };
++struct S2 { virtual void f1() = 0; };
++struct S3: S1, S2 {
++    void f1() { f2(); }
++    virtual void f2() = 0;
++};
++struct S4: S3 {
++  void f2() { ok = true; }
++  using S2::f1;
++};
++int main() {
++  S4().f1();
++  if (!ok) __builtin_abort ();
++}
+--- gcc/testsuite/g++.dg/inherit/virtual15a.C
++++ gcc/testsuite/g++.dg/inherit/virtual15a.C
+@@ -0,0 +1,19 @@
++// PR c++/100797 plus diamond inheritance
++// { dg-do run }
++
++bool ok = false;
++struct S1 { virtual ~S1() {} };
++struct S2 { virtual void f1() = 0; };
++struct S3: S1, virtual S2 {
++    void f1() { f2(); }
++    virtual void f2() = 0;
++};
++struct SX: virtual S2 { };
++struct S4: SX, S3 {
++  void f2() { ok = true; }
++  using S2::f1;
++};
++int main() {
++  S4().f1();
++  if (!ok) __builtin_abort ();
++}
