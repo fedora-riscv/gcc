@@ -4,7 +4,7 @@
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3132,6 +3132,9 @@ end
 %endif
 
 %changelog
+* Mon Jun 14 2021 Florian Weimer <fweimer@redhat.com> - 11.1.1-4
+- NVR bump to enable rebuild in side tag
+
 * Mon May 31 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-3
 - update from releases/gcc-11-branch
   - PRs bootstrap/100552, c++/100205, c++/100261, c++/100281, c++/100367,
