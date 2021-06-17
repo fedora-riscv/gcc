@@ -1,5 +1,5 @@
-%global DATE 20210531
-%global gitrev e8a00355f6fd6fe219de22855d92c351911519da
+%global DATE 20210617
+%global gitrev f7ca2f99f1015466fd59cd72a3dad1080c230f6a
 %global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
