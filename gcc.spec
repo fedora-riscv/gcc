@@ -4,7 +4,7 @@
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -265,7 +265,6 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
-Patch14: gcc11-pr100797.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -789,7 +788,6 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
-%patch14 -p0 -b .pr100797~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3132,7 +3130,26 @@ end
 %endif
 
 %changelog
-* Mon Jun 14 2021 Florian Weimer <fweimer@redhat.com> - 11.1.1-4
+* Thu Jun 17 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-5
+- update from releases/gcc-11-branch
+  - PRs bootstrap/100731, c++/91706, c++/91859, c++/95719, c++/100065,
+	c++/100102, c++/100580, c++/100666, c++/100796, c++/100797,
+	c++/100862, c++/100946, c++/100963, c++/101029, c++/101078, c/100902,
+	c/100920, d/100882, d/100935, d/100964, d/100967, d/100999,
+	debug/100852, fortran/82376, fortran/98301, fortran/99839,
+	fortran/100965, ipa/100791, libstdc++/98842, libstdc++/100475,
+	libstdc++/100577, libstdc++/100631, libstdc++/100639,
+	libstdc++/100676, libstdc++/100690, libstdc++/100768,
+	libstdc++/100770, libstdc++/100824, libstdc++/100833,
+	libstdc++/100889, libstdc++/100894, libstdc++/100900,
+	libstdc++/100982, libstdc++/101034, libstdc++/101055,
+	middle-end/100576, middle-end/100898, middle-end/101009,
+	preprocessor/100646, rtl-optimization/100342, rtl-optimization/100590,
+	rtl-optimization/101008, target/100333, target/100885, target/100887,
+	target/101046, testsuite/100750, tree-optimization/100934,
+	tree-optimization/100981
+
+* Mon Jun 14 2021 Florian Weimer <fweimer@redhat.com> 11.1.1-4
 - NVR bump to enable rebuild in side tag
 
 * Mon May 31 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-3
