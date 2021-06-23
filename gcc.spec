@@ -1,10 +1,10 @@
-%global DATE 20210617
-%global gitrev f7ca2f99f1015466fd59cd72a3dad1080c230f6a
+%global DATE 20210623
+%global gitrev cab23df287db6bf4e3d8207e72726b40a4b11058
 %global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3130,6 +3130,17 @@ end
 %endif
 
 %changelog
+* Wed Jun 23 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-6
+- update from releases/gcc-11-branch
+  - PRs c++/100876, c++/100879, c++/101106, c/100619, c/100783, fortran/95501,
+	fortran/95502, fortran/100283, fortran/101123, inline-asm/100785,
+	libstdc++/91488, libstdc++/95833, libstdc++/100806, libstdc++/100940,
+	middle-end/100250, middle-end/100307, middle-end/100574,
+	middle-end/100684, middle-end/100732, middle-end/100876,
+	middle-end/101062, middle-end/101167, target/99842, target/99939,
+	target/100310, target/100777, target/100856, target/100871,
+	target/101016
+
 * Thu Jun 17 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-5
 - update from releases/gcc-11-branch
   - PRs bootstrap/100731, c++/91706, c++/91859, c++/95719, c++/100065,
