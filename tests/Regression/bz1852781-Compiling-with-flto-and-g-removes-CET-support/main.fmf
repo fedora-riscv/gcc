@@ -1,0 +1,17 @@
+summary: Test for BZ#1852781 (Compiling with -flto and -g removes CET support)
+description: |
+    Bug summary: Compiling with -flto and -g removes CET support
+    Bugzilla link: https://bugzilla.redhat.com/show_bug.cgi?id=1852781
+contact: Alexandra Hájková <ahajkova@redhat.com>
+component:
+- gcc
+test: ./runtest.sh
+framework: beakerlib
+recommend:
+- gcc
+- binutils
+duration: 15m
+link:
+-   relates: https://bugzilla.redhat.com/show_bug.cgi?id=1852781
+extra-summary: /tools/gcc/Regression/bz1852781-Compiling-with-flto-and-g-removes-CET-support
+extra-task: /tools/gcc/Regression/bz1852781-Compiling-with-flto-and-g-removes-CET-support
