@@ -1,0 +1,17 @@
+summary: Test for BZ#1853900 (typeinfo for stdcodecvt_utf8<wchar_t, 1114111ul,)
+description: |
+    Bug summary: typeinfo for std::codecvt_utf8<wchar_t, 1114111ul, (std::codecvt_mode)0> not found
+    Bugzilla link: https://bugzilla.redhat.com/show_bug.cgi?id=1853900
+contact: Alexandra Hájková <ahajkova@redhat.com>
+component:
+- gcc
+test: ./runtest.sh
+framework: beakerlib
+recommend:
+- gcc
+- gcc-c++
+duration: 10m
+link:
+-   relates: https://bugzilla.redhat.com/show_bug.cgi?id=1853900
+extra-summary: /tools/gcc/Regression/bz1853900-typeinfo-for-std-codecvt-utf8-wchar-t-1114111ul
+extra-task: /tools/gcc/Regression/bz1853900-typeinfo-for-std-codecvt-utf8-wchar-t-1114111ul
