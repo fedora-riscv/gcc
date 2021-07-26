@@ -1,10 +1,10 @@
-%global DATE 20210623
-%global gitrev cab23df287db6bf4e3d8207e72726b40a4b11058
+%global DATE 20210726
+%global gitrev 0b934a97129b060f95533a6b6ddf87141195728a
 %global gcc_version 11.1.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3130,8 +3130,29 @@ end
 %endif
 
 %changelog
-* Wed Jul 21 2021 Fedora Release Engineering <releng@fedoraproject.org> - 11.1.1-6.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
+* Mon Jul 26 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-7
+- update from releases/gcc-11-branch
+  - PRs ada/101094, analyzer/100244, analyzer/100615, analyzer/101082,
+	bootstrap/100246, c++/100138, c++/100752, c++/100838, c++/100918,
+	c++/101040, c++/101087, c++/101098, c++/101181, c++/101182,
+	c++/101194, c++/101210, c++/101233, c++/101247, c++/101361,
+	c++/101443, c++/101516, c++/86355, c++/95520, c++/97420, c++/98832,
+	c/101171, c/101176, d/101273, d/101282, debug/101266, driver/101383,
+	fortran/100227, fortran/100949, fortran/93524, go/101407, ipa/101066,
+	libstdc++/100387, libstdc++/101411, libstdc++/101427,
+	middle-end/100672, middle-end/101156, middle-end/101172,
+	middle-end/101291, middle-end/101423, middle-end/101535,
+	middle-end/94366, target/100152, target/100809, target/101023,
+	target/101129, target/101142, target/101175, target/101185,
+	target/101235, target/101377, target/101384, target/101395,
+	testsuite/100422, tree-optimization/100299, tree-optimization/100778,
+	tree-optimization/100923, tree-optimization/101014,
+	tree-optimization/101025, tree-optimization/101088,
+	tree-optimization/101105, tree-optimization/101148,
+	tree-optimization/101151, tree-optimization/101158,
+	tree-optimization/101173, tree-optimization/101223,
+	tree-optimization/101229, tree-optimization/101280,
+	tree-optimization/101394, tree-optimization/101445
 
 * Wed Jun 23 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-6
 - update from releases/gcc-11-branch
