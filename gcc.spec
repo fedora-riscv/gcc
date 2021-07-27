@@ -1078,6 +1078,9 @@ CONFIGURE_OPTS="\
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform} \
 %endif
+%ifarch x86_64 %{ix86} ppc64le s390x
+	--with-build-config=bootstrap-lto --enable-link-serialization=1 \
+%endif
 	"
 
 CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
@@ -3130,6 +3133,8 @@ end
 %endif
 
 %changelog
+- enable LTO profiledbootstrap on x86_64, i?86, ppc64le and s390x
+
 * Mon Jul 26 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-7
 - update from releases/gcc-11-branch
   - PRs ada/101094, analyzer/100244, analyzer/100615, analyzer/101082,
