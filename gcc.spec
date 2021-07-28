@@ -1,10 +1,10 @@
-%global DATE 20210726
-%global gitrev 0b934a97129b060f95533a6b6ddf87141195728a
-%global gcc_version 11.1.1
+%global DATE 20210728
+%global gitrev 134ab8155c937122663513b76afa8e64ad61fe99
+%global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -1078,8 +1078,10 @@ CONFIGURE_OPTS="\
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform} \
 %endif
+%if 0%{?fedora} >= 35
 %ifarch x86_64 %{ix86} ppc64le s390x
 	--with-build-config=bootstrap-lto --enable-link-serialization=1 \
+%endif
 %endif
 	"
 
@@ -3133,7 +3135,11 @@ end
 %endif
 
 %changelog
-- enable LTO profiledbootstrap on x86_64, i?86, ppc64le and s390x
+* Wed Jul 28 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-1
+- update from releases/gcc-11-branch
+  - GCC 11.2 release
+  - PRs middle-end/101586, rtl-optimization/101562
+- enable LTO profiledbootstrap on x86_64, i?86, ppc64le and s390x for f35+
 
 * Mon Jul 26 2021 Jakub Jelinek <jakub@redhat.com> 11.1.1-7
 - update from releases/gcc-11-branch
