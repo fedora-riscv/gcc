@@ -4,7 +4,7 @@
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -1078,10 +1078,8 @@ CONFIGURE_OPTS="\
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform} \
 %endif
-%if 0%{?fedora} >= 35
-%ifarch x86_64 %{ix86} ppc64le s390x
+%if 0%{?fedora} >= 35 || 9%{?rhel} >= 9
 	--with-build-config=bootstrap-lto --enable-link-serialization=1 \
-%endif
 %endif
 	"
 
@@ -3135,6 +3133,9 @@ end
 %endif
 
 %changelog
+* Fri Jul 30 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-2
+- enable LTO profiledbootstrap on all arches, and also for RHEL9+
+
 * Wed Jul 28 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-1
 - update from releases/gcc-11-branch
   - GCC 11.2 release
