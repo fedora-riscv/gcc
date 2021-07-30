@@ -1078,7 +1078,7 @@ CONFIGURE_OPTS="\
 %ifnarch sparc sparcv9 ppc
 	--build=%{gcc_target_platform} \
 %endif
-%if 0%{?fedora} >= 35 || 9%{?rhel} >= 9
+%if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 	--with-build-config=bootstrap-lto --enable-link-serialization=1 \
 %endif
 	"
