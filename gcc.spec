@@ -1,10 +1,10 @@
-%global DATE 20210728
-%global gitrev 134ab8155c937122663513b76afa8e64ad61fe99
+%global DATE 20210823
+%global gitrev b558c8e931f0c36cda40bd60f5cdeb92452e91b5
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -250,6 +250,8 @@ Obsoletes: gcc-gnat < %{version}-%{release}
 Obsoletes: gcc-java < %{version}-%{release}
 AutoReq: true
 Provides: bundled(libiberty)
+Provides: bundled(libbacktrace)
+Provides: bundled(libffi)
 Provides: gcc(major) = %{gcc_major}
 
 Patch0: gcc11-hack.patch
@@ -265,6 +267,9 @@ Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
+Patch14: gcc11-libgcc-link.patch
+Patch15: gcc11-pr101786.patch
+Patch16: gcc11-stringify-__VA_OPT__.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -788,6 +793,9 @@ to NVidia PTX capable devices if available.
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
 %patch13 -p0 -b .pr99341-revert~
+%patch14 -p0 -b .libgcc-link~
+%patch15 -p0 -b .pr101786~
+%patch16 -p0 -b .stringify-__VA_OPT__~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -1092,9 +1100,9 @@ CC="$CC" CXX="$CXX" CFLAGS="$OPT_FLAGS" \
 	$CONFIGURE_OPTS
 
 %ifarch sparc sparcv9 sparc64
-make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" bootstrap
+make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" LDFLAGS_FOR_TARGET=-Wl,-z,relro,-z,now bootstrap
 %else
-make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" profiledbootstrap
+make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" LDFLAGS_FOR_TARGET=-Wl,-z,relro,-z,now profiledbootstrap
 %endif
 
 CC="`%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cc`"
@@ -2091,7 +2099,7 @@ end
 
 %ldconfig_scriptlets -n libgccjit
 
-%ldconfig_scriptlets -n libgquadmath
+%ldconfig_scriptlets -n libquadmath
 
 %ldconfig_scriptlets -n libitm
 
@@ -3133,6 +3141,26 @@ end
 %endif
 
 %changelog
+* Mon Aug 23 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-3
+- update from releases/gcc-11-branch
+  - PRs c++/100828, c++/101663, c++/101725, c++/101759, c/100150, c/101512,
+	d/96435, d/101127, d/101441, d/101490, d/101619, d/101640, d/101664,
+	debug/101905, fortran/99351, fortran/101084, fortran/101514,
+	fortran/101536, fortran/101564, gcov-profile/89961,
+	gcov-profile/100788, ipa/100600, ipa/101261, ipa/101726,
+	libstdc++/100139, libstdc++/101056, libstdc++/101258,
+	libstdc++/101510, libstdc++/101866, middle-end/101624,
+	preprocessor/101638, sanitizer/101749, target/94780, target/100952,
+	target/101132, target/101531, target/101723, testsuite/101969,
+	tree-optimization/101373, tree-optimization/101505,
+	tree-optimization/101868
+- add bundled(libbacktrace) and bundled(libffi) provides
+- build target shared libraries with -Wl,-z,relro,-z,now
+- improve generated code with extern thread_local constinit vars
+  with trivial dtors
+- add support for C++20 #__VA_OPT__
+- fix up %%ldconfig_scriptlets
+
 * Fri Jul 30 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-2
 - enable LTO profiledbootstrap on all arches, and also for RHEL9+
 
