@@ -3172,6 +3172,7 @@ end
   symbols (mangled as _ZNSt9once_flag11_M_activateEv and
   _ZNSt9once_flag9_M_finishEb) aren't part of upstream GCC 11 and were
   present only because not all packaged have been successfully rebuilt
+  (#1961541)
 
 * Mon Aug 23 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-3
 - update from releases/gcc-11-branch
