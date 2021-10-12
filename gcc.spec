@@ -1,10 +1,10 @@
-%global DATE 20210823
-%global gitrev b558c8e931f0c36cda40bd60f5cdeb92452e91b5
+%global DATE 20211012
+%global gitrev 7e514c5f733dbaac439b226e7b3c741a45ee50a1
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -270,6 +270,7 @@ Patch13: gcc11-pr99341-revert.patch
 Patch14: gcc11-libgcc-link.patch
 Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
+Patch17: gcc11-pr102642.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -792,10 +793,13 @@ to NVidia PTX capable devices if available.
 %patch11 -p0 -b .rh1574936~
 %endif
 %patch12 -p0 -b .d-shared-libphobos~
+%if 0%{?fedora} == 34
 %patch13 -p0 -b .pr99341-revert~
+%endif
 %patch14 -p0 -b .libgcc-link~
 %patch15 -p0 -b .pr101786~
 %patch16 -p0 -b .stringify-__VA_OPT__~
+%patch17 -p0 -b .pr102642~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3141,6 +3145,34 @@ end
 %endif
 
 %changelog
+* Tue Oct 12 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-4
+- update from releases/gcc-11-branch
+  - PRs ada/101970, c++/60318, c++/64697, c++/88578, c++/91292, c++/95567,
+	c++/98216, c++/98486, c++/99904, c++/100495, c++/101344, c++/101592,
+	c++/101803, c++/101883, c++/102163, c++/102295, c++/102305,
+	c++/102412, c++/102454, c++/102496, c++/102535, c++/102547,
+	c++/102548, c++/102640, d/102185, d/102574, debug/102373,
+	debug/102441, fortran/46691, fortran/82314, fortran/85130,
+	fortran/87737, fortran/98490, fortran/99819, fortran/100950,
+	fortran/101327, fortran/101349, fortran/102113, fortran/102287,
+	fortran/102311, fortran/102366, fortran/102458, fortran/102520,
+	ipa/97565, libgomp/96661, libstdc++/100180, libstdc++/100285,
+	libstdc++/100286, libstdc++/100351, libstdc++/100682,
+	libstdc++/101965, middle-end/101824, middle-end/101949,
+	rtl-optimization/102306, sanitizer/102515, target/94630, target/97142,
+	target/100734, target/101471, target/101472, target/101492,
+	target/101549, target/101849, target/101934, target/102035,
+	target/102107, target/102115, target/102166, target/102222,
+	target/102224, target/102498, tree-optimization/101925,
+	tree-optimization/102046, tree-optimization/102124,
+	tree-optimization/102400, tree-optimization/102451,
+	tree-optimization/102622
+- remove the PR libstdc++/99341 workaround for Fedora 35 and later,
+  the std::once_flag::_M_activate() and std::once_flag::_M_finish(bool)
+  symbols (mangled as _ZNSt9once_flag11_M_activateEv and
+  _ZNSt9once_flag9_M_finishEb) aren't part of upstream GCC 11 and were
+  present only because not all packaged have been successfully rebuilt
+
 * Mon Aug 23 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-3
 - update from releases/gcc-11-branch
   - PRs c++/100828, c++/101663, c++/101725, c++/101759, c/100150, c/101512,
