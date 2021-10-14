@@ -2273,6 +2273,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/hresetintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/keylockerintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avxvnniintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/mwaitintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3145,6 +3146,8 @@ end
 %endif
 
 %changelog
+- add mwaitintrin.h on x86 (#2013860)
+
 * Tue Oct 12 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-4
 - update from releases/gcc-11-branch
   - PRs ada/101970, c++/60318, c++/64697, c++/88578, c++/91292, c++/95567,
