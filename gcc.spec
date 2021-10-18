@@ -1,10 +1,10 @@
-%global DATE 20211012
-%global gitrev 7e514c5f733dbaac439b226e7b3c741a45ee50a1
+%global DATE 20211018
+%global gitrev d6f9b521b3fafab22aa00ff239862bed57fa8dad
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 5
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -1091,7 +1091,9 @@ CONFIGURE_OPTS="\
 	--build=%{gcc_target_platform} \
 %endif
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
+%ifnarch %{arm}
 	--with-build-config=bootstrap-lto --enable-link-serialization=1 \
+%endif
 %endif
 	"
 
@@ -3146,7 +3148,21 @@ end
 %endif
 
 %changelog
+* Mon Oct 18 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-5
+- update from releases/gcc-11-branch
+  - PRs fortran/102716, libstdc++/65816, libstdc++/90787, libstdc++/99876,
+	libstdc++/100187, libstdc++/100237, libstdc++/100249,
+	libstdc++/100287, libstdc++/100606, libstdc++/100863,
+	libstdc++/101483, libstdc++/101583, libstdc++/101589,
+	libstdc++/101599, libstdc++/101761, libstdc++/101870,
+	libstdc++/101923, libstdc++/101960, libstdc++/102048,
+	libstdc++/102074, libstdc++/102270, libstdc++/102280,
+	libstdc++/102425, libstdc++/102592, libstdc++/102667,
+	rtl-optimization/102627, target/100340, target/102588
 - add mwaitintrin.h on x86 (#2013860)
+- disable LTO bootstrap on 32-bit arm, 6 days long build and counting
+  isn't acceptable, build boxes don't have enough memory and are too
+  slow
 
 * Tue Oct 12 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-4
 - update from releases/gcc-11-branch
