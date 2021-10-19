@@ -1,10 +1,10 @@
-%global DATE 20211018
-%global gitrev d6f9b521b3fafab22aa00ff239862bed57fa8dad
+%global DATE 20211019
+%global gitrev 0990a48aaf68b56a3737fdb290328df1da9095cc
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 5
+%global gcc_release 6
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3148,6 +3148,11 @@ end
 %endif
 
 %changelog
+* Tue Oct 19 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-6
+- update from releases/gcc-11-branch
+  - PRs target/100208, target/100316, target/102761
+- fix up libstdc++ docs build
+
 * Mon Oct 18 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-5
 - update from releases/gcc-11-branch
   - PRs fortran/102716, libstdc++/65816, libstdc++/90787, libstdc++/99876,
