@@ -1,7 +1,7 @@
-%global DATE 20211019
-%global gitrev 0990a48aaf68b56a3737fdb290328df1da9095cc
-%global gcc_version 11.2.1
-%global gcc_major 11
+%global DATE 20211128
+%global gitrev f372c2ada831721ae084c3e9d690c63af5709081
+%global gcc_version 12.0
+%global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
 %global gcc_release 6
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}%{?dist}.0.bdostest
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -262,13 +262,10 @@ Patch5: gcc11-isl-dl.patch
 Patch6: gcc11-isl-dl2.patch
 Patch7: gcc11-libstdc++-docs.patch
 Patch8: gcc11-no-add-needed.patch
-Patch9: gcc11-foffload-default.patch
 Patch10: gcc11-Wno-format-security.patch
 Patch11: gcc11-rh1574936.patch
 Patch12: gcc11-d-shared-libphobos.patch
 Patch13: gcc11-pr99341-revert.patch
-Patch14: gcc11-libgcc-link.patch
-Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
 Patch17: gcc11-pr102642.patch
 
@@ -303,7 +300,7 @@ Patch109: gcc11-fortran-fdec-add-missing-indexes.patch
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
 %global __os_install_post \
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.* \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.* \
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -311,7 +308,7 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
 %__os_install_post \
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.* \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.* \
 chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -787,7 +784,6 @@ to NVidia PTX capable devices if available.
 %patch7 -p0 -b .libstdc++-docs~
 %endif
 %patch8 -p0 -b .no-add-needed~
-%patch9 -p0 -b .foffload-default~
 %patch10 -p0 -b .Wno-format-security~
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 %patch11 -p0 -b .rh1574936~
@@ -796,10 +792,6 @@ to NVidia PTX capable devices if available.
 %if 0%{?fedora} == 34
 %patch13 -p0 -b .pr99341-revert~
 %endif
-%patch14 -p0 -b .libgcc-link~
-%patch15 -p0 -b .pr101786~
-%patch16 -p0 -b .stringify-__VA_OPT__~
-%patch17 -p0 -b .pr102642~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -1463,7 +1455,7 @@ ln -sf ../../../libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../libgfortran.so.5.* libgfortran.so
 ln -sf ../../../libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../libgo.so.19.* libgo.so
+ln -sf ../../../libgo.so.20.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../libquadmath.so.0.* libquadmath.so
@@ -1479,7 +1471,7 @@ ln -sf ../../../libitm.so.1.* libitm.so
 ln -sf ../../../libatomic.so.1.* libatomic.so
 %endif
 %if %{build_libasan}
-ln -sf ../../../libasan.so.6.* libasan.so
+ln -sf ../../../libasan.so.8.* libasan.so
 mv ../../../libasan_preinit.o libasan_preinit.o
 %endif
 %if %{build_libubsan}
@@ -1493,7 +1485,7 @@ ln -sf ../../../../%{_lib}/libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../../%{_lib}/libgfortran.so.5.* libgfortran.so
 ln -sf ../../../../%{_lib}/libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../../%{_lib}/libgo.so.19.* libgo.so
+ln -sf ../../../../%{_lib}/libgo.so.20.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../../%{_lib}/libquadmath.so.0.* libquadmath.so
@@ -1509,7 +1501,7 @@ ln -sf ../../../../%{_lib}/libitm.so.1.* libitm.so
 ln -sf ../../../../%{_lib}/libatomic.so.1.* libatomic.so
 %endif
 %if %{build_libasan}
-ln -sf ../../../../%{_lib}/libasan.so.6.* libasan.so
+ln -sf ../../../../%{_lib}/libasan.so.8.* libasan.so
 mv ../../../../%{_lib}/libasan_preinit.o libasan_preinit.o
 %endif
 %if %{build_libubsan}
@@ -1517,7 +1509,7 @@ ln -sf ../../../../%{_lib}/libubsan.so.1.* libubsan.so
 %endif
 %if %{build_libtsan}
 rm -f libtsan.so
-echo 'INPUT ( %{_prefix}/%{_lib}/'`echo ../../../../%{_lib}/libtsan.so.0.* | sed 's,^.*libt,libt,'`' )' > libtsan.so
+echo 'INPUT ( %{_prefix}/%{_lib}/'`echo ../../../../%{_lib}/libtsan.so.2.* | sed 's,^.*libt,libt,'`' )' > libtsan.so
 mv ../../../../%{_lib}/libtsan_preinit.o libtsan_preinit.o
 %endif
 %if %{build_liblsan}
@@ -1613,8 +1605,8 @@ ln -sf ../`echo ../../../../lib/libgfortran.so.5.* | sed s~/lib/~/lib64/~` 64/li
 ln -sf ../`echo ../../../../lib/libgomp.so.1.* | sed s~/lib/~/lib64/~` 64/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1640,8 +1632,8 @@ echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libatomic.so.1.* | sed 's,
 %endif
 %if %{build_libasan}
 rm -f libasan.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libasan.so.6.* | sed 's,^.*liba,liba,'`' )' > libasan.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libasan.so.6.* | sed 's,^.*liba,liba,'`' )' > 64/libasan.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libasan.so.8.* | sed 's,^.*liba,liba,'`' )' > libasan.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libasan.so.8.* | sed 's,^.*liba,liba,'`' )' > 64/libasan.so
 mv ../../../../lib64/libasan_preinit.o 64/libasan_preinit.o
 %endif
 %if %{build_libubsan}
@@ -1712,8 +1704,8 @@ ln -sf ../`echo ../../../../lib64/libgfortran.so.5.* | sed s~/../lib64/~/~` 32/l
 ln -sf ../`echo ../../../../lib64/libgomp.so.1.* | sed s~/../lib64/~/~` 32/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.19.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1739,8 +1731,8 @@ echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libatomic.so.1.* | sed 's,
 %endif
 %if %{build_libasan}
 rm -f libasan.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libasan.so.6.* | sed 's,^.*liba,liba,'`' )' > libasan.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libasan.so.6.* | sed 's,^.*liba,liba,'`' )' > 32/libasan.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libasan.so.8.* | sed 's,^.*liba,liba,'`' )' > libasan.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libasan.so.8.* | sed 's,^.*liba,liba,'`' )' > 32/libasan.so
 mv ../../../../lib/libasan_preinit.o 32/libasan_preinit.o
 %endif
 %if %{build_libubsan}
@@ -1887,20 +1879,20 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/libitm.so.1.*
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libatomic.so.1.*
 %endif
 %if %{build_libasan}
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libasan.so.6.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libasan.so.8.*
 %endif
 %if %{build_libubsan}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/libubsan.so.1.*
 %endif
 %if %{build_libtsan}
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.0.*
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libtsan.so.2.*
 %endif
 %if %{build_liblsan}
 chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.19.*
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.*
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
@@ -2920,7 +2912,7 @@ end
 
 %if %{build_libasan}
 %files -n libasan
-%{_prefix}/%{_lib}/libasan.so.6*
+%{_prefix}/%{_lib}/libasan.so.8*
 
 %files -n libasan-static
 %dir %{_prefix}/lib/gcc
@@ -2968,7 +2960,7 @@ end
 
 %if %{build_libtsan}
 %files -n libtsan
-%{_prefix}/%{_lib}/libtsan.so.0*
+%{_prefix}/%{_lib}/libtsan.so.2*
 
 %files -n libtsan-static
 %dir %{_prefix}/lib/gcc
@@ -3040,7 +3032,7 @@ end
 %doc rpm.doc/go/*
 
 %files -n libgo
-%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.19*
+%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.20*
 %doc rpm.doc/libgo/*
 
 %files -n libgo-devel
