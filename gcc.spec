@@ -1,10 +1,10 @@
-%global DATE 20211019
-%global gitrev 0990a48aaf68b56a3737fdb290328df1da9095cc
+%global DATE 20211203
+%global gitrev e41308252e835ddedcabfd4a98240080c6583a43
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 6
+%global gcc_release 7
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -270,7 +270,7 @@ Patch13: gcc11-pr99341-revert.patch
 Patch14: gcc11-libgcc-link.patch
 Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
-Patch17: gcc11-pr102642.patch
+Patch17: gcc11-stringify-__VA_OPT__-2.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -799,7 +799,7 @@ to NVidia PTX capable devices if available.
 %patch14 -p0 -b .libgcc-link~
 %patch15 -p0 -b .pr101786~
 %patch16 -p0 -b .stringify-__VA_OPT__~
-%patch17 -p0 -b .pr102642~
+%patch17 -p0 -b .stringify-__VA_OPT__-2~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3148,6 +3148,33 @@ end
 %endif
 
 %changelog
+* Fri Dec  3 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-7
+- update from releases/gcc-11-branch
+  - PRs ada/100486, c++/70796, c++/92746, c++/93286, c++/94490, c++/102642,
+	c++/102786, debug/101378, debug/103046, debug/103315, fortran/87711,
+	fortran/87851, fortran/97896, fortran/99061, fortran/99348,
+	fortran/102521, fortran/102685, fortran/102715, fortran/102745,
+	fortran/102816, fortran/102817, fortran/102917, fortran/103137,
+	fortran/103138, fortran/103392, gcov-profile/100520, ipa/102714,
+	ipa/102762, ipa/103052, ipa/103246, ipa/103267, libstdc++/96416,
+	libstdc++/98421, libstdc++/100117, libstdc++/100153, libstdc++/100748,
+	libstdc++/101571, libstdc++/101608, libstdc++/102894,
+	libstdc++/103022, libstdc++/103086, libstdc++/103133,
+	libstdc++/103240, libstdc++/103381, middle-end/64888,
+	middle-end/101480, middle-end/102431, middle-end/102518,
+	middle-end/103059, middle-end/103181, middle-end/103248,
+	middle-end/103384, preprocessor/103130, rtl-optimization/102356,
+	rtl-optimization/102842, target/101985, target/102976, target/102991,
+	target/103205, target/103274, target/103275, testsuite/102690,
+	tree-optimization/100393, tree-optimization/102139,
+	tree-optimization/102505, tree-optimization/102572,
+	tree-optimization/102788, tree-optimization/102789,
+	tree-optimization/102798, tree-optimization/102970,
+	tree-optimization/103192, tree-optimization/103204,
+	tree-optimization/103237, tree-optimization/103255,
+	tree-optimization/103435
+- fix up #__VA_OPT__ handling (PR preprocessor/103415)
+
 * Tue Oct 19 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-6
 - update from releases/gcc-11-branch
   - PRs target/100208, target/100316, target/102761
