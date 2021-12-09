@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.0.bdostest
+Release: %{gcc_release}%{?dist}.1.bdostest
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2268,6 +2268,8 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/keylockerintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avxvnniintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/mwaitintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avx512fp16intrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/avx512fp16vlintrin.h
 %endif
 %ifarch ia64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/ia64intrin.h
@@ -3140,6 +3142,9 @@ end
 %endif
 
 %changelog
+* Thu Dec  9 2021 Siddhesh Poyarekar <siddhesh@redhat.com> 12.0-1.bdostest
+- Rebase to gcc 12 in side tag.
+
 * Tue Oct 19 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-6
 - update from releases/gcc-11-branch
   - PRs target/100208, target/100316, target/102761
