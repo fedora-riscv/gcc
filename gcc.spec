@@ -1,5 +1,5 @@
-%global DATE 20220108
-%global gitrev 6bd6f878235efd1d0787892e7e2f73c5edf514cc
+%global DATE 20220112
+%global gitrev 02bedaf9591e39142014a459343337348fee575a
 %global gcc_version 12.0.0
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.3%{?dist}
+Release: %{gcc_release}.4%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3145,5 +3145,22 @@ end
 %endif
 
 %changelog
+* Wed Jan 12 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.4
+- update from trunk
+  - PRs ada/79724, analyzer/102692, analyzer/103940, c++/89074, c++/103480,
+	c++/100588, c++/101597, c++/103783, c++/103831, c++/103879,
+	c++/103912, c++/103946, c/101537, c/103881, fortran/82207,
+	fortran/101762, fortran/103366, fortran/103777, fortran/103789,
+	libstdc++/77760, libstdc++/100017, libstdc++/103726, libstdc++/103866,
+	libstdc++/103891, libstdc++/103955, middle-end/70090,
+	middle-end/101530, rtl-optimization/98782, rtl-optimization/103974,
+	target/53652, target/102024, target/102239, target/103465,
+	target/103804, target/103861, testsuite/102935, testsuite/103820,
+	tree-optimization/76174, tree-optimization/83541,
+	tree-optimization/100359, tree-optimization/103551,
+	tree-optimization/103821, tree-optimization/103948,
+	tree-optimization/103961, tree-optimization/103971,
+	tree-optimization/103977, tree-optimization/103990
+
 * Sat Jan  8 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.3
 - new package
