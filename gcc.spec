@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.5%{?dist}
+Release: %{gcc_release}.5.1%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -992,6 +992,9 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch sparc sparcv9 sparc64 ppc ppc64 ppc64le ppc64p7 s390 s390x alpha
 	--with-long-double-128 \
+%endif
+%ifarch ppc64le
+	--with-long-double-format=ieee \
 %endif
 %ifarch sparc
 	--disable-linux-futex \
@@ -3146,6 +3149,9 @@ end
 %endif
 
 %changelog
+* Sat Jan 15 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.5.1
+- default to -mabi=ieeelongdouble on ppc64le
+
 * Sat Jan 15 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.5
 - update from trunk
   - PRs ada/104027, analyzer/104029, c++/70417, c++/103705, c++/103991,
