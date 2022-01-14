@@ -1,5 +1,5 @@
-%global DATE 20220112
-%global gitrev 02bedaf9591e39142014a459343337348fee575a
+%global DATE 20220115
+%global gitrev d8c9e50646a688fa39fd228289164868692b3474
 %global gcc_version 12.0.0
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.4%{?dist}
+Release: %{gcc_release}.5%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2297,6 +2297,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/nmmintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/immintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/x86gprintrin.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/rs6000-vecdefines.h
 %endif
 %ifarch %{arm}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/unwind-arm-common.h
@@ -3145,6 +3146,20 @@ end
 %endif
 
 %changelog
+* Sat Jan 15 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.5
+- update from trunk
+  - PRs ada/104027, analyzer/104029, c++/70417, c++/103705, c++/103991,
+	c/104002, fortran/67804, fortran/99256, fortran/103782,
+	libfortran/104006, libstdc++/91260, libstdc++/91383, libstdc++/95065,
+	libstdc++/103992, middle-end/100280, middle-end/101475,
+	middle-end/104026, target/94790, target/98737, target/100637,
+	target/103935, target/103941, target/104001, target/104003,
+	target/104014, tree-optimization/83072, tree-optimization/83073,
+	tree-optimization/96707, tree-optimization/97909,
+	tree-optimization/102192, tree-optimization/103989,
+	tree-optimization/104009, tree-optimization/104015
+- include rs6000-vecdefines.h on ppc* (#2040825)
+
 * Wed Jan 12 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.4
 - update from trunk
   - PRs ada/79724, analyzer/102692, analyzer/103940, c++/89074, c++/103480,
