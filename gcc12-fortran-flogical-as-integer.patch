@@ -14,7 +14,7 @@ Note: using this feature will disable bitwise logical operations enabled by
 -fdec.
 ---
  gcc/fortran/lang.opt                          |  4 ++
- gcc/fortran/resolve.c                         | 55 ++++++++++++++++++-
+ gcc/fortran/resolve.cc                        | 55 ++++++++++++++++++-
  .../logical_to_integer_and_vice_versa_1.f     | 31 +++++++++++
  .../logical_to_integer_and_vice_versa_2.f     | 31 +++++++++++
  .../logical_to_integer_and_vice_versa_3.f     | 33 +++++++++++
@@ -40,10 +40,10 @@ index 52bd522051e..c4da248f07c 100644
  fdefault-double-8
  Fortran Var(flag_default_double)
  Set the default double precision kind to an 8 byte wide type.
-diff --git a/gcc/fortran/resolve.c b/gcc/fortran/resolve.c
+diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index c075d0fa0c4..4b90cb59902 100644
---- a/gcc/fortran/resolve.c
-+++ b/gcc/fortran/resolve.c
+--- a/gcc/fortran/resolve.cc
++++ b/gcc/fortran/resolve.cc
 @@ -3915,7 +3915,6 @@ lookup_uop_fuzzy (const char *op, gfc_symtree *uop)
    return gfc_closest_fuzzy_match (op, candidates);
  }

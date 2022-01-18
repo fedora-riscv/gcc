@@ -65,8 +65,8 @@
  				GOCFLAGS="$(GOCFLAGS) $${flags}" \
  				GDCFLAGS="$(GDCFLAGS) $${flags}" \
  				CXXFLAGS="$(CXXFLAGS) $${flags}" \
---- libcpp/macro.c.jj	2019-01-09 13:01:21.420552123 +0100
-+++ libcpp/macro.c	2019-01-11 18:18:17.736876285 +0100
+--- libcpp/macro.cc.jj	2019-01-09 13:01:21.420552123 +0100
++++ libcpp/macro.cc	2019-01-11 18:18:17.736876285 +0100
 @@ -3256,8 +3256,6 @@ static cpp_macro *
  create_iso_definition (cpp_reader *pfile)
  {
@@ -98,8 +98,8 @@
  	      goto out;
  	    }
  
---- libcpp/expr.c.jj	2019-01-09 13:01:22.415535734 +0100
-+++ libcpp/expr.c	2019-01-11 18:16:23.444726882 +0100
+--- libcpp/expr.cc.jj	2019-01-09 13:01:22.415535734 +0100
++++ libcpp/expr.cc	2019-01-11 18:16:23.444726882 +0100
 @@ -803,16 +803,17 @@ cpp_classify_number (cpp_reader *pfile,
        if ((result & CPP_N_WIDTH) == CPP_N_LARGE
  	  && CPP_OPTION (pfile, cpp_warn_long_long))

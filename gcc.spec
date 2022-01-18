@@ -1,6 +1,6 @@
-%global DATE 20220115
-%global gitrev d8c9e50646a688fa39fd228289164868692b3474
-%global gcc_version 12.0.0
+%global DATE 20220118
+%global gitrev 880787aef7a985a80f88a14f830fb554a33b1a87
+%global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.5.1%{?dist}
+Release: %{gcc_release}.1%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -269,6 +269,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
+Patch12: gcc12-pr104025.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -790,6 +791,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr104025~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -992,9 +994,6 @@ CONFIGURE_OPTS="\
 %endif
 %ifarch sparc sparcv9 sparc64 ppc ppc64 ppc64le ppc64p7 s390 s390x alpha
 	--with-long-double-128 \
-%endif
-%ifarch ppc64le
-	--with-long-double-format=ieee \
 %endif
 %ifarch sparc
 	--disable-linux-futex \
@@ -3149,8 +3148,13 @@ end
 %endif
 
 %changelog
-* Sat Jan 15 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.5.1
-- default to -mabi=ieeelongdouble on ppc64le
+* Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.1
+- update from trunk
+  - PRs c++/104031, c/63272, fortran/83079, fortran/87711, fortran/97896,
+	libstdc++/103650, libstdc++/104080, middle-end/101292, target/103124,
+	target/103973, target/104005, testsuite/104035, testsuite/104037,
+	tree-optimization/80532, tree-optimization/101941,
+	tree-optimization/104064
 
 * Sat Jan 15 2022 Jakub Jelinek <jakub@redhat.com> 12.0.0-0.5
 - update from trunk

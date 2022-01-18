@@ -11,12 +11,12 @@ Jeff Law <law@redhat.com>
 
 Re-worked by Mark Eggleston <mark.eggleston@codethink.com>
 ---
- gcc/fortran/check.c                           |  71 +++++-
- gcc/fortran/intrinsic.c                       |   5 +
- gcc/fortran/iresolve.c                        |  91 ++++---
+ gcc/fortran/check.cc                          |  71 +++++-
+ gcc/fortran/intrinsic.cc                      |   5 +
+ gcc/fortran/iresolve.cc                       |  91 ++++---
  gcc/fortran/lang.opt                          |   4 +
- gcc/fortran/options.c                         |   1 +
- gcc/fortran/simplify.c                        | 240 ++++++++++++++----
+ gcc/fortran/options.cc                        |   1 +
+ gcc/fortran/simplify.cc                       | 240 ++++++++++++++----
  ...trinsic_int_real_array_const_promotion_1.f |  18 ++
  ...trinsic_int_real_array_const_promotion_2.f |  18 ++
  ...trinsic_int_real_array_const_promotion_3.f |  18 ++
@@ -51,10 +51,10 @@ Re-worked by Mark Eggleston <mark.eggleston@codethink.com>
  create mode 100644 gcc/testsuite/gfortran.dg/dec_kind_promotion-2.f
  create mode 100644 gcc/testsuite/gfortran.dg/dec_kind_promotion-3.f
 
-diff --git a/gcc/fortran/check.c b/gcc/fortran/check.c
+diff --git a/gcc/fortran/check.cc b/gcc/fortran/check.cc
 index 623c1cc470e..e20a834a860 100644
---- a/gcc/fortran/check.c
-+++ b/gcc/fortran/check.c
+--- a/gcc/fortran/check.cc
++++ b/gcc/fortran/check.cc
 @@ -1396,12 +1396,40 @@ gfc_check_allocated (gfc_expr *array)
  }
  
@@ -160,10 +160,10 @@ index 623c1cc470e..e20a834a860 100644
    if (!int_or_real_check (a, 0))
      return false;
  
-diff --git a/gcc/fortran/intrinsic.c b/gcc/fortran/intrinsic.c
+diff --git a/gcc/fortran/intrinsic.cc b/gcc/fortran/intrinsic.cc
 index e68eff8bdbb..81b3a24c2be 100644
---- a/gcc/fortran/intrinsic.c
-+++ b/gcc/fortran/intrinsic.c
+--- a/gcc/fortran/intrinsic.cc
++++ b/gcc/fortran/intrinsic.cc
 @@ -4467,6 +4467,11 @@ check_arglist (gfc_actual_arglist **ap, gfc_intrinsic_sym *sym,
        if (ts.kind == 0)
  	ts.kind = actual->expr->ts.kind;
@@ -176,10 +176,10 @@ index e68eff8bdbb..81b3a24c2be 100644
        if (!gfc_compare_types (&ts, &actual->expr->ts))
  	{
  	  if (error_flag)
-diff --git a/gcc/fortran/iresolve.c b/gcc/fortran/iresolve.c
+diff --git a/gcc/fortran/iresolve.cc b/gcc/fortran/iresolve.cc
 index e17fe45f080..b9cdaff2499 100644
---- a/gcc/fortran/iresolve.c
-+++ b/gcc/fortran/iresolve.c
+--- a/gcc/fortran/iresolve.cc
++++ b/gcc/fortran/iresolve.cc
 @@ -817,19 +817,22 @@ gfc_resolve_dble (gfc_expr *f, gfc_expr *a)
  void
  gfc_resolve_dim (gfc_expr *f, gfc_expr *a, gfc_expr *p)
@@ -340,10 +340,10 @@ index d886c2f33ed..4ca2f93f2df 100644
  fdec-structure
  Fortran Var(flag_dec_structure)
  Enable support for DEC STRUCTURE/RECORD.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index a946c86790a..15079c7e95a 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -82,6 +82,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_old_init, value, value);
    SET_BITFLAG (flag_dec_override_kind, value, value);
@@ -352,10 +352,10 @@ index a946c86790a..15079c7e95a 100644
  }
  
  /* Finalize DEC flags.  */
-diff --git a/gcc/fortran/simplify.c b/gcc/fortran/simplify.c
+diff --git a/gcc/fortran/simplify.cc b/gcc/fortran/simplify.cc
 index 9900572424f..3419e06fec2 100644
---- a/gcc/fortran/simplify.c
-+++ b/gcc/fortran/simplify.c
+--- a/gcc/fortran/simplify.cc
++++ b/gcc/fortran/simplify.cc
 @@ -2333,39 +2333,79 @@ gfc_simplify_digits (gfc_expr *x)
  }
  

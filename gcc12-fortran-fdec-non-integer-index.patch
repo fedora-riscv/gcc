@@ -6,8 +6,8 @@ Subject: [PATCH 04/10] Allow non-integer substring indexes
 Use -fdec-non-integer-index compiler flag to enable. Also enabled by -fdec.
 ---
  gcc/fortran/lang.opt                          |  4 ++++
- gcc/fortran/options.c                         |  1 +
- gcc/fortran/resolve.c                         | 20 +++++++++++++++++++
+ gcc/fortran/options.cc                        |  1 +
+ gcc/fortran/resolve.cc                        | 20 +++++++++++++++++++
  .../dec_not_integer_substring_indexes_1.f     | 18 +++++++++++++++++
  .../dec_not_integer_substring_indexes_2.f     | 18 +++++++++++++++++
  .../dec_not_integer_substring_indexes_3.f     | 18 +++++++++++++++++
@@ -31,10 +31,10 @@ index c4da248f07c..d527c106bd6 100644
  fdec-structure
  Fortran Var(flag_dec_structure)
  Enable support for DEC STRUCTURE/RECORD.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index f19ba87f8a0..9a042f64881 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -78,6 +78,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_blank_format_item, value, value);
    SET_BITFLAG (flag_dec_char_conversions, value, value);
@@ -43,10 +43,10 @@ index f19ba87f8a0..9a042f64881 100644
  }
  
  /* Finalize DEC flags.  */
-diff --git a/gcc/fortran/resolve.c b/gcc/fortran/resolve.c
+diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index 4b90cb59902..bc0df0fdb99 100644
---- a/gcc/fortran/resolve.c
-+++ b/gcc/fortran/resolve.c
+--- a/gcc/fortran/resolve.cc
++++ b/gcc/fortran/resolve.cc
 @@ -5131,6 +5131,16 @@ gfc_resolve_substring (gfc_ref *ref, bool *equal_length)
        if (!gfc_resolve_expr (ref->u.ss.start))
  	return false;

@@ -6,8 +6,8 @@ Subject: [PATCH 10/10] Fill in missing array dimensions using the lower bound
 Use -fdec-add-missing-indexes to enable feature. Also enabled by fdec.
 ---
  gcc/fortran/lang.opt                  |  8 ++++++++
- gcc/fortran/options.c                 |  1 +
- gcc/fortran/resolve.c                 | 24 ++++++++++++++++++++++++
+ gcc/fortran/options.cc                |  1 +
+ gcc/fortran/resolve.cc                | 24 ++++++++++++++++++++++++
  gcc/testsuite/gfortran.dg/array_6.f90 | 23 +++++++++++++++++++++++
  gcc/testsuite/gfortran.dg/array_7.f90 | 23 +++++++++++++++++++++++
  gcc/testsuite/gfortran.dg/array_8.f90 | 23 +++++++++++++++++++++++
@@ -42,10 +42,10 @@ index 019c798cf09..f27de88ea3f 100644
  fdec-blank-format-item
  Fortran Var(flag_dec_blank_format_item)
  Enable the use of blank format items in format strings.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index 050f56fdc25..c3b2822685d 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -84,6 +84,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_non_logical_if, value, value);
    SET_BITFLAG (flag_dec_promotion, value, value);
@@ -54,10 +54,10 @@ index 050f56fdc25..c3b2822685d 100644
  }
  
  /* Finalize DEC flags.  */
-diff --git a/gcc/fortran/resolve.c b/gcc/fortran/resolve.c
+diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index fe7d0cc5944..0efeedab46e 100644
---- a/gcc/fortran/resolve.c
-+++ b/gcc/fortran/resolve.c
+--- a/gcc/fortran/resolve.cc
++++ b/gcc/fortran/resolve.cc
 @@ -4806,6 +4806,30 @@ compare_spec_to_ref (gfc_array_ref *ar)
    if (ar->type == AR_FULL)
      return true;

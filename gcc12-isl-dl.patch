@@ -626,8 +626,8 @@
 +extern const char *get_isl_version (bool);
  
  #endif
---- gcc/graphite.c.jj	2015-11-04 14:15:32.000000000 +0100
-+++ gcc/graphite.c	2015-11-04 14:56:02.645536409 +0100
+--- gcc/graphite.cc.jj	2015-11-04 14:15:32.000000000 +0100
++++ gcc/graphite.cc	2015-11-04 14:56:02.645536409 +0100
 @@ -60,6 +60,35 @@ along with GCC; see the file COPYING3.
  #include "tree-into-ssa.h"
  #include "graphite.h"
@@ -695,8 +695,8 @@
  #else /* If isl is not available: #ifndef HAVE_isl.  */
  
  static void
---- gcc/toplev.c.jj	2017-02-19 13:02:31.000000000 +0100
-+++ gcc/toplev.c	2017-02-19 16:50:25.536301350 +0100
+--- gcc/toplev.cc.jj	2017-02-19 13:02:31.000000000 +0100
++++ gcc/toplev.cc	2017-02-19 16:50:25.536301350 +0100
 @@ -94,6 +94,7 @@ along with GCC; see the file COPYING3.
  
  #ifdef HAVE_isl

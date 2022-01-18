@@ -35,9 +35,9 @@ caused an internal compiler error.
 
 Contributed by Mark Eggleston <mark.eggleston@codethink.com>
 ---
- gcc/fortran/decl.c                            | 156 ++++++++++++++----
+ gcc/fortran/decl.cc                           | 156 ++++++++++++++----
  gcc/fortran/lang.opt                          |   4 +
- gcc/fortran/options.c                         |   1 +
+ gcc/fortran/options.cc                        |   1 +
  .../dec_mixed_char_array_declaration_1.f      |  13 ++
  .../dec_mixed_char_array_declaration_2.f      |  13 ++
  .../dec_mixed_char_array_declaration_3.f      |  13 ++
@@ -62,10 +62,10 @@ Contributed by Mark Eggleston <mark.eggleston@codethink.com>
  create mode 100644 gcc/testsuite/gfortran.dg/dec_spec_in_variable_7.f
  create mode 100644 gcc/testsuite/gfortran.dg/dec_spec_in_variable_8.f
 
-diff --git a/gcc/fortran/decl.c b/gcc/fortran/decl.c
+diff --git a/gcc/fortran/decl.cc b/gcc/fortran/decl.cc
 index 5c8c1b7981b..f7dc9d8263d 100644
---- a/gcc/fortran/decl.c
-+++ b/gcc/fortran/decl.c
+--- a/gcc/fortran/decl.cc
++++ b/gcc/fortran/decl.cc
 @@ -1213,6 +1213,54 @@ syntax:
    return MATCH_ERROR;
  }
@@ -292,10 +292,10 @@ index 25cc948699b..4a269ebb22d 100644
  fdec-old-init
  Fortran Var(flag_dec_old_init)
  Enable support for old style initializers in derived types.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index d6bd36c3a8a..edbab483b36 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -80,6 +80,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_duplicates, value, value);
    SET_BITFLAG (flag_dec_non_integer_index, value, value);

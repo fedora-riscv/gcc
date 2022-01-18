@@ -6,8 +6,8 @@ Subject: [PATCH 07/10] Allow non-logical expressions in IF statements
 Use -fdec-non-logical-if to enable feature. Also enabled using -fdec.
 ---
  gcc/fortran/lang.opt                          |  4 ++
- gcc/fortran/options.c                         |  1 +
- gcc/fortran/resolve.c                         | 60 ++++++++++++++++---
+ gcc/fortran/options.cc                        |  1 +
+ gcc/fortran/resolve.cc                        | 60 ++++++++++++++++---
  ...gical_expressions_if_statements_blocks_1.f | 25 ++++++++
  ...gical_expressions_if_statements_blocks_2.f | 25 ++++++++
  ...gical_expressions_if_statements_blocks_3.f | 25 ++++++++
@@ -37,10 +37,10 @@ index 4a269ebb22d..d886c2f33ed 100644
  fdec-old-init
  Fortran Var(flag_dec_old_init)
  Enable support for old style initializers in derived types.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index edbab483b36..a946c86790a 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -81,6 +81,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_non_integer_index, value, value);
    SET_BITFLAG (flag_dec_old_init, value, value);
@@ -49,10 +49,10 @@ index edbab483b36..a946c86790a 100644
  }
  
  /* Finalize DEC flags.  */
-diff --git a/gcc/fortran/resolve.c b/gcc/fortran/resolve.c
+diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index bc0df0fdb99..07dd039f3bf 100644
---- a/gcc/fortran/resolve.c
-+++ b/gcc/fortran/resolve.c
+--- a/gcc/fortran/resolve.cc
++++ b/gcc/fortran/resolve.cc
 @@ -10789,10 +10789,31 @@ gfc_resolve_blocks (gfc_code *b, gfc_namespace *ns)
        switch (b->op)
  	{

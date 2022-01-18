@@ -1,12 +1,12 @@
 2011-04-04  Jakub Jelinek  <jakub@redhat.com>
 
-	* toplev.c (toplev_main_argv): New variable.
+	* toplev.cc (toplev_main_argv): New variable.
 	(toplev_main): Initialize it.
-	* graphite.c (init_isl_pointers): Load libisl.so.15 from gcc's private
+	* graphite.cc (init_isl_pointers): Load libisl.so.15 from gcc's private
 	directory.
 
---- gcc/toplev.c.jj	2008-12-09 23:59:10.000000000 +0100
-+++ gcc/toplev.c	2009-01-27 14:33:52.000000000 +0100
+--- gcc/toplev.cc.jj	2008-12-09 23:59:10.000000000 +0100
++++ gcc/toplev.cc	2009-01-27 14:33:52.000000000 +0100
 @@ -113,6 +113,8 @@ static void finalize (bool);
  static void crash_signal (int) ATTRIBUTE_NORETURN;
  static void compile_file (void);
@@ -25,8 +25,8 @@
    /* Initialization of GCC's environment, and diagnostics.  */
    general_init (argv[0], m_init_signals);
  
---- gcc/graphite.c.jj	2010-12-01 10:24:32.000000000 -0500
-+++ gcc/graphite.c	2010-12-01 11:46:07.832118193 -0500
+--- gcc/graphite.cc.jj	2010-12-01 10:24:32.000000000 -0500
++++ gcc/graphite.cc	2010-12-01 11:46:07.832118193 -0500
 @@ -64,11 +64,39 @@ __typeof (isl_pointers__) isl_pointers__
  static bool
  init_isl_pointers (void)

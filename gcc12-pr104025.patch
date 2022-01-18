@@ -1,0 +1,42 @@
+2022-01-18  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/104025
+	* parser.cc (cp_parser_id_expression): Save and restore input_location
+	around cp_parser_skip_entire_template_parameter_list call for
+	-Wmissing-template-keyword.
+
+	* g++.dg/warn/pr104025.C: New test.
+
+--- gcc/cp/parser.cc.jj	2022-01-17 18:05:04.797307506 +0100
++++ gcc/cp/parser.cc	2022-01-17 20:27:33.642711859 +0100
+@@ -6254,6 +6254,7 @@ cp_parser_id_expression (cp_parser *pars
+ 			     OPT_Wmissing_template_keyword))
+     {
+       saved_token_sentinel toks (parser->lexer, STS_ROLLBACK);
++      iloc_sentinel ils (UNKNOWN_LOCATION);
+       if (cp_parser_skip_entire_template_parameter_list (parser)
+ 	  /* An operator after the > suggests that the > ends a
+ 	     template-id; a name or literal suggests that the > is an
+--- gcc/testsuite/g++.dg/warn/pr104025.C.jj	2022-01-17 20:31:17.320591249 +0100
++++ gcc/testsuite/g++.dg/warn/pr104025.C	2022-01-17 20:31:09.068706373 +0100
+@@ -0,0 +1,20 @@
++// PR c++/104025
++// { dg-do compile }
++// { dg-options "-Wmissing-template-keyword -fcompare-debug" }
++
++void bar (int);
++
++struct S { int i; };
++
++template <class C>
++struct T
++{
++  int m;
++  C c;
++  void foo ()
++  {
++    bar (c.i < m);
++  }
++};
++
++template void T<S>::foo ();

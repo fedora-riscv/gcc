@@ -9,9 +9,9 @@ Only single value expressions are allowed at the moment.
 
 Use -fdec-old-init to enable. Also enabled by -fdec.
 ---
- gcc/fortran/decl.c                            | 27 +++++++++++++++----
+ gcc/fortran/decl.cc                           | 27 +++++++++++++++----
  gcc/fortran/lang.opt                          |  4 +++
- gcc/fortran/options.c                         |  1 +
+ gcc/fortran/options.cc                        |  1 +
  ...ec_derived_types_initialised_old_style_1.f | 25 +++++++++++++++++
  ...ec_derived_types_initialised_old_style_2.f | 25 +++++++++++++++++
  ...ec_derived_types_initialised_old_style_3.f | 26 ++++++++++++++++++
@@ -20,10 +20,10 @@ Use -fdec-old-init to enable. Also enabled by -fdec.
  create mode 100644 gcc/testsuite/gfortran.dg/dec_derived_types_initialised_old_style_2.f
  create mode 100644 gcc/testsuite/gfortran.dg/dec_derived_types_initialised_old_style_3.f
 
-diff --git a/gcc/fortran/decl.c b/gcc/fortran/decl.c
+diff --git a/gcc/fortran/decl.cc b/gcc/fortran/decl.cc
 index 723915822f3..5c8c1b7981b 100644
---- a/gcc/fortran/decl.c
-+++ b/gcc/fortran/decl.c
+--- a/gcc/fortran/decl.cc
++++ b/gcc/fortran/decl.cc
 @@ -2827,12 +2827,29 @@ variable_decl (int elem)
           but not components of derived types.  */
        else if (gfc_current_state () == COMP_DERIVED)
@@ -74,10 +74,10 @@ index d527c106bd6..25cc948699b 100644
  fdec-structure
  Fortran Var(flag_dec_structure)
  Enable support for DEC STRUCTURE/RECORD.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index 9a042f64881..d6bd36c3a8a 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -79,6 +79,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_char_conversions, value, value);
    SET_BITFLAG (flag_dec_duplicates, value, value);

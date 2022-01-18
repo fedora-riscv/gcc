@@ -9,8 +9,8 @@ Some fixes by Jim MacArthur <jim.macarthur@codethink.co.uk>
 Addition of -fdec-duplicates by Mark Eggleston <mark.eggleston@codethink.com>
 ---
  gcc/fortran/lang.opt                          |  4 ++++
- gcc/fortran/options.c                         |  1 +
- gcc/fortran/symbol.c                          | 21 +++++++++++++++++--
+ gcc/fortran/options.cc                        |  1 +
+ gcc/fortran/symbol.cc                         | 21 +++++++++++++++++--
  .../gfortran.dg/duplicate_type_4.f90          | 13 ++++++++++++
  .../gfortran.dg/duplicate_type_5.f90          | 13 ++++++++++++
  .../gfortran.dg/duplicate_type_6.f90          | 13 ++++++++++++
@@ -40,10 +40,10 @@ index 2b1977c523b..52bd522051e 100644
  fdec-include
  Fortran Var(flag_dec_include)
  Enable legacy parsing of INCLUDE as statement.
-diff --git a/gcc/fortran/options.c b/gcc/fortran/options.c
+diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index 3a0b98bf1ec..f19ba87f8a0 100644
---- a/gcc/fortran/options.c
-+++ b/gcc/fortran/options.c
+--- a/gcc/fortran/options.cc
++++ b/gcc/fortran/options.cc
 @@ -77,6 +77,7 @@ set_dec_flags (int value)
    SET_BITFLAG (flag_dec_format_defaults, value, value);
    SET_BITFLAG (flag_dec_blank_format_item, value, value);
@@ -52,10 +52,10 @@ index 3a0b98bf1ec..f19ba87f8a0 100644
  }
  
  /* Finalize DEC flags.  */
-diff --git a/gcc/fortran/symbol.c b/gcc/fortran/symbol.c
+diff --git a/gcc/fortran/symbol.cc b/gcc/fortran/symbol.cc
 index 3b988d1be22..9843175cc2a 100644
---- a/gcc/fortran/symbol.c
-+++ b/gcc/fortran/symbol.c
+--- a/gcc/fortran/symbol.cc
++++ b/gcc/fortran/symbol.cc
 @@ -1995,6 +1995,8 @@ gfc_add_type (gfc_symbol *sym, gfc_typespec *ts, locus *where)
    if (sym->attr.result && type == BT_UNKNOWN && sym->ns->proc_name)
      type = sym->ns->proc_name->ts.type;
