@@ -1,5 +1,5 @@
 %global DATE 20220118
-%global gitrev 880787aef7a985a80f88a14f830fb554a33b1a87
+%global gitrev c682bc883d1a29c3f697f065af23759f3d6757bc
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.1.1%{?dist}
+Release: %{gcc_release}.2%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,6 +270,8 @@ Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
 Patch12: gcc12-pr104025.patch
+Patch13: gcc12-pr104103.patch
+Patch14: gcc12-pr104104.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -792,6 +794,8 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr104025~
+%patch13 -p0 -b .pr104103~
+%patch14 -p0 -b .pr104104~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3151,8 +3155,14 @@ end
 %endif
 
 %changelog
-* Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.1.1
+* Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.2
+- update from trunk
+  - PRs c++/104007, c++/104074, fortran/103692, ipa/103989, libstdc++/101124,
+	libstdc++/104098, middle-end/103163, tree-optimization/103987,
+	tree-optimization/104038
 - default to -mabi=ieeelongdouble on ppc64le
+- fix -Wdangling-pointer with -fsanitize=address (PR middle-end/104103)
+- fix -masm=intel (PR target/104104)
 
 * Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.1
 - update from trunk
