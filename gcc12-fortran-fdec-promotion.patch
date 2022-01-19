@@ -180,7 +180,7 @@ diff --git a/gcc/fortran/iresolve.cc b/gcc/fortran/iresolve.cc
 index e17fe45f080..b9cdaff2499 100644
 --- a/gcc/fortran/iresolve.cc
 +++ b/gcc/fortran/iresolve.cc
-@@ -817,19 +817,22 @@ gfc_resolve_dble (gfc_expr *f, gfc_expr *a)
+@@ -834,19 +834,22 @@ gfc_resolve_dble (gfc_expr *f, gfc_expr
  void
  gfc_resolve_dim (gfc_expr *f, gfc_expr *a, gfc_expr *p)
  {
@@ -211,8 +211,8 @@ index e17fe45f080..b9cdaff2499 100644
 +    f->ts = a->ts;
  
    f->value.function.name
-     = gfc_get_string ("__dim_%c%d", gfc_type_letter (f->ts.type), f->ts.kind);
-@@ -1606,14 +1609,17 @@ gfc_resolve_minmax (const char *name, gfc_expr *f, gfc_actual_arglist *args)
+     = gfc_get_string ("__dim_%c%d", gfc_type_letter (f->ts.type),
+@@ -1622,14 +1625,17 @@ gfc_resolve_minmax (const char *name, gf
    /* Find the largest type kind.  */
    for (a = args->next; a; a = a->next)
      {
@@ -232,7 +232,7 @@ index e17fe45f080..b9cdaff2499 100644
  	gfc_convert_type (a->expr, &f->ts, 2);
      }
  
-@@ -2106,19 +2112,22 @@ gfc_resolve_minval (gfc_expr *f, gfc_expr *array, gfc_expr *dim,
+@@ -2130,19 +2136,22 @@ gfc_resolve_minval (gfc_expr *f, gfc_exp
  void
  gfc_resolve_mod (gfc_expr *f, gfc_expr *a, gfc_expr *p)
  {
@@ -263,8 +263,8 @@ index e17fe45f080..b9cdaff2499 100644
 +    f->ts = a->ts;
  
    f->value.function.name
-     = gfc_get_string ("__mod_%c%d", gfc_type_letter (f->ts.type), f->ts.kind);
-@@ -2128,19 +2137,22 @@ gfc_resolve_mod (gfc_expr *f, gfc_expr *a, gfc_expr *p)
+     = gfc_get_string ("__mod_%c%d", gfc_type_letter (f->ts.type),
+@@ -2153,19 +2162,22 @@ gfc_resolve_mod (gfc_expr *f, gfc_expr *
  void
  gfc_resolve_modulo (gfc_expr *f, gfc_expr *a, gfc_expr *p)
  {
@@ -296,7 +296,7 @@ index e17fe45f080..b9cdaff2499 100644
  
    f->value.function.name
      = gfc_get_string ("__modulo_%c%d", gfc_type_letter (f->ts.type),
-@@ -2515,9 +2527,26 @@ gfc_resolve_shift (gfc_expr *f, gfc_expr *i, gfc_expr *shift ATTRIBUTE_UNUSED)
+@@ -2543,9 +2555,26 @@ gfc_resolve_shift (gfc_expr *f, gfc_expr
  
  
  void
@@ -323,8 +323,8 @@ index e17fe45f080..b9cdaff2499 100644
 +      f->ts = a->ts;
 +    }
    f->value.function.name
-     = gfc_get_string ("__sign_%c%d", gfc_type_letter (a->ts.type), a->ts.kind);
- }
+     = gfc_get_string ("__sign_%c%d", gfc_type_letter (a->ts.type),
+ 		      gfc_type_abi_kind (&a->ts));
 diff --git a/gcc/fortran/lang.opt b/gcc/fortran/lang.opt
 index d886c2f33ed..4ca2f93f2df 100644
 --- a/gcc/fortran/lang.opt
