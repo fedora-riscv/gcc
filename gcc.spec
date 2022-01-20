@@ -119,7 +119,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.2%{?dist}
+Release: %{gcc_release}.2%{?dist}.1
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3155,6 +3155,9 @@ end
 %endif
 
 %changelog
+* Thu Jan 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 12.0.1-0.2.1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
 * Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.2
 - update from trunk
   - PRs c++/104007, c++/104074, fortran/103692, ipa/103989, libstdc++/101124,
