@@ -1,10 +1,10 @@
-%global DATE 20211203
-%global gitrev e41308252e835ddedcabfd4a98240080c6583a43
+%global DATE 20220125
+%global gitrev 1003f94c7cb486aee2ec3ee37ea8b919f908f019
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 7
+%global gcc_release 8
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3148,6 +3148,31 @@ end
 %endif
 
 %changelog
+* Tue Jan 25 2022 Jakub Jelinek <jakub@redhat.com> 11.2.1-8
+- update from releases/gcc-11-branch
+  - PRs ada/103538, analyzer/101962, bootstrap/103688, c++/85846, c++/95009,
+	c++/98394, c++/99911, c++/100493, c++/101715, c++/102229, c++/102933,
+	c++/103012, c++/103198, c++/103480, c++/103703, c++/103714,
+	c++/103758, c++/103783, c++/103831, c++/103912, c++/104055, c/97548,
+	c/101289, c/101537, c/103587, c/103881, d/103604, debug/103838,
+	debug/103874, fortran/67804, fortran/83079, fortran/101329,
+	fortran/101762, fortran/102332, fortran/102717, fortran/102787,
+	fortran/103411, fortran/103412, fortran/103418, fortran/103473,
+	fortran/103505, fortran/103588, fortran/103591, fortran/103606,
+	fortran/103607, fortran/103609, fortran/103610, fortran/103692,
+	fortran/103717, fortran/103718, fortran/103719, fortran/103776,
+	fortran/103777, fortran/103778, fortran/103782, fortran/103789,
+	ipa/101354, jit/103562, libfortran/103634, libstdc++/100017,
+	libstdc++/102994, libstdc++/103453, libstdc++/103501,
+	libstdc++/103549, libstdc++/103877, libstdc++/103919,
+	middle-end/101751, middle-end/102860, middle-end/103813, objc/103639,
+	preprocessor/89971, preprocessor/102432, rtl-optimization/102478,
+	rtl-optimization/103837, rtl-optimization/103860,
+	rtl-optimization/103908, sanitizer/102911, target/102347,
+	target/103465, target/103661, target/104172, target/104188,
+	tree-optimization/101615, tree-optimization/103523,
+	tree-optimization/103603, tree-optimization/103995
+
 * Fri Dec  3 2021 Jakub Jelinek <jakub@redhat.com> 11.2.1-7
 - update from releases/gcc-11-branch
   - PRs ada/100486, c++/70796, c++/92746, c++/93286, c++/94490, c++/102642,
