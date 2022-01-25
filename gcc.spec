@@ -1,5 +1,5 @@
 %global DATE 20220125
-%global gitrev c682bc883d1a29c3f697f065af23759f3d6757bc
+%global gitrev 03182470d2d2b272f06500184acab6b8ed78d8ad
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
