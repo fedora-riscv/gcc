@@ -1,4 +1,4 @@
-%global DATE 20220118
+%global DATE 20220125
 %global gitrev c682bc883d1a29c3f697f065af23759f3d6757bc
 %global gcc_version 12.0.1
 %global gcc_major 12
@@ -11,6 +11,7 @@
 %global _performance_build 1
 # Hardening slows the compiler way too much.
 %undefine _hardened_build
+%undefine _auto_set_build_flags
 %if 0%{?fedora} > 27 || 0%{?rhel} > 7
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
@@ -119,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.2%{?dist}
+Release: %{gcc_release}.3%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -269,9 +270,9 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr104025.patch
-Patch13: gcc12-pr104103.patch
-Patch14: gcc12-pr104104.patch
+Patch12: gcc12-pr104194.patch
+Patch13: gcc12-pr94193.patch
+Patch14: gcc12-ifcvt-revert.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -793,9 +794,9 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr104025~
-%patch13 -p0 -b .pr104103~
-%patch14 -p0 -b .pr104104~
+%patch12 -p0 -b .pr104194~
+%patch13 -p0 -b .pr94193~
+%patch14 -p0 -b .ifcvt-revert~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3155,6 +3156,36 @@ end
 %endif
 
 %changelog
+* Tue Jan 24 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.3
+- update from trunk
+  - PRs ada/103538, analyzer/94362, analyzer/103685, analyzer/104062,
+	analyzer/104089, analyzer/104150, analyzer/104159, bootstrap/104135,
+	bootstrap/104170, c++/20040, c++/55227, c++/91911, c++/101072,
+	c++/101405, c++/101715, c++/102300, c++/102338, c++/103631,
+	c++/103672, c++/103681, c++/104025, c++/104055, c++/104084,
+	c++/104134, c++/104139, c++/104148, c++/104173, c++/104182,
+	c++/104197, c/104115, debug/103874, fortran/102621, fortran/103695,
+	fortran/104127, libgcc/104207, libstdc++/87193, libstdc++/104019,
+	libstdc++/104032, libstdc++/104099, libstdc++/104101,
+	libstdc++/104123, libstdc++/104174, middle-end/100786,
+	middle-end/102860, middle-end/104069, middle-end/104076,
+	middle-end/104140, other/104176, other/104181, preprocessor/104030,
+	rtl-optimization/102478, sanitizer/99673, sanitizer/104158,
+	target/64821, target/94193, target/100784, target/102517,
+	target/103676, target/103771, target/104090, target/104136,
+	target/104188, testsuite/102833, testsuite/103763, testsuite/104021,
+	testsuite/104022, testsuite/104109, tree-optimization/100089,
+	tree-optimization/100740, tree-optimization/101508,
+	tree-optimization/101972, tree-optimization/102087,
+	tree-optimization/102131, tree-optimization/103721,
+	tree-optimization/103997, tree-optimization/104112,
+	tree-optimization/104114, tree-optimization/104152,
+	tree-optimization/104156, tree-optimization/104214
+  - don't emit C++ mangling aliases for compatibility with GCC 8.1 ppc64le
+    IEEE quad long double (PR target/104172)
+- mark IEEE quad long double in DWARF as implicit typedef to _Float128
+  (PR debug/104194)
+
 * Tue Jan 18 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.2
 - update from trunk
   - PRs c++/104007, c++/104074, fortran/103692, ipa/103989, libstdc++/101124,
