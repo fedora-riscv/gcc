@@ -3156,7 +3156,7 @@ end
 %endif
 
 %changelog
-* Tue Jan 24 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.3
+* Tue Jan 25 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.3
 - update from trunk
   - PRs ada/103538, analyzer/94362, analyzer/103685, analyzer/104062,
 	analyzer/104089, analyzer/104150, analyzer/104159, bootstrap/104135,
