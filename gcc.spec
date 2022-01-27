@@ -1,10 +1,10 @@
-%global DATE 20220125
-%global gitrev 1003f94c7cb486aee2ec3ee37ea8b919f908f019
+%global DATE 20220127
+%global gitrev 2fa6e5c54e782377faa4c9c1f0e0b16db27f266c
 %global gcc_version 11.2.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3148,6 +3148,11 @@ end
 %endif
 
 %changelog
+* Thu Jan 25 2022 Jakub Jelinek <jakub@redhat.com> 11.2.1-9
+- update from releases/gcc-11-branch
+  - PRs fortran/104127, fortran/104212, fortran/104227, target/101529
+- fix up va-opt-6.c testcase
+
 * Tue Jan 25 2022 Jakub Jelinek <jakub@redhat.com> 11.2.1-8
 - update from releases/gcc-11-branch
   - PRs ada/103538, analyzer/101962, bootstrap/103688, c++/85846, c++/95009,

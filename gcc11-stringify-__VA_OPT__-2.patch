@@ -95,7 +95,7 @@ gcc/testsuite/
  	  }
  	else if ((src->flags & PASTE_LEFT)
  		 || (src != macro->exp.tokens && (src[-1].flags & PASTE_LEFT)))
-@@ -2071,11 +2052,46 @@ replace_args (cpp_reader *pfile, cpp_has
+@@ -2065,11 +2046,46 @@ replace_args (cpp_reader *pfile, cpp_has
  		{
  		  unsigned int count
  		    = start ? paste_flag - start : tokens_buff_count (buff);
