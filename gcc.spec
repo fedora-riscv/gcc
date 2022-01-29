@@ -1,5 +1,5 @@
-%global DATE 20220125
-%global gitrev 03182470d2d2b272f06500184acab6b8ed78d8ad
+%global DATE 20220129
+%global gitrev 8b49e9256e108bb3d436946b481cfa6bb11bd1c8
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.3%{?dist}
+Release: %{gcc_release}.4%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,9 +270,10 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr104194.patch
-Patch13: gcc12-pr94193.patch
+Patch12: gcc12-pr103514-revert.patch
+Patch13: gcc12-pr95424-revert.patch
 Patch14: gcc12-ifcvt-revert.patch
+Patch15: gcc12-pr104253.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -794,9 +795,10 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr104194~
-%patch13 -p0 -b .pr94193~
+%patch12 -p0 -b .pr103514-revert~
+%patch13 -p0 -b .pr95424-revert~
 %patch14 -p0 -b .ifcvt-revert~
+%patch15 -p0 -b .pr104253~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -973,6 +975,7 @@ CONFIGURE_OPTS="\
 %endif
 	--with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions \
 	--enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only \
+	--enable-libstdcxx-backtrace \
 %ifnarch %{mips}
 	--with-linker-hash-style=gnu \
 %endif
@@ -1530,6 +1533,7 @@ mv ../../../../%{_lib}/liblsan_preinit.o liblsan_preinit.o
 fi
 mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++fs.*a $FULLLPATH/
+mv -f %{buildroot}%{_prefix}/%{_lib}/libstdc++_libbacktrace.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libsupc++.*a $FULLLPATH/
 mv -f %{buildroot}%{_prefix}/%{_lib}/libgfortran.*a $FULLLPATH/
 %if %{build_objc}
@@ -1661,6 +1665,8 @@ ln -sf lib32/libstdc++.a libstdc++.a
 ln -sf ../lib64/libstdc++.a 64/libstdc++.a
 ln -sf lib32/libstdc++fs.a libstdc++fs.a
 ln -sf ../lib64/libstdc++fs.a 64/libstdc++fs.a
+ln -sf lib32/libstdc++_libbacktrace.a libstdc++_libbacktrace.a
+ln -sf ../lib64/libstdc++_libbacktrace.a 64/libstdc++_libbacktrace.a
 ln -sf lib32/libsupc++.a libsupc++.a
 ln -sf ../lib64/libsupc++.a 64/libsupc++.a
 %if %{build_libquadmath}
@@ -1762,6 +1768,8 @@ ln -sf ../lib32/libstdc++.a 32/libstdc++.a
 ln -sf lib64/libstdc++.a libstdc++.a
 ln -sf ../lib32/libstdc++fs.a 32/libstdc++fs.a
 ln -sf lib64/libstdc++fs.a libstdc++fs.a
+ln -sf ../lib32/libstdc++_libbacktrace.a 32/libstdc++_libbacktrace.a
+ln -sf lib64/libstdc++_libbacktrace.a libstdc++_libbacktrace.a
 ln -sf ../lib32/libsupc++.a 32/libsupc++.a
 ln -sf lib64/libsupc++.a libsupc++.a
 %if %{build_libquadmath}
@@ -1809,6 +1817,7 @@ ln -sf lib64/adalib adalib
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libgfortran.a 32/libgfortran.a
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libstdc++.a 32/libstdc++.a
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libstdc++fs.a 32/libstdc++fs.a
+ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libstdc++_libbacktrace.a 32/libstdc++_libbacktrace.a
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libsupc++.a 32/libsupc++.a
 %if %{build_libquadmath}
 ln -sf ../../../%{multilib_32_arch}-%{_vendor}-%{_target_os}/%{gcc_major}/libquadmath.a 32/libquadmath.a
@@ -1856,7 +1865,7 @@ for d in . $FULLLSUBDIR; do
 		-o -name libitm.a -o -name liblsan.a \
 		-o -name libobjc.a -o -name libgdruntime.a -o -name libgphobos.a \
 		-o -name libquadmath.a -o -name libstdc++.a \
-		-o -name libstdc++fs.a -o -name libsupc++.a \
+		-o -name libstdc++fs.a -o -name libstdc++_libbacktrace.a -o -name libsupc++.a \
 		-o -name libtsan.a -o -name libubsan.a \) -a -type f`; do
     cp -a $f $RPM_BUILD_ROOT%{_prefix}/lib/debug%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/$d/
   done
@@ -2498,6 +2507,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libstdc++_libbacktrace.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/64/libsupc++.a
 %endif
 %ifarch %{multilib_64_archs}
@@ -2505,6 +2515,7 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++.so
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libstdc++_libbacktrace.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/32/libsupc++.a
 %endif
 %ifarch sparcv9 ppc %{multilib_64_archs}
@@ -2513,6 +2524,7 @@ end
 %ifarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++_libbacktrace.a
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libsupc++.a
 %endif
 %doc rpm.doc/changelogs/gcc/cp/ChangeLog*
@@ -2545,13 +2557,16 @@ end
 %ifarch sparcv9 ppc
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib32/libstdc++_libbacktrace.a
 %endif
 %ifarch sparc64 ppc64 ppc64p7
 %dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/lib64/libstdc++_libbacktrace.a
 %endif
 %ifnarch sparcv9 sparc64 ppc ppc64 ppc64p7
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++fs.a
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/libstdc++_libbacktrace.a
 %endif
 %doc rpm.doc/changelogs/libstdc++-v3/ChangeLog* libstdc++-v3/README*
 
@@ -3156,6 +3171,22 @@ end
 %endif
 
 %changelog
+* Sat Jan 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.4
+- update from trunk
+  - PRs ada/104258, analyzer/104224, analyzer/104247, bootstrap/67102,
+	c++/51344, c++/59950, c++/82632, c++/92752, c++/92944, c++/99895,
+	c++/100030, c++/100198, c++/100282, c++/101532, c++/101988,
+	c++/103057, c++/103341, c++/103678, c++/104206, c++/104225,
+	c++/104226, c++/104235, c++/104245, fortran/84784, fortran/103790,
+	fortran/104128, fortran/104212, fortran/104227, libfortran/104233,
+	libstdc++/100516, libstdc++/104161, libstdc++/104217,
+	libstdc++/104259, lto/104237, middle-end/103642, target/103702,
+	target/104201, target/104213, target/104239, testsuite/70230,
+	tree-optimization/104196, tree-optimization/104203,
+	tree-optimization/104263, tree-optimization/104267, web/104254
+- configure with --enable-libstdcxx-backtrace and package
+  libstdc++_libbacktrace.a
+
 * Tue Jan 25 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.3
 - update from trunk
   - PRs ada/103538, analyzer/94362, analyzer/103685, analyzer/104062,
