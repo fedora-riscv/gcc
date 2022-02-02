@@ -1,5 +1,5 @@
-%global DATE 20220129
-%global gitrev 8b49e9256e108bb3d436946b481cfa6bb11bd1c8
+%global DATE 20220202
+%global gitrev fb6057a2be99e071993fb54a5d338ab0febba8ff
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.4%{?dist}
+Release: %{gcc_release}.5%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,10 +270,9 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr103514-revert.patch
-Patch13: gcc12-pr95424-revert.patch
-Patch14: gcc12-ifcvt-revert.patch
-Patch15: gcc12-pr104253.patch
+Patch12: gcc12-pr104334.patch
+Patch13: gcc12-ifcvt-revert.patch
+Patch14: gcc12-pr104253.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -795,10 +794,9 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr103514-revert~
-%patch13 -p0 -b .pr95424-revert~
-%patch14 -p0 -b .ifcvt-revert~
-%patch15 -p0 -b .pr104253~
+%patch12 -p0 -b .pr104334~
+%patch13 -p0 -b .ifcvt-revert~
+%patch14 -p0 -b .pr104253~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3171,6 +3169,20 @@ end
 %endif
 
 %changelog
+* Wed Feb  2 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.5
+- update from trunk
+  - PRs analyzer/104270, c++/101874, c++/102414, c++/102434, c++/103186,
+	c++/104291, c++/104294, d/104287, demangler/98886, demangler/99935,
+	fortran/104331, libstdc++/101831, libstdc++/104301, lto/104333,
+	middle-end/104232, middle-end/104307, middle-end/95115,
+	preprocessor/104147, rtl-optimization/101260, target/94372,
+	target/100428, target/104189, target/104298, target/104323,
+	tree-optimization/95424, tree-optimization/100499,
+	tree-optimization/102819, tree-optimization/103169,
+	tree-optimization/103514, tree-optimization/104279,
+	tree-optimization/104280, tree-optimization/104281
+- fix a VRP bug with 1-3 bit precision types (PR tree-optimization/104334)
+
 * Sat Jan 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.4
 - update from trunk
   - PRs ada/104258, analyzer/104224, analyzer/104247, bootstrap/67102,
