@@ -1,5 +1,5 @@
-%global DATE 20220202
-%global gitrev fb6057a2be99e071993fb54a5d338ab0febba8ff
+%global DATE 20220205
+%global gitrev 76de92944e8628662e44eab3065caad0a3c0e032
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.5%{?dist}
+Release: %{gcc_release}.6%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,9 +270,8 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr104334.patch
-Patch13: gcc12-ifcvt-revert.patch
-Patch14: gcc12-pr104253.patch
+Patch12: gcc12-ifcvt-revert.patch
+Patch13: gcc12-pr104253.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -794,9 +793,8 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr104334~
-%patch13 -p0 -b .ifcvt-revert~
-%patch14 -p0 -b .pr104253~
+%patch12 -p0 -b .ifcvt-revert~
+%patch13 -p0 -b .pr104253~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3169,6 +3167,16 @@ end
 %endif
 
 %changelog
+* Sat Feb  5 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.6
+- update from trunk
+  - PRs analyzer/104369, c++/92385, c++/104079, c++/104300, c++/104302,
+	debug/104337, debug/104366, fortran/104311, fortran/104328,
+	middle-end/90348, middle-end/104092, middle-end/104260,
+	rtl-optimization/101885, target/95082, target/100808, target/103686,
+	target/104219, target/104362, target/104380, tree-optimization/103641,
+	tree-optimization/104119, tree-optimization/104356,
+	tree-optimization/104389
+
 * Wed Feb  2 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.5
 - update from trunk
   - PRs analyzer/104270, c++/101874, c++/102414, c++/102434, c++/103186,
