@@ -1,0 +1,49 @@
+2022-02-12  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/104513
+	* constexpr.cc (potential_constant_expression_1) <case GOTO_EXPR>:
+	Don't punt if returns (target).
+
+	* g++.dg/cpp1y/constexpr-104513.C: New test.
+	* g++.dg/cpp2a/constexpr-dtor12.C: New test.
+
+--- gcc/cp/constexpr.cc.jj	2022-02-11 13:52:32.697425776 +0100
++++ gcc/cp/constexpr.cc	2022-02-12 13:51:21.000274390 +0100
+@@ -9364,7 +9364,7 @@ potential_constant_expression_1 (tree t,
+       {
+ 	tree *target = &TREE_OPERAND (t, 0);
+ 	/* Gotos representing break and continue are OK.  */
+-	if (breaks (target) || continues (target))
++	if (breaks (target) || continues (target) || returns (target))
+ 	  {
+ 	    *jump_target = *target;
+ 	    return true;
+--- gcc/testsuite/g++.dg/cpp1y/constexpr-104513.C.jj	2022-02-12 19:05:14.374101202 +0100
++++ gcc/testsuite/g++.dg/cpp1y/constexpr-104513.C	2022-02-12 19:06:09.745332658 +0100
+@@ -0,0 +1,10 @@
++// PR c++/104513
++// { dg-do compile { target c++14 } }
++
++struct A {
++  int a1;
++  short a2, a3;
++  long a4;
++  constexpr A() : a1(42), a2(42), a3(42), a4(42) { return; }
++};
++constexpr A a;
+--- gcc/testsuite/g++.dg/cpp2a/constexpr-dtor12.C.jj	2022-02-12 19:04:41.610555957 +0100
++++ gcc/testsuite/g++.dg/cpp2a/constexpr-dtor12.C	2022-02-12 19:04:18.473877087 +0100
+@@ -0,0 +1,13 @@
++// PR c++/104513
++// { dg-do compile { target c++20 } }
++
++struct S {
++  constexpr S () : s (nullptr) {}
++  constexpr ~S () { delete s; }
++  int *s;
++};
++struct T : S {
++  constexpr T () : S () {}
++  constexpr ~T () { s = new int (42); return; }
++};
++constexpr T t;

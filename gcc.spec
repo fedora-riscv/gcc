@@ -1,5 +1,5 @@
-%global DATE 20220205
-%global gitrev 76de92944e8628662e44eab3065caad0a3c0e032
+%global DATE 20220212
+%global gitrev dfda32cd0cba98db0f084f7d4ded68140e925e41
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.6%{?dist}
+Release: %{gcc_release}.7%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -304,7 +304,7 @@ Patch109: gcc12-fortran-fdec-add-missing-indexes.patch
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
 %global __os_install_post \
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.* \
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.21.* \
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -312,7 +312,7 @@ chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/test2json \
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/vet \
 %__os_install_post \
-chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.* \
+chmod 755 %{buildroot}%{_prefix}/%{_lib}/libgo.so.21.* \
 chmod 755 %{buildroot}%{_prefix}/bin/go.gcc \
 chmod 755 %{buildroot}%{_prefix}/bin/gofmt.gcc \
 chmod 755 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo \
@@ -1464,7 +1464,7 @@ ln -sf ../../../libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../libgfortran.so.5.* libgfortran.so
 ln -sf ../../../libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../libgo.so.20.* libgo.so
+ln -sf ../../../libgo.so.21.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../libquadmath.so.0.* libquadmath.so
@@ -1494,7 +1494,7 @@ ln -sf ../../../../%{_lib}/libstdc++.so.6.*[0-9] libstdc++.so
 ln -sf ../../../../%{_lib}/libgfortran.so.5.* libgfortran.so
 ln -sf ../../../../%{_lib}/libgomp.so.1.* libgomp.so
 %if %{build_go}
-ln -sf ../../../../%{_lib}/libgo.so.20.* libgo.so
+ln -sf ../../../../%{_lib}/libgo.so.21.* libgo.so
 %endif
 %if %{build_libquadmath}
 ln -sf ../../../../%{_lib}/libquadmath.so.0.* libquadmath.so
@@ -1615,8 +1615,8 @@ ln -sf ../`echo ../../../../lib/libgfortran.so.5.* | sed s~/lib/~/lib64/~` 64/li
 ln -sf ../`echo ../../../../lib/libgomp.so.1.* | sed s~/lib/~/lib64/~` 64/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib/libgo.so.21.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib/libgo.so.21.* | sed 's,^.*libg,libg,'`' )' > 64/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1716,8 +1716,8 @@ ln -sf ../`echo ../../../../lib64/libgfortran.so.5.* | sed s~/../lib64/~/~` 32/l
 ln -sf ../`echo ../../../../lib64/libgomp.so.1.* | sed s~/../lib64/~/~` 32/libgomp.so
 %if %{build_go}
 rm -f libgo.so
-echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > libgo.so
-echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.20.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
+echo 'INPUT ( %{_prefix}/lib64/'`echo ../../../../lib64/libgo.so.21.* | sed 's,^.*libg,libg,'`' )' > libgo.so
+echo 'INPUT ( %{_prefix}/lib/'`echo ../../../../lib64/libgo.so.21.* | sed 's,^.*libg,libg,'`' )' > 32/libgo.so
 %endif
 %if %{build_libquadmath}
 rm -f libquadmath.so
@@ -1907,7 +1907,7 @@ chmod 755 %{buildroot}%{_prefix}/%{_lib}/liblsan.so.0.*
 %endif
 %if %{build_go}
 # Avoid stripping these libraries and binaries.
-chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.20.*
+chmod 644 %{buildroot}%{_prefix}/%{_lib}/libgo.so.21.*
 chmod 644 %{buildroot}%{_prefix}/bin/go.gcc
 chmod 644 %{buildroot}%{_prefix}/bin/gofmt.gcc
 chmod 644 %{buildroot}%{_prefix}/libexec/gcc/%{gcc_target_platform}/%{gcc_major}/cgo
@@ -3059,7 +3059,7 @@ end
 %doc rpm.doc/go/*
 
 %files -n libgo
-%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.20*
+%attr(755,root,root) %{_prefix}/%{_lib}/libgo.so.21*
 %doc rpm.doc/libgo/*
 
 %files -n libgo-devel
@@ -3167,6 +3167,31 @@ end
 %endif
 
 %changelog
+* Sat Feb 12 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.7
+- update from trunk
+  - PRs analyzer/98797, analyzer/101081, analyzer/102052, analyzer/103872,
+	analyzer/104274, analyzer/104417, analyzer/104452, c++/80951,
+	c++/96242, c++/96876, c++/102204, c++/103706, c++/103752, c++/104033,
+	c++/104379, c++/104403, c++/104410, c++/104425, c++/104432,
+	c++/104472, c/104427, debug/104407, fortran/66193, fortran/104329,
+	libgomp/104385, libstdc++/104442, middle-end/100775,
+	middle-end/104402, middle-end/104446, middle-end/104450,
+	middle-end/104464, middle-end/104467, middle-end/104496,
+	rtl-optimization/104059, rtl-optimization/104153,
+	rtl-optimization/104198, rtl-optimization/104400,
+	rtl-optimization/104459, sanitizer/104449, target/35513, target/79754,
+	target/97005, target/97040, target/100593, target/102140,
+	target/103627, target/104117, target/104283, target/104327,
+	target/104345, target/104364, target/104441, target/104451,
+	target/104453, target/104456, target/104458, target/104462,
+	target/104469, target/104474, target/104502, testsuite/104481,
+	tree-optimization/102832, tree-optimization/104288,
+	tree-optimization/104373, tree-optimization/104420,
+	tree-optimization/104445, tree-optimization/104466,
+	tree-optimization/104479, tree-optimization/104499
+- fix handling of return in arm constexpr ctors and on all arches return in
+  constexpr dtors (PR c++/104513)
+
 * Sat Feb  5 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.6
 - update from trunk
   - PRs analyzer/104369, c++/92385, c++/104079, c++/104300, c++/104302,
