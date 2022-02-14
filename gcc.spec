@@ -1,5 +1,5 @@
-%global DATE 20220212
-%global gitrev dfda32cd0cba98db0f084f7d4ded68140e925e41
+%global DATE 20220214
+%global gitrev 7222fb983d798306a83666324a92fce5e5881eb7
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.7%{?dist}
+Release: %{gcc_release}.8%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3167,6 +3167,13 @@ end
 %endif
 
 %changelog
+* Mon Feb 14 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.8
+- update from trunk
+  - PRs ada/97504, ada/98724, c/104505, fortran/104228, libstdc++/100912,
+	middle-end/104497, tree-optimization/104511, tree-optimization/104528
+  - fix handling of return in arm constexpr ctors and on all arches return in
+    constexpr dtors (PR c++/104513)
+
 * Sat Feb 12 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.7
 - update from trunk
   - PRs analyzer/98797, analyzer/101081, analyzer/102052, analyzer/103872,
@@ -3189,8 +3196,6 @@ end
 	tree-optimization/104373, tree-optimization/104420,
 	tree-optimization/104445, tree-optimization/104466,
 	tree-optimization/104479, tree-optimization/104499
-- fix handling of return in arm constexpr ctors and on all arches return in
-  constexpr dtors (PR c++/104513)
 
 * Sat Feb  5 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.6
 - update from trunk
