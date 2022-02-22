@@ -1,5 +1,5 @@
-%global DATE 20220214
-%global gitrev 7222fb983d798306a83666324a92fce5e5881eb7
+%global DATE 20220222
+%global gitrev 9780ea50d2a0fb2b07bc9a0f71e28e9c1ef5e235
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.8%{?dist}
+Release: %{gcc_release}.9%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,8 +270,6 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-ifcvt-revert.patch
-Patch13: gcc12-pr104253.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -793,8 +791,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .ifcvt-revert~
-%patch13 -p0 -b .pr104253~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -824,6 +820,7 @@ cp -a libstdc++-v3/config/cpu/i{4,3}86/atomicity.h
 LC_ALL=C sed -i -e 's/\xa0/ /' gcc/doc/options.texi
 
 sed -i -e 's/Common Driver Var(flag_report_bug)/& Init(1)/' gcc/common.opt
+sed -i -e 's/context->report_bug = false;/context->report_bug = true;/' gcc/diagnostic.cc
 
 %ifarch ppc
 if [ -d libstdc++-v3/config/abi/post/powerpc64-linux-gnu ]; then
@@ -3167,6 +3164,23 @@ end
 %endif
 
 %changelog
+* Tue Feb 22 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.9
+- update from trunk
+  - PRs analyzer/104524, analyzer/104560, analyzer/104576, c++/85493,
+	c++/90451, c++/94944, c++/95036, c++/104107, c++/104507, c++/104539,
+	c++/104565, c/104506, c/104510, c/104531, c/104532, debug/104517,
+	debug/104557, fortran/77693, fortran/104211, libstdc++/104542,
+	libstdc++/104559, lto/104617, middle-end/104355, middle-end/104522,
+	rtl-optimization/104447, rtl-optimization/104498,
+	rtl-optimization/104544, sanitizer/102656, target/99708, target/99881,
+	target/100056, target/100874, target/103069, target/104253,
+	target/104257, target/104335, target/104440, target/104448,
+	target/104536, target/104581, target/104598, target/104612,
+	testsuite/104146, tree-optimization/96881, tree-optimization/103771,
+	tree-optimization/104519, tree-optimization/104526,
+	tree-optimization/104543, tree-optimization/104551,
+	tree-optimization/104582, tree-optimization/104604
+
 * Mon Feb 14 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.8
 - update from trunk
   - PRs ada/97504, ada/98724, c/104505, fortran/104228, libstdc++/100912,
