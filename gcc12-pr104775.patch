@@ -1,0 +1,36 @@
+2022-03-04  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/104775
+	* config/s390/s390.md (*cmp_and_trap_unsigned_int<mode>): Use
+	S constraint instead of T in the last alternative.
+
+	* gcc.target/s390/pr104775.c: New test.
+
+--- gcc/config/s390/s390.md.jj	2022-02-08 20:08:13.873404137 +0100
++++ gcc/config/s390/s390.md	2022-03-04 14:38:23.252988476 +0100
+@@ -9578,7 +9578,7 @@ (define_insn "*cmp_and_trap_signed_int<m
+ (define_insn "*cmp_and_trap_unsigned_int<mode>"
+   [(trap_if (match_operator 0 "s390_unsigned_integer_comparison"
+ 	       [(match_operand:GPR 1 "register_operand" "d,d,d")
+-		(match_operand:GPR 2 "general_operand"  "d,D,T")])
++		(match_operand:GPR 2 "general_operand"  "d,D,S")])
+ 	    (const_int 0))]
+   "TARGET_Z10"
+   "@
+--- gcc/testsuite/gcc.target/s390/pr104775.c.jj	2022-03-04 14:49:58.190134898 +0100
++++ gcc/testsuite/gcc.target/s390/pr104775.c	2022-03-04 14:49:42.845352647 +0100
+@@ -0,0 +1,14 @@
++/* PR target/104775 */
++/* { dg-do assemble { target s390_zEC12_hw } } */
++/* { dg-options "-O2 -march=zEC12" } */
++
++long a[64];
++void bar (void);
++
++void
++foo (int x, int y)
++{
++  if (x != a[y])
++    bar ();
++  __builtin_trap ();
++}

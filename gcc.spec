@@ -1,5 +1,5 @@
-%global DATE 20220222
-%global gitrev 9780ea50d2a0fb2b07bc9a0f71e28e9c1ef5e235
+%global DATE 20220306
+%global gitrev 9a60f4c27d4317f91488c0c90d943a3638af9d1d
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.9%{?dist}
+Release: %{gcc_release}.10%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,6 +270,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
+Patch12: gcc12-pr104775.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -791,6 +792,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr104775~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3164,6 +3166,35 @@ end
 %endif
 
 %changelog
+* Sun Mar  6 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.10
+- update from trunk
+  - PRs analyzer/103521, analyzer/104434, c++/70077, c++/79493, c++/103443,
+	c++/104618, c++/104667, c++/104682, c/104627, c/104633, d/104659,
+	d/104736, debug/100541, fortran/84519, fortran/104131, fortran/104573,
+	fortran/104619, gcov-profile/104677, ipa/104533, ipa/104648,
+	libstdc++/96526, libstdc++/104602, libstdc++/104748, middle-end/80270,
+	middle-end/100400, middle-end/102276, middle-end/103836,
+	middle-end/103984, middle-end/104061, middle-end/104132,
+	middle-end/104133, middle-end/104529, middle-end/104540,
+	middle-end/104550, middle-end/104558, middle-end/104679,
+	middle-end/104721, middle-end/104757, middle-end/104761,
+	middle-end/104784, rtl-optimization/104154, rtl-optimization/104589,
+	rtl-optimization/104637, rtl-optimization/104686, target/87496,
+	target/88134, target/99555, target/100757, target/101325,
+	target/102429, target/103302, target/104121, target/104208,
+	target/104489, target/104656, target/104664, target/104674,
+	target/104681, target/104698, target/104704, target/104724,
+	target/104726, target/104758, testsuite/100407, testsuite/104687,
+	testsuite/104725, testsuite/104727, testsuite/104728,
+	testsuite/104730, testsuite/104732, testsuite/104791,
+	tree-optimization/91384, tree-optimization/101636,
+	tree-optimization/103037, tree-optimization/103845,
+	tree-optimization/103856, tree-optimization/104601,
+	tree-optimization/104644, tree-optimization/104675,
+	tree-optimization/104676, tree-optimization/104700,
+	tree-optimization/104715, tree-optimization/104716
+- fix constraints on s390x conditional trap (PR target/104775)
+
 * Tue Feb 22 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.9
 - update from trunk
   - PRs analyzer/104524, analyzer/104560, analyzer/104576, c++/85493,
