@@ -47,14 +47,15 @@ gcc/testsuite/
  	    {
 --- gcc/config/i386/i386.h.jj	2022-02-25 12:06:45.535493490 +0100
 +++ gcc/config/i386/i386.h	2022-03-08 11:20:43.207043370 +0100
-@@ -2848,6 +2848,11 @@ extern enum attr_cpu ix86_schedule;
+@@ -2848,6 +2848,12 @@ extern enum attr_cpu ix86_schedule;
  #define NUM_X86_64_MS_CLOBBERED_REGS 12
  #endif
  
 +/* __builtin_eh_return can't handle stack realignment, so disable SSE in
 +   libgcc functions that call it.  */
++#ifndef __x86_64__
 +#define LIBGCC2_UNWIND_ATTRIBUTE __attribute__((target ("no-sse")))
-+
++#endif
 +
  /*
  Local variables:
