@@ -1,5 +1,5 @@
-%global DATE 20220306
-%global gitrev 9a60f4c27d4317f91488c0c90d943a3638af9d1d
+%global DATE 20220308
+%global gitrev a525ce3ad147ce96a7c5fad4099fe2155af45324
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.10%{?dist}
+Release: %{gcc_release}.11%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,7 +270,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr104775.patch
+Patch12: gcc12-pr104781.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -792,7 +792,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr104775~
+%patch12 -p0 -b .pr104781~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3166,6 +3166,15 @@ end
 %endif
 
 %changelog
+* Tue Mar  8 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.11
+- update from trunk
+  - PRs analyzer/101983, fortran/99585, fortran/104430, libstdc++/104807,
+	middle-end/104381, target/99297, target/104779, target/104794,
+	target/104797, translation/90148, translation/104552,
+	tree-optimization/104782, tree-optimization/104825
+- fix build on i686 where gnat1 was hanging (PR target/104838,
+  PR target/104781)
+
 * Sun Mar  6 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.10
 - update from trunk
   - PRs analyzer/103521, analyzer/104434, c++/70077, c++/79493, c++/103443,
