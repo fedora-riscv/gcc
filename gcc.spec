@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.11%{?dist}
+Release: %{gcc_release}.12%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -271,6 +271,8 @@ Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
 Patch12: gcc12-pr104781.patch
+Patch13: gcc12-pr104777.patch
+Patch14: gcc12-pr104839.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -793,6 +795,8 @@ to NVidia PTX capable devices if available.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr104781~
+%patch13 -p0 -b .pr104777~
+%patch14 -p0 -b .pr104839~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3166,6 +3170,10 @@ end
 %endif
 
 %changelog
+* Tue Mar  8 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.12
+- fix up promoted SUBREG handling (#2045160, PR rtl-optimization/104839)
+- fix up check for asm goto (PR rtl-optimization/104777)
+
 * Tue Mar  8 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.11
 - update from trunk
   - PRs analyzer/101983, fortran/99585, fortran/104430, libstdc++/104807,

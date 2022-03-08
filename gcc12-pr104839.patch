@@ -1,0 +1,70 @@
+2022-03-08  Jakub Jelinek  <jakub@redhat.com>
+
+	PR rtl-optimization/104839
+	* simplify-rtx.cc (simplify_unary_operation_1) <case SIGN_EXTEND>:
+	Use SRP_SIGNED instead of incorrect 1 in SUBREG_PROMOTED_SET.
+	(simplify_unary_operation_1) <case ZERO_EXTEND>: Use SRP_UNSIGNED
+	instead of incorrect 0 in SUBREG_PROMOTED_SET.
+
+	* gcc.c-torture/execute/pr104839.c: New test.
+
+--- gcc/simplify-rtx.cc.jj	2022-02-23 09:17:04.000000000 +0100
++++ gcc/simplify-rtx.cc	2022-03-08 16:31:20.823246404 +0100
+@@ -1527,7 +1527,7 @@ simplify_context::simplify_unary_operati
+ 		  if (partial_subreg_p (temp))
+ 		    {
+ 		      SUBREG_PROMOTED_VAR_P (temp) = 1;
+-		      SUBREG_PROMOTED_SET (temp, 1);
++		      SUBREG_PROMOTED_SET (temp, SRP_SIGNED);
+ 		    }
+ 		  return temp;
+ 		}
+@@ -1662,7 +1662,7 @@ simplify_context::simplify_unary_operati
+ 		  if (partial_subreg_p (temp))
+ 		    {
+ 		      SUBREG_PROMOTED_VAR_P (temp) = 1;
+-		      SUBREG_PROMOTED_SET (temp, 0);
++		      SUBREG_PROMOTED_SET (temp, SRP_UNSIGNED);
+ 		    }
+ 		  return temp;
+ 		}
+--- gcc/testsuite/gcc.c-torture/execute/pr104839.c.jj	2022-03-08 16:46:51.418440078 +0100
++++ gcc/testsuite/gcc.c-torture/execute/pr104839.c	2022-03-08 16:46:27.044774203 +0100
+@@ -0,0 +1,37 @@
++/* PR rtl-optimization/104839 */
++
++__attribute__((noipa)) short
++foo (void)
++{
++  return -1;
++}
++
++__attribute__((noipa)) int
++bar (void)
++{
++  short i = foo ();
++  if (i == -2)
++    return 2;
++  long k = i;
++  int j = -1;
++  volatile long s = 300;
++  if (k < 0)
++    {
++      k += s;
++      if (k < 0)
++	j = 0;
++    }
++  else if (k >= s)
++    j = 0;
++  if (j != -1)
++    return 1;
++  return 0;
++}
++
++int
++main ()
++{
++  if (bar () != 0)
++    __builtin_abort ();
++  return 0;
++}
