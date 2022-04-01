@@ -1,5 +1,5 @@
 %global DATE 20220401
-%global gitrev 8c714de722b2df674be4eda3e525a9c4a1eee009
+%global gitrev 3b1a8bc028a968b01bbdb5f9cc5cd30402efae92
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.13%{?dist}
+Release: %{gcc_release}.14%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3164,6 +3164,10 @@ end
 %endif
 
 %changelog
+* Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.14
+- update from trunk
+  - revert delayed parse DMI change (PR c++/96645)
+
 * Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.13
 - update from trunk
   - PRs ada/104767, ada/104861, analyzer/95000, analyzer/99771,
