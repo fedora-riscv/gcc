@@ -9,13 +9,13 @@
 
 --- gcc/config/i386/i386-expand.c.jj	2022-03-19 13:52:53.000000000 +0100
 +++ gcc/config/i386/i386-expand.c	2022-04-01 16:51:27.253154191 +0200
-@@ -15830,9 +15830,9 @@ quarter:
+@@ -14479,9 +14479,9 @@ quarter:
  	      else
  		{
- 		  word = expand_simple_binop (tmp_mode, ASHIFT, word, shift,
+ 		  word = expand_simple_binop (word_mode, ASHIFT, word, shift,
 -					      word, 1, OPTAB_LIB_WIDEN);
 +					      NULL_RTX, 1, OPTAB_LIB_WIDEN);
- 		  word = expand_simple_binop (tmp_mode, IOR, word, elt,
+ 		  word = expand_simple_binop (word_mode, IOR, word, elt,
 -					      word, 1, OPTAB_LIB_WIDEN);
 +					      NULL_RTX, 1, OPTAB_LIB_WIDEN);
  		}
