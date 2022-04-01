@@ -1,5 +1,5 @@
-%global DATE 20220308
-%global gitrev a525ce3ad147ce96a7c5fad4099fe2155af45324
+%global DATE 20220401
+%global gitrev 8c714de722b2df674be4eda3e525a9c4a1eee009
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -120,7 +120,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.12%{?dist}
+Release: %{gcc_release}.13%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,9 +270,6 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr104781.patch
-Patch13: gcc12-pr104777.patch
-Patch14: gcc12-pr104839.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -794,9 +791,6 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr104781~
-%patch13 -p0 -b .pr104777~
-%patch14 -p0 -b .pr104839~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3170,6 +3164,71 @@ end
 %endif
 
 %changelog
+* Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.13
+- update from trunk
+  - PRs ada/104767, ada/104861, analyzer/95000, analyzer/99771,
+	analyzer/103533, analyzer/104308, analyzer/104793, analyzer/104863,
+	analyzer/104943, analyzer/104954, analyzer/104955, analyzer/104979,
+	analyzer/104997, analyzer/105017, analyzer/105057, analyzer/105074,
+	analyzer/105087, c++/39751, c++/58646, c++/59426, c++/65396,
+	c++/71637, c++/84964, c++/87820, c++/92918, c++/93280, c++/95999,
+	c++/96329, c++/96437, c++/96440, c++/96645, c++/96780, c++/98644,
+	c++/99445, c++/100474, c++/101030, c++/101515, c++/101767, c++/102045,
+	c++/102071, c++/102123, c++/102137, c++/102489, c++/102538,
+	c++/102740, c++/102869, c++/102990, c++/103177, c++/103291,
+	c++/103299, c++/103337, c++/103455, c++/103460, c++/103769,
+	c++/103943, c++/103968, c++/104008, c++/104108, c++/104284,
+	c++/104476, c++/104527, c++/104568, c++/104583, c++/104608,
+	c++/104620, c++/104622, c++/104623, c++/104641, c++/104752,
+	c++/104806, c++/104823, c++/104846, c++/104847, c++/104944,
+	c++/104994, c++/105003, c++/105006, c++/105035, c++/105050,
+	c++/105061, c++/105064, c++/105067, c++/105092, c/82283, c/84685,
+	c/98198, c/104711, d/103528, d/104911, d/105004, debug/104564,
+	debug/104778, fortran/50549, fortran/100892, fortran/103039,
+	fortran/103560, fortran/103691, fortran/104126, fortran/104570,
+	fortran/104571, fortran/104811, fortran/104849, fortran/104999,
+	ipa/102513, ipa/103083, ipa/103171, ipa/104813, jit/63854,
+	libgcc/86224, libgomp/105042, libstdc++/92546, libstdc++/103407,
+	libstdc++/104242, libstdc++/104859, libstdc++/104866,
+	libstdc++/104870, libstdc++/104875, libstdc++/104990,
+	libstdc++/105021, libstdc++/105027, lto/102426, middle-end/90115,
+	middle-end/98420, middle-end/99578, middle-end/100680,
+	middle-end/102330, middle-end/103597, middle-end/104086,
+	middle-end/104285, middle-end/104436, middle-end/104774,
+	middle-end/104786, middle-end/104869, middle-end/104885,
+	middle-end/104892, middle-end/104966, middle-end/104971,
+	middle-end/104975, middle-end/105032, middle-end/105049, other/65095,
+	other/102664, other/104899, other/105114, rtl-optimization/103775,
+	rtl-optimization/104814, rtl-optimization/104961,
+	rtl-optimization/104989, rtl-optimization/105028,
+	rtl-optimization/105091, sanitizer/105093, target/86722, target/91229,
+	target/94680, target/96882, target/99754, target/102125,
+	target/102215, target/102772, target/102986, target/103074,
+	target/104004, target/104666, target/104688, target/104714,
+	target/104762, target/104783, target/104790, target/104815,
+	target/104818, target/104829, target/104840, target/104842,
+	target/104857, target/104868, target/104882, target/104890,
+	target/104898, target/104902, target/104903, target/104910,
+	target/104916, target/104923, target/104925, target/104946,
+	target/104952, target/104957, target/104963, target/104967,
+	target/104974, target/104976, target/104977, target/104978,
+	target/104982, target/104998, target/105000, target/105011,
+	target/105052, target/105058, target/105066, target/105068,
+	testsuite/102841, testsuite/104759, testsuite/105055,
+	testsuite/105085, tree-optimization/80334, tree-optimization/84201,
+	tree-optimization/90356, tree-optimization/98335,
+	tree-optimization/100834, tree-optimization/101895,
+	tree-optimization/102008, tree-optimization/102586,
+	tree-optimization/102645, tree-optimization/102943,
+	tree-optimization/104645, tree-optimization/104755,
+	tree-optimization/104851, tree-optimization/104880,
+	tree-optimization/104941, tree-optimization/104942,
+	tree-optimization/104960, tree-optimization/104970,
+	tree-optimization/105012, tree-optimization/105053,
+	tree-optimization/105056, tree-optimization/105070,
+	tree-optimization/105080, tree-optimization/105094,
+	tree-optimization/105109
+
 * Tue Mar  8 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.12
 - fix up promoted SUBREG handling (#2045160, PR rtl-optimization/104839)
 - fix up check for asm goto (PR rtl-optimization/104777)
