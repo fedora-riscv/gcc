@@ -270,6 +270,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
+Patch12: gcc12-aarch64-tune.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -791,6 +792,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .aarch64-tune~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3164,9 +3166,10 @@ end
 %endif
 
 %changelog
-* Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.14
+* Sun Apr  3 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.14
 - update from trunk
   - revert delayed parse DMI change (PR c++/96645)
+- fix up aarch64 make install
 
 * Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.13
 - update from trunk
