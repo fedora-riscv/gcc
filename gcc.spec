@@ -1,5 +1,5 @@
-%global DATE 20220401
-%global gitrev 3b1a8bc028a968b01bbdb5f9cc5cd30402efae92
+%global DATE 20220411
+%global gitrev c520f3606c4d0f971a172e17c55b06aec363a417
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -117,10 +117,15 @@
 %ifarch x86_64
 %global multilib_32_arch i686
 %endif
+%if 0%{?fedora} >= 36
+%global build_annobin_plugin 1
+%else
+%global build_annobin_plugin 0
+%endif
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.14%{?dist}
+Release: %{gcc_release}.15%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -270,7 +275,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-aarch64-tune.patch
+Patch12: gcc12-pr105214.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -773,6 +778,18 @@ NVidia PTX.  OpenMP and OpenACC programs linked with -fopenmp will
 by default add PTX code into the binaries, which can be offloaded
 to NVidia PTX capable devices if available.
 
+%package plugin-annobin
+Summary: The annobin plugin for gcc, built by the installed version of gcc
+Requires: gcc = %{version}-%{release}
+%if %{build_annobin_plugin}
+BuildRequires: annobin >= 10.62, annobin-plugin-gcc, rpm-devel, binutils-devel, xz
+%endif
+
+%description plugin-annobin
+This package adds a version of the annobin plugin for gcc.  This version
+of the plugin is explicitly built by the same version of gcc that is installed
+so that there cannot be any synchronization problems.
+
 %prep
 %setup -q -n gcc-%{version}-%{DATE} -a 1 -a 2 -a 3
 %patch0 -p0 -b .hack~
@@ -792,7 +809,7 @@ to NVidia PTX capable devices if available.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .aarch64-tune~
+%patch12 -p0 -b .pr105214~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -1207,6 +1224,26 @@ done)
 
 rm -f rpm.doc/changelogs/gcc/ChangeLog.[1-9]
 find rpm.doc -name \*ChangeLog\* | xargs bzip2 -9
+
+%if %{build_annobin_plugin}
+mkdir annobin-plugin
+cd annobin-plugin
+tar xf %{_usrsrc}/annobin/latest-annobin.tar.xz
+cd annobin*
+touch aclocal.m4 configure Makefile.in */configure */config.h.in */Makefile.in
+ANNOBIN_FLAGS=../../obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags
+ANNOBIN_CFLAGS1="%build_cflags -I %{_builddir}/gcc-%{version}-%{DATE}/gcc"
+ANNOBIN_CFLAGS1="$ANNOBIN_CFLAGS1 -I %{_builddir}/gcc-%{version}-%{DATE}/obj-%{gcc_target_platform}/gcc"
+ANNOBIN_CFLAGS2="-I %{_builddir}/gcc-%{version}-%{DATE}/include -I %{_builddir}/gcc-%{version}-%{DATE}/libcpp/include"
+ANNOBIN_LDFLAGS="%build_ldflags -L%{_builddir}/gcc-%{version}-%{DATE}/obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/src/.libs"
+CC="`$ANNOBIN_FLAGS --build-cc`" CXX="`$ANNOBIN_FLAGS --build-cxx`" \
+  CFLAGS="$ANNOBIN_CFLAGS1 $ANNOBIN_CFLAGS2 $ANNOBIN_LDFLAGS" \
+  CXXFLAGS="$ANNOBIN_CFLAGS1 `$ANNOBIN_FLAGS --build-includes` $ANNOBIN_CFLAGS2 $ANNOBIN_LDFLAGS" \
+  ./configure --with-gcc-plugin-dir=%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin \
+	      --without-annocheck --without-tests --without-docs --disable-rpath --without-debuginfod
+make
+cd ../..
+%endif
 
 %install
 rm -rf %{buildroot}
@@ -2010,6 +2047,15 @@ echo gcc-%{version}-%{release}.%{_arch} > $FULLPATH/rpmver
 ln -s ../../libexec/gcc/%{gcc_target_platform}/%{gcc_major}/liblto_plugin.so \
   %{buildroot}%{_libdir}/bfd-plugins/
 
+%if %{build_annobin_plugin}
+mkdir -p $FULLPATH/plugin
+rm -f $FULLPATH/plugin/gcc-annobin*
+cp -a %{_builddir}/gcc-%{version}-%{DATE}/annobin-plugin/annobin*/gcc-plugin/.libs/annobin.so.0.0.0 \
+  $FULLPATH/plugin/gcc-annobin.so.0.0.0
+ln -sf gcc-annobin.so.0.0.0 $FULLPATH/plugin/gcc-annobin.so.0
+ln -sf gcc-annobin.so.0.0.0 $FULLPATH/plugin/gcc-annobin.so
+%endif
+
 %check
 cd obj-%{gcc_target_platform}
 
@@ -2020,6 +2066,7 @@ LC_ALL=C make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=
 %else
      RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
 %endif
+%if !%{build_annobin_plugin}
 if [ -f %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/annobin.so ]; then
   # Test whether current annobin plugin won't fail miserably with the newly built gcc.
   echo -e '#include <stdio.h>\nint main () { printf ("Hello, world!\\n"); return 0; }' > annobin-test.c
@@ -2050,9 +2097,12 @@ if [ -f %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/annobin.so
   cat ANNOBINOUT ANNOBINRES[12] >> ANNOBINRES
   rm -f ANNOBINOUT* ANNOBINRES[12] annobin-test{c,C}
 fi
+%endif
 echo ====================TESTING=========================
 ( LC_ALL=C ../contrib/test_summary || : ) 2>&1 | sed -n '/^cat.*EOF/,/^EOF/{/^cat.*EOF/d;/^EOF/d;/^LAST_UPDATED:/d;p;}'
+%if !%{build_annobin_plugin}
 [ -f ANNOBINRES ] && cat ANNOBINRES
+%endif
 echo ====================TESTING END=====================
 mkdir testlogs-%{_target_platform}-%{version}-%{release}
 for i in `find . -name \*.log | grep -F testsuite/ | grep -v 'config.log\|acats.*/tests/'`; do
@@ -3165,7 +3215,45 @@ end
 %{_prefix}/%{_lib}/libgomp-plugin-nvptx.so.*
 %endif
 
+%if %{build_annobin_plugin}
+%files plugin-annobin
+%dir %{_prefix}/lib/gcc
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}
+%dir %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/gcc-annobin.so
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/gcc-annobin.so.0
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/gcc-annobin.so.0.0.0
+%endif
+
 %changelog
+* Mon Apr 11 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.15
+- update from trunk
+  - PRs analyzer/102208, analyzer/103892, c++/91618, c++/92385, c++/96604,
+	c++/96645, c++/99479, c++/100370, c++/100608, c++/101051, c++/101677,
+	c++/101717, c++/101894, c++/103328, c++/103852, c++/104668,
+	c++/104702, c++/105110, c++/105143, c++/105186, c++/105187,
+	c++/105191, c/105149, c/105151, d/104740, driver/105096,
+	fortran/104210, fortran/105138, fortran/105184, ipa/103376,
+	ipa/104303, ipa/105166, jit/102824, libstdc++/105031,
+	libstdc++/105128, libstdc++/105146, libstdc++/105153,
+	libstdc++/105154, middle-end/105140, middle-end/105165,
+	rtl-optimization/104985, target/101908, target/102024, target/103147,
+	target/104049, target/104253, target/104409, target/104853,
+	target/104897, target/104987, target/105002, target/105069,
+	target/105123, target/105139, target/105144, target/105147,
+	target/105157, target/105197, testsuite/103196, testsuite/105095,
+	testsuite/105122, testsuite/105196, tree-optimization/102586,
+	tree-optimization/103761, tree-optimization/104639,
+	tree-optimization/104645, tree-optimization/105132,
+	tree-optimization/105142, tree-optimization/105148,
+	tree-optimization/105150, tree-optimization/105163,
+	tree-optimization/105173, tree-optimization/105175,
+	tree-optimization/105185, tree-optimization/105189,
+	tree-optimization/105198, tree-optimization/105218
+- build annobin gcc plugin as part of gcc build into gcc-plugin-annobin
+  subpackage
+
 * Sun Apr  3 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.14
 - update from trunk
   - revert delayed parse DMI change (PR c++/96645)

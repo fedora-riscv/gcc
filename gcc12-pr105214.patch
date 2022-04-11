@@ -1,0 +1,38 @@
+2022-04-11  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/105214
+	* config/i386/i386-expand.cc (ix86_emit_i387_log1p): Call
+	do_pending_stack_adjust.
+
+	* gcc.dg/asan/pr105214.c: New test.
+
+--- gcc/config/i386/i386-expand.cc.jj	2022-04-03 21:50:36.001635947 +0200
++++ gcc/config/i386/i386-expand.cc	2022-04-11 15:17:43.943430658 +0200
+@@ -17291,6 +17291,8 @@ void ix86_emit_i387_log1p (rtx op0, rtx
+   rtx cst, cstln2, cst1;
+   rtx_insn *insn;
+ 
++  do_pending_stack_adjust ();
++
+   cst = const_double_from_real_value
+     (REAL_VALUE_ATOF ("0.29289321881345247561810596348408353", XFmode), XFmode);
+   cstln2 = force_reg (XFmode, standard_80387_constant_rtx (4)); /* fldln2 */
+--- gcc/testsuite/gcc.dg/asan/pr105214.c.jj	2022-04-11 15:21:05.467608711 +0200
++++ gcc/testsuite/gcc.dg/asan/pr105214.c	2022-04-11 15:22:10.559697224 +0200
+@@ -0,0 +1,16 @@
++/* PR target/105214 */
++/* { dg-do compile } */
++/* { dg-skip-if "" { *-*-* } { "*" } { "-O2" } } */
++/* { dg-options "-Ofast -fnon-call-exceptions -fexceptions -fstack-check=generic -fsanitize=address -fno-finite-math-only -fsignaling-nans -fno-associative-math" } */
++
++float f;
++void bar (int *);
++
++void
++foo (void)
++{
++  int a[1600], b[1];
++  f += __builtin_log1pf (f);
++  bar (a);
++  bar (b);
++}
