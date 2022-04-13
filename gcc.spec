@@ -1,5 +1,5 @@
-%global DATE 20220411
-%global gitrev c520f3606c4d0f971a172e17c55b06aec363a417
+%global DATE 20220413
+%global gitrev 33917d2d6edc9112702294db6ab14b580a8d7a97
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.15%{?dist}
+Release: %{gcc_release}.16%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -275,7 +275,6 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr105214.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -809,7 +808,6 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr105214~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3227,6 +3225,18 @@ end
 %endif
 
 %changelog
+* Wed Apr 13 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.16
+- update from trunk
+  - PRs c++/97296, c++/98249, c++/100111, c++/103105, c++/104142, c++/104669,
+	c++/105223, c++/105233, c++/105245, jit/104071, jit/104072,
+	jit/104073, jit/104293, middle-end/105253, middle-end/105259,
+	rtl-optimization/105211, target/95325, target/97348, target/101755,
+	target/102146, target/103623, target/104144, target/104894,
+	target/105213, target/105214, target/105234, testsuite/105183,
+	tree-optimization/104912, tree-optimization/105226,
+	tree-optimization/105232, tree-optimization/105235,
+	tree-optimization/105250, tree-optimization/105263
+
 * Mon Apr 11 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.15
 - update from trunk
   - PRs analyzer/102208, analyzer/103892, c++/91618, c++/92385, c++/96604,
