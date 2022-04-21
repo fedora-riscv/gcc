@@ -1,10 +1,10 @@
 %global DATE 20220421
-%global gitrev 46deeb7fcf0b3c0749a5adf511d24f2facfe03aa
+%global gitrev 1d3172725999deb0dca93ac70393ed9a0ad0da3f
 %global gcc_version 11.3.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -272,7 +272,6 @@ Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
 Patch17: gcc11-stringify-__VA_OPT__-2.patch
 Patch18: gcc11-pr105331.patch
-Patch19: gcc11-pr105324.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -803,7 +802,6 @@ to NVidia PTX capable devices if available.
 %patch16 -p0 -b .stringify-__VA_OPT__~
 %patch17 -p0 -b .stringify-__VA_OPT__-2~
 %patch18 -p0 -b .pr105331~
-%patch19 -p0 -b .pr105324~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3152,6 +3150,10 @@ end
 %endif
 
 %changelog
+* Thu Apr 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-2
+- update from releases/gcc-11-branch
+  - PRs debug/105203, gcov-profile/105282, libstdc++/105324, target/105257
+
 * Thu Apr 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-1
 - update from releases/gcc-11-branch
   - GCC 11.3 release
