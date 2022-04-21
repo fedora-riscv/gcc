@@ -1,10 +1,10 @@
-%global DATE 20220401
-%global gitrev f0191923ac7d1fee22772d456c59737b935c3483
-%global gcc_version 11.2.1
+%global DATE 20220421
+%global gitrev 46deeb7fcf0b3c0749a5adf511d24f2facfe03aa
+%global gcc_version 11.3.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 10
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -271,7 +271,7 @@ Patch14: gcc11-libgcc-link.patch
 Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
 Patch17: gcc11-stringify-__VA_OPT__-2.patch
-Patch18: gcc11-pr105123.patch
+Patch18: gcc11-pr105331.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -801,7 +801,7 @@ to NVidia PTX capable devices if available.
 %patch15 -p0 -b .pr101786~
 %patch16 -p0 -b .stringify-__VA_OPT__~
 %patch17 -p0 -b .stringify-__VA_OPT__-2~
-%patch18 -p0 -b .pr105123~
+%patch18 -p0 -b .pr105331~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3150,6 +3150,30 @@ end
 %endif
 
 %changelog
+* Thu Apr 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-1
+- update from releases/gcc-11-branch
+  - GCC 11.3 release
+  - PRs c++/98249, c++/99893, c++/100608, c++/101051, c++/101532, c++/101677,
+	c++/101717, c++/101894, c++/102869, c++/103105, c++/103328,
+	c++/103341, c++/103455, c++/103706, c++/103885, c++/103943,
+	c++/104008, c++/104079, c++/104225, c++/104507, c++/104565,
+	c++/105003, c++/105064, c++/105143, c++/105186, c++/105256, c/101585,
+	debug/105203, fortran/102992, fortran/104210, fortran/104228,
+	fortran/104570, fortran/105138, gcov-profile/105282, ipa/103083,
+	ipa/103432, jit/100613, libstdc++/90943, libstdc++/100516,
+	libstdc++/103630, libstdc++/103638, libstdc++/103650,
+	libstdc++/103955, libstdc++/104098, libstdc++/104301,
+	libstdc++/104542, libstdc++/104859, libstdc++/105021,
+	libstdc++/105027, middle-end/104497, middle-end/105165,
+	rtl-optimization/104985, rtl-optimization/105028,
+	rtl-optimization/105211, target/80556, target/100106, target/104117,
+	target/104474, target/104853, target/104894, target/105214,
+	target/105257, tree-optimization/99121, tree-optimization/104880,
+	tree-optimization/105053, tree-optimization/105070,
+	tree-optimization/105189, tree-optimization/105198,
+	tree-optimization/105226, tree-optimization/105232,
+	tree-optimization/105235
+
 * Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 11.2.1-10
 - update from releases/gcc-11-branch
   - PRs ada/98724, ada/104258, ada/104767, ada/104861, c++/58646, c++/59950,
