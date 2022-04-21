@@ -272,6 +272,7 @@ Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
 Patch17: gcc11-stringify-__VA_OPT__-2.patch
 Patch18: gcc11-pr105331.patch
+Patch19: gcc11-pr105324.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -802,6 +803,7 @@ to NVidia PTX capable devices if available.
 %patch16 -p0 -b .stringify-__VA_OPT__~
 %patch17 -p0 -b .stringify-__VA_OPT__-2~
 %patch18 -p0 -b .pr105331~
+%patch19 -p0 -b .pr105324~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3173,6 +3175,9 @@ end
 	tree-optimization/105189, tree-optimization/105198,
 	tree-optimization/105226, tree-optimization/105232,
 	tree-optimization/105235
+- fix bogus -Wuninitialized warning on va_arg with complex types on x86_64
+  (PR target/105331)
+- remove bogus assertion in std::from_chars (PR libstdc++/105324)
 
 * Fri Apr  1 2022 Jakub Jelinek <jakub@redhat.com> 11.2.1-10
 - update from releases/gcc-11-branch
