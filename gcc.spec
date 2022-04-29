@@ -1,5 +1,5 @@
-%global DATE 20220413
-%global gitrev 33917d2d6edc9112702294db6ab14b580a8d7a97
+%global DATE 20220429
+%global gitrev 07f76ab820568c24917f1667cea80f1178279ac6
 %global gcc_version 12.0.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.16%{?dist}
+Release: %{gcc_release}.17%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3225,6 +3225,34 @@ end
 %endif
 
 %changelog
+* Fri Apr 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.17
+- update from trunk and releases/gcc-12 branch
+  - GCC 12.1-rc1
+  - PRs analyzer/105252, analyzer/105264, analyzer/105365, analyzer/105366,
+	c++/65211, c++/82980, c++/86193, c++/90107, c++/97219, c++/100838,
+	c++/101442, c++/101698, c++/102629, c++/102804, c++/102987,
+	c++/103868, c++/104051, c++/104624, c++/104646, c++/104996,
+	c++/105256, c++/105265, c++/105268, c++/105287, c++/105289,
+	c++/105297, c++/105301, c++/105304, c++/105321, c++/105322,
+	c++/105353, c++/105386, c++/105398, c++/105425, c++/105426,
+	debug/105089, debug/105203, fortran/70673, fortran/78054,
+	fortran/102043, fortran/103662, fortran/104717, fortran/105242,
+	fortran/105310, fortran/105379, fortran/105381, gcov-profile/105282,
+	ipa/103818, ipa/105306, libgomp/105358, libstdc++/93602,
+	libstdc++/99290, libstdc++/102994, libstdc++/104858,
+	libstdc++/105269, libstdc++/105324, libstdc++/105375,
+	libstdc++/105417, lto/105364, lto/105399, middle-end/104492,
+	rtl-optimization/105231, rtl-optimization/105314,
+	rtl-optimization/105333, sanitizer/105396, target/89125,
+	target/103197, target/104676, target/105247, target/105257,
+	target/105271, target/105331, target/105334, target/105338,
+	target/105339, target/105349, target/105367, testsuite/105266,
+	tree-optimization/100810, tree-optimization/103941,
+	tree-optimization/104010, tree-optimization/105219,
+	tree-optimization/105254, tree-optimization/105276,
+	tree-optimization/105312, tree-optimization/105368,
+	tree-optimization/105374
+
 * Wed Apr 13 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.16
 - update from trunk
   - PRs c++/97296, c++/98249, c++/100111, c++/103105, c++/104142, c++/104669,
