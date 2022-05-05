@@ -117,7 +117,7 @@
 %ifarch x86_64
 %global multilib_32_arch i686
 %endif
-%if 0%{?fedora} >= 36
+%if 0%{?fedora} >= 36 || 0%{?rhel} >= 10
 %global build_annobin_plugin 1
 %else
 %global build_annobin_plugin 0
@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.17%{?dist}
+Release: %{gcc_release}.18%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3225,6 +3225,9 @@ end
 %endif
 
 %changelog
+* Thu May 05 2022 Stephen Gallagher <sgallagh@redhat.com> 12.0.1-0.18
+- Fix annobin plugin conditional to build for ELN
+
 * Fri Apr 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.17
 - update from trunk and releases/gcc-12 branch
   - GCC 12.1-rc1
