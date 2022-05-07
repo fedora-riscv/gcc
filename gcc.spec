@@ -1,10 +1,10 @@
-%global DATE 20220429
-%global gitrev 07f76ab820568c24917f1667cea80f1178279ac6
-%global gcc_version 12.0.1
+%global DATE 20220507
+%global gitrev fa107326a13af9a7d7aa0df28fe364db0f6fb171
+%global gcc_version 12.1.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 0
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.18%{?dist}
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -3225,8 +3225,16 @@ end
 %endif
 
 %changelog
-* Thu May 05 2022 Stephen Gallagher <sgallagh@redhat.com> 12.0.1-0.18
-- Fix annobin plugin conditional to build for ELN
+* Sat May  7 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-1
+- update from releases/gcc-12 branch
+  - GCC 12.1 release
+  - PRs c++/105476, libstdc++/103911, libstdc++/105441, libstdc++/105502,
+	middle-end/105376, middle-end/105461, target/102059, testsuite/105433,
+	tree-optimization/105394, tree-optimization/105437,
+	tree-optimization/105484
+
+* Thu May  5 2022 Stephen Gallagher <sgallagh@redhat.com> 12.0.1-0.18
+- fix annobin plugin conditional to build for ELN
 
 * Fri Apr 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.17
 - update from trunk and releases/gcc-12 branch
