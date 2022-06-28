@@ -62,12 +62,12 @@
 %else
 %global build_libasan 0
 %endif
-%ifarch x86_64 ppc64 ppc64le aarch64
+%ifarch x86_64 ppc64 ppc64le aarch64 s390x
 %global build_libtsan 1
 %else
 %global build_libtsan 0
 %endif
-%ifarch x86_64 ppc64 ppc64le aarch64
+%ifarch x86_64 ppc64 ppc64le aarch64 s390x
 %global build_liblsan 1
 %else
 %global build_liblsan 0
@@ -278,14 +278,8 @@ Patch11: gcc12-d-shared-libphobos.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
-Patch102: gcc12-fortran-fdec-ichar.patch
-Patch103: gcc12-fortran-fdec-non-integer-index.patch
-Patch104: gcc12-fortran-fdec-old-init.patch
-Patch105: gcc12-fortran-fdec-override-kind.patch
-Patch106: gcc12-fortran-fdec-non-logical-if.patch
-Patch107: gcc12-fortran-fdec-promotion.patch
-Patch108: gcc12-fortran-fdec-sequence.patch
-Patch109: gcc12-fortran-fdec-add-missing-indexes.patch
+Patch102: gcc12-fortran-fdec-override-kind.patch
+Patch103: gcc12-fortran-fdec-non-logical-if.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -812,14 +806,8 @@ so that there cannot be any synchronization problems.
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
 %patch101 -p1 -b .fortran-flogical-as-integer~
-%patch102 -p1 -b .fortran-fdec-ichar~
-%patch103 -p1 -b .fortran-fdec-non-integer-index~
-%patch104 -p1 -b .fortran-fdec-old-init~
-%patch105 -p1 -b .fortran-fdec-override-kind~
-%patch106 -p1 -b .fortran-fdec-non-logical-if~
-%patch107 -p1 -b .fortran-fdec-promotion~
-%patch108 -p1 -b .fortran-fdec-sequence~
-%patch109 -p1 -b .fortran-fdec-add-missing-indexes~
+%patch102 -p1 -b .fortran-fdec-override-kind~
+%patch103 -p1 -b .fortran-fdec-non-logical-if~
 %endif
 
 %ifarch %{arm}
@@ -3248,6 +3236,8 @@ end
 	tree-optimization/105618, tree-optimization/105726,
 	tree-optimization/105736, tree-optimization/105786,
 	tree-optimization/105940
+- enable tsan and lsan on s390x (#2101610)
+- trim RHEL fortran patches
 
 * Sat May  7 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-1
 - update from releases/gcc-12 branch
