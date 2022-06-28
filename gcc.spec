@@ -1,10 +1,10 @@
-%global DATE 20220507
-%global gitrev fa107326a13af9a7d7aa0df28fe364db0f6fb171
+%global DATE 20220628
+%global gitrev 874cb9452c56f1c3b3a7b5bfed93a262504b9856
 %global gcc_version 12.1.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 1
+%global gcc_release 2
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -3225,6 +3225,30 @@ end
 %endif
 
 %changelog
+* Tue Jun 28 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-2
+- update from releases/gcc-12 branch
+  - PRs c++/49387, c++/102307, c++/102651, c++/104470, c++/105491, c++/105589,
+	c++/105623, c++/105652, c++/105655, c++/105725, c++/105734,
+	c++/105756, c++/105761, c++/105779, c++/105795, c++/105852,
+	c++/105871, c++/105885, c++/105908, c++/105925, c++/105931,
+	c++/105964, c++/106001, c/105635, d/105544, fortran/105230,
+	gcov-profile/105535, ipa/100413, ipa/105600, ipa/105639, ipa/105739,
+	libgomp/105745, libgomp/106045, libstdc++/104731, libstdc++/105284,
+	libstdc++/105671, libstdc++/105681, middle-end/105537,
+	middle-end/105604, middle-end/105711, middle-end/105951,
+	middle-end/105998, middle-end/106030, other/105527,
+	preprocessor/105732, rtl-optimization/105455, rtl-optimization/105559,
+	rtl-optimization/105577, sanitizer/105714, sanitizer/105729,
+	target/101891, target/104871, target/105162, target/105209,
+	target/105292, target/105472, target/105556, target/105599,
+	target/105854, target/105879, target/105953, target/105960,
+	target/105970, target/105981, target/106096, tree-optimization/103116,
+	tree-optimization/105431, tree-optimization/105458,
+	tree-optimization/105528, tree-optimization/105562,
+	tree-optimization/105618, tree-optimization/105726,
+	tree-optimization/105736, tree-optimization/105786,
+	tree-optimization/105940
+
 * Sat May  7 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-1
 - update from releases/gcc-12 branch
   - GCC 12.1 release
