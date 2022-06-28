@@ -275,6 +275,7 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
+Patch12: gcc12-pr105551.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -802,6 +803,7 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .pr105551~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3238,6 +3240,7 @@ end
 	tree-optimization/105940
 - enable tsan and lsan on s390x (#2101610)
 - trim RHEL fortran patches
+- fix nvptx build (PRs bootstrap/105551, target/105938)
 
 * Sat May  7 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-1
 - update from releases/gcc-12 branch
