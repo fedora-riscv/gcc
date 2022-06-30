@@ -1,10 +1,10 @@
-%global DATE 20220628
+%global DATE 20220630
 %global gitrev 874cb9452c56f1c3b3a7b5bfed93a262504b9856
 %global gcc_version 12.1.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -276,6 +276,7 @@ Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
 Patch12: gcc12-pr105551.patch
+Patch13: gcc12-libtsan-s390x.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -804,6 +805,7 @@ so that there cannot be any synchronization problems.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr105551~
+%patch13 -p0 -b .libtsan-s390x~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3215,6 +3217,9 @@ end
 %endif
 
 %changelog
+* Thu Jun 30 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-3
+- fix up libtsan on s390x
+
 * Tue Jun 28 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-2
 - update from releases/gcc-12 branch
   - PRs c++/49387, c++/102307, c++/102651, c++/104470, c++/105491, c++/105589,
