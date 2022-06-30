@@ -1,4 +1,4 @@
-%global DATE 20220630
+%global DATE 20220628
 %global gitrev 874cb9452c56f1c3b3a7b5bfed93a262504b9856
 %global gcc_version 12.1.1
 %global gcc_major 12
