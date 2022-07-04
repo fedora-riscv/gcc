@@ -281,25 +281,25 @@ diff --git a/gcc/fortran/lang.opt b/gcc/fortran/lang.opt
 index 25cc948699b..4a269ebb22d 100644
 --- a/gcc/fortran/lang.opt
 +++ b/gcc/fortran/lang.opt
-@@ -493,6 +493,10 @@ fdec-non-integer-index
- Fortran Var(flag_dec_non_integer_index)
- Enable support for non-integer substring indexes.
+@@ -502,6 +502,10 @@ fdec-math
+ Fortran Var(flag_dec_math)
+ Enable legacy math intrinsics for compatibility.
  
 +fdec-override-kind
 +Fortran Var(flag_dec_override_kind)
 +Enable support for per variable kind specification.
 +
- fdec-old-init
- Fortran Var(flag_dec_old_init)
- Enable support for old style initializers in derived types.
+ fdec-structure
+ Fortran Var(flag_dec_structure)
+ Enable support for DEC STRUCTURE/RECORD.
 diff --git a/gcc/fortran/options.cc b/gcc/fortran/options.cc
 index d6bd36c3a8a..edbab483b36 100644
 --- a/gcc/fortran/options.cc
 +++ b/gcc/fortran/options.cc
-@@ -80,6 +80,7 @@ set_dec_flags (int value)
+@@ -78,6 +78,7 @@ set_dec_flags (int value)
+   SET_BITFLAG (flag_dec_blank_format_item, value, value);
+   SET_BITFLAG (flag_dec_char_conversions, value, value);
    SET_BITFLAG (flag_dec_duplicates, value, value);
-   SET_BITFLAG (flag_dec_non_integer_index, value, value);
-   SET_BITFLAG (flag_dec_old_init, value, value);
 +  SET_BITFLAG (flag_dec_override_kind, value, value);
  }
  
