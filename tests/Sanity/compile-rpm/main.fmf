@@ -1,0 +1,45 @@
+summary: Compile a Red Hat RPM package.
+description: ''
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Sanity/compile-rpm
+framework: beakerlib
+require:
+  - autoconf
+  - bison
+  - dejagnu
+  - elfutils-libelf-devel
+  - expat-devel
+  - flex
+  - gcc
+  - gdb
+  - glibc-devel
+  - grep
+  - libselinux-devel
+  - make
+  - mpfr-devel
+  - ncurses-devel
+  - python-devel
+  - readline-devel
+  - rpm-build
+  - rpm-devel
+  - texinfo
+  - xz-devel
+  - yum-utils
+  - zlib-devel
+duration: 240m
+adjust:
+  - require+:
+    - ncurses-devel.i686
+    - ncurses-devel.x86_64
+    when: arch == x86_64
+  - enabled: false
+    # Too "heavy" for Fedora CI (for now)
+    when: distro == fedora and trigger is defined
+    continue: false
+enabled: true
+extra-nitrate: TC#0142522
+extra-summary: /tools/gcc/Sanity/compile-rpm
+extra-task: /tools/gcc/Sanity/compile-rpm

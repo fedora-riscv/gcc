@@ -1,0 +1,70 @@
+summary: Rebuild binutils.
+description: ''
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Sanity/rebuild-binutils
+framework: beakerlib
+require:
+  - autoconf
+  - automake
+  - binutils
+  - gcc
+  - glibc
+  - glibc-devel
+  - glibc-static
+  - libstdc++
+  - libstdc++-devel
+  - libstdc++-static
+  - perl
+  - rpm-build
+  - sharutils
+  - texinfo
+  - yum-utils
+  - zlib-devel
+  - zlib-static
+recommend:
+  - glibc-devel.ppc
+  - glibc-devel.s390
+  - glibc-static.ppc
+  - glibc-static.s390
+  - libgcc.ppc
+  - libgcc.s390
+  - libstdc++-devel.ppc
+  - libstdc++-devel.s390
+  - libstdc++.ppc
+  - libstdc++.s390
+  - libstdc++-static.ppc
+  - libstdc++-static.s390
+  - zlib-devel.ppc
+  - zlib-static.ppc
+  - dnf-utils
+  - yum-utils
+duration: 3h
+enabled: true
+adjust:
+  - require+:
+    - glibc-devel.i686
+    - glibc-devel.x86_64
+    - glibc-static.i686
+    - glibc-static.x86_64
+    - libgcc.i686
+    - libgcc.x86_64
+    - libstdc++-devel.i686
+    - libstdc++-devel.x86_64
+    - libstdc++.i686
+    - libstdc++.x86_64
+    - libstdc++-static.i686
+    - libstdc++-static.x86_64
+    when: arch == x86_64
+  - enabled: false
+    when: distro == rhel-6 and collection is defined
+    continue: false
+  - enabled: false
+    # Too "heavy" for Fedora CI (for now)
+    when: distro == fedora and trigger is defined
+    continue: false
+extra-nitrate: TC#0147459
+extra-summary: /tools/gcc/Sanity/rebuild-binutils
+extra-task: /tools/gcc/Sanity/rebuild-binutils

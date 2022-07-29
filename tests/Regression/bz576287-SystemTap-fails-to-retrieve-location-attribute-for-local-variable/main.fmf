@@ -1,0 +1,26 @@
+summary: SystemTap fails to retrieve location attribute for local variable
+description: ''
+contact: mcermak@redhat.com
+component:
+  - gcc
+  - systemtap
+test: ./runtest.sh
+framework: beakerlib
+require:
+  - gcc
+  - systemtap
+  - kernel-devel
+  - kernel-headers
+duration: 50m
+enabled: true
+tag:
+  - CI-Tier-1
+  - STAP-EWA
+  - mcu_stap
+  - mcu_stap_6g
+  - mcu_stap_7g
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=576287
+extra-nitrate: TC#0062256
+extra-summary: /tools/gcc/Regression/gcc/bz576287-SystemTap-fails-to-retrieve-location-attribute-for-local-variable
+extra-task: /tools/gcc/Regression/gcc/bz576287-SystemTap-fails-to-retrieve-location-attribute-for-local-variable

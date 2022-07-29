@@ -1,0 +1,33 @@
+summary: 'Test for bz515799 ([RHEL5] gcc: if more than one -fno-builtin-*)'
+description: |
+    Bug summary: [RHEL5] gcc: if more than one -fno-builtin-* options are specified, only the last one is effective
+    Bugzilla link: https://bugzilla.redhat.com/show_bug.cgi?id=515799
+
+    This test compiles builtin.c with the flags '-fno-builtin-isascii 
+    -fno-builtin-isalnum'.  This program contains a custom isascii() function
+    that always returns 0.  If gcc honors the -fno-builtin-isascii flag, it
+    will return 0.  If not, it will use the built-in isascii() function which
+    will return 1.
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Regression/515799-RHEL5-gcc-if-more-than-one-fno-builtin
+framework: beakerlib
+require:
+  - gcc
+duration: 5m
+enabled: true
+tier: '1'
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=515799
+tag:
+  - CI-Tier-1
+  - DTS8-INTEROP-CI
+  - DTS9-INTEROP-CI
+  - Tier1
+  - dts_smoke
+  - dts_stable
+extra-nitrate: TC#0063259
+extra-summary: /tools/gcc/Regression/gcc/515799-RHEL5-gcc-if-more-than-one-fno-builtin
+extra-task: /tools/gcc/Regression/gcc/515799-RHEL5-gcc-if-more-than-one-fno-builtin

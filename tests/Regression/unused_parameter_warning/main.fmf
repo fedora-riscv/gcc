@@ -1,0 +1,31 @@
+summary: Check to see if g++ throws unused parameter warnings with standard libraries
+    with option -Wall
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Regression/unused_parameter_warning
+framework: beakerlib
+require:
+  - gcc-c++
+  - glibc-devel
+  - libstdc++-devel
+recommend:
+  - gcc44-c++
+  - glibc-devel.ppc64
+  - glibc-devel.ppc
+  - libstdc++43-devel.ppc
+  - libstdc++44-devel.ppc
+  - libstdc++-devel.ppc
+duration: 10m
+enabled: true
+tier: '1'
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=201342
+tag:
+  - CI-Tier-1
+  - Tier1
+  - dts_stable
+extra-nitrate: TC#0062265
+extra-summary: /tools/gcc/c++/unused_parameter_warning
+extra-task: /tools/gcc/c++/unused_parameter_warning

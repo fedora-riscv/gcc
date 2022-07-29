@@ -1,0 +1,51 @@
+summary: Try -m32 and -m64 options.
+description: ''
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Sanity/test-m32-m64-options
+framework: beakerlib
+require:
+  - gcc
+  - gcc-c++
+  - gcc-gfortran
+  - glibc-common
+  - libgcc
+  - libgomp
+  - libgfortran
+  - libstdc++
+  - libstdc++-devel
+  - glibc-devel
+  - libitm
+recommend:
+  - libgfortran44.i686
+  - libgfortran44.x86_64
+  - libgfortran4.i686
+  - libgfortran4.x86_64
+duration: 10m
+enabled: true
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=1113429
+adjust:
+  - enabled: false
+    when: arch == ia64, ppc64, s390, s390x
+    continue: false
+  - require+:
+    - glibc-devel.i686
+    - glibc-devel.x86_64
+    - libgcc.i686
+    - libgcc.x86_64
+    - libgfortran.i686
+    - libgfortran.x86_64
+    - libgomp.i686
+    - libgomp.x86_64
+    - libitm.i686
+    - libitm.x86_64
+    - libstdc++.i686
+    - libstdc++.x86_64
+    when: arch == x86_64
+    continue: false
+extra-nitrate: TC#0197178
+extra-summary: /tools/gcc/Sanity/test-m32-m64-options
+extra-task: /tools/gcc/Sanity/test-m32-m64-options

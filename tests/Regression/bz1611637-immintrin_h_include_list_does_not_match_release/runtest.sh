@@ -1,14 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # vim: dict+=/usr/share/beakerlib/dictionary.vim cpt=.,w,b,u,t,i,k
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#   runtest.sh of /tools/gcc/Regression/bz1960701-Wrong-code-regression-starting-with-gcc-8-2
-#   Description: Test for BZ#1960701 (Wrong-code regression starting with gcc 8.2)
-#   Author: Vaclav Kadlcik <vkadlcik@redhat.com>
+#   runtest.sh of /tools/gcc/Regression/bz1611637-immintrin_h_include_list_does_not_match_release
+#   Description: Test for BZ#1611637 (devtoolset-8-gcc includes avx512vbmi2intrin.h but)
+#   Author: Michael Petlan <mpetlan@redhat.com>
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#   Copyright (c) 2021 Red Hat, Inc.
+#   Copyright (c) 2018 Red Hat, Inc.
 #
 #   This program is free software: you can redistribute it and/or
 #   modify it under the terms of the GNU General Public License as
@@ -28,39 +28,27 @@
 # Include Beaker environment
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
-# Notes on relevancy
-#
-# The test is applicable to GCCs supporting -std=c++17. In practice,
-#   * any supported toolset GCC
-#   * system GCC of RHEL 8+; however the respective fix landed in 8.5
-#     and isn't planned for backporting.
-#
-# Suggested TCMS relevancy:
-#   distro < rhel-8 && collection !defined: False
-#   distro < rhel-8.5 && collection !defined: False
-
-GCC="${GCC:-$(type -P gcc)}"
-PACKAGE=$(rpm --qf '%{name}\n' -qf $GCC | head -1)
-PACKAGES="${PACKAGE} ${PACKAGE}-c++"
+GCC=${GCC:-gcc}
 
 rlJournalStart
     rlPhaseStartSetup
-        rlLogInfo "PACKAGES=$PACKAGES"
-        rlLogInfo "COLLECTIONS=$COLLECTIONS"
-        rlAssertRpm --all
-        rlRun "TmpDir=\$(mktemp -d)"
-        rlRun "cp reproducer.cc $TmpDir"
-        rlRun "pushd $TmpDir"
+        cat > a.c <<EOF
+#include <immintrin.h>
+int main(void)
+{
+  return 0;
+}
+EOF
+        rlAssertExists "a.c"
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun 'g++ -o reproducer -Wall -Wextra -std=c++17 reproducer.cc'
-        rlRun './reproducer'
+        rlRun "$GCC -o a a.c"
+        rlAssertExists "a"
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun 'popd'
-        rlRun "rm -r $TmpDir"
+        rlRun "rm -f a a.c"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd

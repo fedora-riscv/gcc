@@ -1,0 +1,76 @@
+description: |
+    Rebuild current glibc.
+summary: Rebuild glibc
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Sanity/rebuild-glibc
+framework: beakerlib
+require:
+  - audit-libs-devel
+  - binutils
+  - gcc
+  - gd-devel
+  - glibc-devel
+  - glibc-static
+  - glibc-utils
+  - libcap-devel
+  - libgcc
+  - libpng-devel
+  - libstdc++
+  - libstdc++-devel
+  - libstdc++-static
+  - libXpm-devel
+  - nspr-devel
+  - nss-devel
+  - nss-softokn-devel
+  - nss-util-devel
+  - rpm-build
+  - systemtap-sdt-devel
+  - yum-utils
+recommend:
+  - glibc-devel.ppc
+  - glibc-devel.s390
+  - glibc-static.ppc
+  - glibc-static.s390
+  - libgcc.ppc
+  - libgcc.s390
+  - libstdc++-devel.ppc
+  - libstdc++-devel.s390
+  - libstdc++.ppc
+  - libstdc++.s390
+  - libstdc++-static.ppc
+  - libstdc++-static.s390
+  - dnf-utils
+  - yum-utils
+duration: 18h
+enabled: true
+tag:
+  - NoDTS
+  - rhel8-buildroot
+adjust:
+  - require+:
+    - glibc-devel.i686
+    - glibc-devel.x86_64
+    - glibc-static.i686
+    - glibc-static.x86_64
+    - libgcc.i686
+    - libgcc.x86_64
+    - libstdc++-devel.i686
+    - libstdc++-devel.x86_64
+    - libstdc++.i686
+    - libstdc++.x86_64
+    - libstdc++-static.i686
+    - libstdc++-static.x86_64
+    when: arch == x86_64
+  - enabled: false
+    when: collection is defined
+    continue: false
+  - enabled: false
+    # Too "heavy" for Fedora CI (for now)
+    when: distro == fedora and trigger is defined
+    continue: false
+extra-nitrate: TC#0035677
+extra-summary: /tools/gcc/Sanity/rebuild-glibc
+extra-task: /tools/gcc/Sanity/rebuild-glibc

@@ -1,0 +1,28 @@
+summary: Try to compile a program that has a template parameter with a boolean expression
+    involving a templated static constant
+description: ''
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+path: /tests/Regression/bz703059-g-fails-to-compile-a-program-that-has-a-template
+framework: beakerlib
+require:
+  - gcc
+  - gcc-c++
+  - file
+duration: 5m
+enabled: true
+tier: '1'
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=703059
+tag:
+  - CI-Tier-1
+  - DTS8-INTEROP-CI
+  - DTS9-INTEROP-CI
+  - Tier1
+  - dts_smoke
+  - dts_stable
+extra-nitrate: TC#0111110
+extra-summary: /tools/gcc/Regression/bz703059-g-fails-to-compile-a-program-that-has-a-template
+extra-task: /tools/gcc/Regression/bz703059-g-fails-to-compile-a-program-that-has-a-template

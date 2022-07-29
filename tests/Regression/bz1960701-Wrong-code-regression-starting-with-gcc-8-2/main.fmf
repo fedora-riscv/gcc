@@ -7,10 +7,21 @@ component:
 - gcc
 test: ./runtest.sh
 framework: beakerlib
-recommend:
+require:
 - gcc-c++
 duration: 15m
+enabled: true
+tag:
+  - CI-Tier-1
 link:
 -   relates: https://bugzilla.redhat.com/show_bug.cgi?id=1960701
+adjust:
+  - enabled: false
+    when: distro < rhel-8 and collection is not defined
+    continue: false
+  - enabled: false
+    when: distro ~< rhel-8.5 and collection is not defined
+    continue: false
+extra-nitrate: TC#0610780
 extra-summary: /tools/gcc/Regression/bz1960701-Wrong-code-regression-starting-with-gcc-8-2
 extra-task: /tools/gcc/Regression/bz1960701-Wrong-code-regression-starting-with-gcc-8-2

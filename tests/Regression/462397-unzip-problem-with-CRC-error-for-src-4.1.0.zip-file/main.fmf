@@ -1,0 +1,29 @@
+summary: unzip problem with CRC error for src-4.1.0.zip file on s390x
+description: |
+    A customer has been trying to unzip the file src-4.1.0.zip
+    which is contained libgcj4-src-4.1.0-18.EL4.s390x.rpm. However,
+    unzip command can't run correctly with the CRC errors
+    It seems that the src-4.1.0.zip is broken.
+contact: mcermak@redhat.com
+component:
+  - gcc
+test: ./runtest.sh
+framework: beakerlib
+require:
+  - gcc
+  - libgcj-src
+duration: 5m
+enabled: true
+tag:
+  - CI-Tier-1
+  - Tier1
+tier: '1'
+link:
+  - relates: https://bugzilla.redhat.com/show_bug.cgi?id=462397
+adjust:
+  - enabled: false
+    when: distro != rhel-5 and distro != rhel-6
+    continue: false
+extra-nitrate: TC#0147365
+extra-summary: /tools/gcc/Sanity/462397-unzip-problem-with-CRC-error-for-src-4.1.0.zip-file
+extra-task: /tools/gcc/Sanity/462397-unzip-problem-with-CRC-error-for-src-4.1.0.zip-file
