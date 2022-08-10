@@ -775,7 +775,7 @@ to NVidia PTX capable devices if available.
 Summary: The annobin plugin for gcc, built by the installed version of gcc
 Requires: gcc = %{version}-%{release}
 %if %{build_annobin_plugin}
-BuildRequires: annobin-plugin-gcc, rpm-devel, binutils-devel, xz
+BuildRequires: annobin-plugin-gcc >= 10.62, rpm-devel, binutils-devel, xz
 %endif
 
 %description plugin-annobin
