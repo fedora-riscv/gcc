@@ -1,10 +1,10 @@
-%global DATE 20220628
-%global gitrev 874cb9452c56f1c3b3a7b5bfed93a262504b9856
+%global DATE 20220810
+%global gitrev c66b9ee42a4ecd9d14f9724bf0a26019326edf0a
 %global gcc_version 12.1.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}.1
+Release: %{gcc_release}%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -275,8 +275,6 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
-Patch12: gcc12-pr105551.patch
-Patch13: gcc12-libtsan-s390x.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -804,8 +802,6 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr105551~
-%patch13 -p0 -b .libtsan-s390x~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3217,8 +3213,29 @@ end
 %endif
 
 %changelog
-* Thu Jul 21 2022 Fedora Release Engineering <releng@fedoraproject.org> - 12.1.1-3.1
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+* Wed Aug  8 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-4
+- update from releases/gcc-12 branch
+  - PRs analyzer/105285, analyzer/106204, analyzer/106225, c++/53164,
+	c++/96363, c++/100374, c++/105541, c++/105626, c++/105634, c++/105637,
+	c++/105758, c++/105842, c++/105848, c++/105912, c++/106024,
+	c++/106102, c++/106230, c++/106311, c++/106361, d/106139, d/106555,
+	d/106563, debug/106261, fortran/101330, fortran/103137,
+	fortran/103138, fortran/103504, fortran/103693, fortran/104313,
+	fortran/105243, fortran/105691, fortran/105813, fortran/105954,
+	fortran/106121, libfortran/106079, libstdc++/88881, libstdc++/100823,
+	libstdc++/104443, libstdc++/105844, libstdc++/105880,
+	libstdc++/105957, libstdc++/105995, libstdc++/106162,
+	libstdc++/106248, lto/106129, middle-end/105965, middle-end/106027,
+	middle-end/106144, middle-end/106331, middle-end/106449,
+	preprocessor/97498, rtl-optimization/105041, rtl-optimization/106032,
+	target/103722, target/105459, target/105930, target/105991,
+	target/106091, target/106097, target/106122, testsuite/106345,
+	tree-optimization/105665, tree-optimization/105860,
+	tree-optimization/105946, tree-optimization/105969,
+	tree-optimization/105971, tree-optimization/106063,
+	tree-optimization/106087, tree-optimization/106112,
+	tree-optimization/106114, tree-optimization/106131,
+	tree-optimization/106189
 
 * Thu Jun 30 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-3
 - fix up libtsan on s390x
