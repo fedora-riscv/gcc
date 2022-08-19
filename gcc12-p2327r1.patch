@@ -1,0 +1,135 @@
+2022-08-16  Jakub Jelinek  <jakub@redhat.com>
+
+	* typeck.cc (cp_build_modify_expr): Implement
+	P2327R1 - De-deprecating volatile compound operations.  Don't warn
+	for |=, &= or ^= with volatile lhs.
+	* expr.cc (mark_use) <case MODIFY_EXPR>: Adjust warning wording,
+	leave out simple.
+
+	* g++.dg/cpp2a/volatile1.C: Adjust for de-deprecation of volatile
+	compound |=, &= and ^= operations.
+	* g++.dg/cpp2a/volatile3.C: Likewise.
+	* g++.dg/cpp2a/volatile5.C: Likewise.
+
+--- gcc/cp/expr.cc
++++ gcc/cp/expr.cc
+@@ -220,7 +220,7 @@ mark_use (tree expr, bool rvalue_p, bool read_p,
+     case MODIFY_EXPR:
+ 	{
+ 	  tree lhs = TREE_OPERAND (expr, 0);
+-	  /* [expr.ass] "A simple assignment whose left operand is of
++	  /* [expr.ass] "An assignment whose left operand is of
+ 	     a volatile-qualified type is deprecated unless the assignment
+ 	     is either a discarded-value expression or appears in an
+ 	     unevaluated context."  */
+@@ -230,7 +230,7 @@ mark_use (tree expr, bool rvalue_p, bool read_p,
+ 	      && !TREE_THIS_VOLATILE (expr))
+ 	    {
+ 	      if (warning_at (location_of (expr), OPT_Wvolatile,
+-			      "using value of simple assignment with "
++			      "using value of assignment with "
+ 			      "%<volatile%>-qualified left operand is "
+ 			      "deprecated"))
+ 		/* Make sure not to warn about this assignment again.  */
+--- gcc/cp/typeck.cc
++++ gcc/cp/typeck.cc
+@@ -9136,10 +9136,14 @@ cp_build_modify_expr (location_t loc, tree lhs, enum tree_code modifycode,
+ 
+ 	  /* An expression of the form E1 op= E2.  [expr.ass] says:
+ 	     "Such expressions are deprecated if E1 has volatile-qualified
+-	     type."  We warn here rather than in cp_genericize_r because
++	     type and op is not one of the bitwise operators |, &, ^."
++	     We warn here rather than in cp_genericize_r because
+ 	     for compound assignments we are supposed to warn even if the
+ 	     assignment is a discarded-value expression.  */
+-	  if (TREE_THIS_VOLATILE (lhs) || CP_TYPE_VOLATILE_P (lhstype))
++	  if (modifycode != BIT_AND_EXPR
++	      && modifycode != BIT_IOR_EXPR
++	      && modifycode != BIT_XOR_EXPR
++	      && (TREE_THIS_VOLATILE (lhs) || CP_TYPE_VOLATILE_P (lhstype)))
+ 	    warning_at (loc, OPT_Wvolatile,
+ 			"compound assignment with %<volatile%>-qualified left "
+ 			"operand is deprecated");
+--- gcc/testsuite/g++.dg/cpp2a/volatile1.C
++++ gcc/testsuite/g++.dg/cpp2a/volatile1.C
+@@ -56,6 +56,9 @@ fn2 ()
+   vi = i;
+   vi = i = 42;
+   i = vi = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  i = vi |= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  i = vi &= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  i = vi ^= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   &(vi = i); // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   (vi = 42, 45);
+   (i = vi = 42, 10); // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+@@ -74,8 +77,9 @@ fn2 ()
+   vi += i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   vi -= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   vi %= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+-  vi ^= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+-  vi |= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  vi ^= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
++  vi |= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
++  vi &= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
+   vi /= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   vi = vi += 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+   vi += vi = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+@@ -131,7 +135,8 @@ void raccoon ()
+   volatile T t, u;
+   t = 42;
+   u = t = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
+-  t &= 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  t += 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" "" { target c++20 } }
++  t &= 42; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
+ }
+ 
+ void
+--- gcc/testsuite/g++.dg/cpp2a/volatile3.C
++++ gcc/testsuite/g++.dg/cpp2a/volatile3.C
+@@ -57,6 +57,9 @@ fn2 ()
+   vi = i;
+   vi = i = 42;
+   i = vi = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
++  i = vi |= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" }
++  i = vi &= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" }
++  i = vi ^= 42; // { dg-warning "using value of assignment with .volatile.-qualified left operand is deprecated" }
+   &(vi = i); // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+   (vi = 42, 45);
+   (i = vi = 42, 10); // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+@@ -75,8 +78,9 @@ fn2 ()
+   vi += i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+   vi -= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+   vi %= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+-  vi ^= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+-  vi |= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
++  vi ^= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
++  vi |= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
++  vi &= i; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
+   vi /= i; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+   vi = vi += 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+   vi += vi = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+@@ -132,7 +136,8 @@ void raccoon ()
+   volatile T t, u;
+   t = 42;
+   u = t = 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
+-  t &= 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
++  t += 42; // { dg-warning "assignment with .volatile.-qualified left operand is deprecated" }
++  t &= 42; // { dg-bogus "assignment with .volatile.-qualified left operand is deprecated" }
+ }
+ 
+ void
+--- gcc/testsuite/g++.dg/cpp2a/volatile5.C
++++ gcc/testsuite/g++.dg/cpp2a/volatile5.C
+@@ -8,8 +8,8 @@ f (bool b)
+ {
+   (b ? x : y) = 1;
+   (b ? x : y) += 1; // { dg-warning "compound assignment" "" { target c++20 } }
+-  z = (b ? x : y) = 1; // { dg-warning "using value of simple assignment" "" { target c++20 } }
+-  ((z = 2) ? x : y) = 1; // { dg-warning "using value of simple assignment" "" { target c++20 } }
+-  (b ? (x = 2) : y) = 1; // { dg-warning "using value of simple assignment" "" { target c++20 } }
+-  (b ? x : (y = 5)) = 1; // { dg-warning "using value of simple assignment" "" { target c++20 } }
++  z = (b ? x : y) = 1; // { dg-warning "using value of assignment" "" { target c++20 } }
++  ((z = 2) ? x : y) = 1; // { dg-warning "using value of assignment" "" { target c++20 } }
++  (b ? (x = 2) : y) = 1; // { dg-warning "using value of assignment" "" { target c++20 } }
++  (b ? x : (y = 5)) = 1; // { dg-warning "using value of assignment" "" { target c++20 } }
+ }

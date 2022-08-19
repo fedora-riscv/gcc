@@ -1,10 +1,10 @@
-%global DATE 20220810
-%global gitrev c66b9ee42a4ecd9d14f9724bf0a26019326edf0a
-%global gcc_version 12.1.1
+%global DATE 20220819
+%global gitrev 12a206c28987ada47b447ebd200d1fd9639c8edd
+%global gcc_version 12.2.1
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -275,6 +275,8 @@ Patch8: gcc12-no-add-needed.patch
 Patch9: gcc12-Wno-format-security.patch
 Patch10: gcc12-rh1574936.patch
 Patch11: gcc12-d-shared-libphobos.patch
+Patch12: gcc12-p2327r1.patch
+Patch13: gcc12-pr106590.patch
 
 Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
@@ -802,6 +804,8 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
+%patch12 -p0 -b .p2327r1~
+%patch13 -p0 -b .pr106590~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3213,6 +3217,15 @@ end
 %endif
 
 %changelog
+* Fri Aug 19 2022 Jakub Jelinek <jakub@redhat.com> 12.2.1-1
+- update from releases/gcc-12 branch
+  - GCC 12.1 release
+  - PRs c++/67048, c++/106369, c/106016, d/106623, d/106638, lto/106334,
+	lto/106540, middle-end/106492, tree-optimization/106513
+- fix an if-conversion wrong-code bug (PR rtl-optimization/106590)
+- implement C++23 P2327R1 - de-deprecating volatile compound operations - as
+  a DR
+
 * Wed Aug  8 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-4
 - update from releases/gcc-12 branch
   - PRs analyzer/105285, analyzer/106204, analyzer/106225, c++/53164,
