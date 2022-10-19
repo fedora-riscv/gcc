@@ -4,7 +4,7 @@
 %global gcc_major 12
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 2.implicits.1
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -282,6 +282,10 @@ Patch100: gcc12-fortran-fdec-duplicates.patch
 Patch101: gcc12-fortran-flogical-as-integer.patch
 Patch102: gcc12-fortran-fdec-override-kind.patch
 Patch103: gcc12-fortran-fdec-non-logical-if.patch
+
+Patch990: gcc12-implicits.patch
+Patch991: gcc12-c99-fixes-1.patch
+Patch992: gcc12-c99-fixes-2.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -813,6 +817,10 @@ so that there cannot be any synchronization problems.
 %patch102 -p1 -b .fortran-fdec-override-kind~
 %patch103 -p1 -b .fortran-fdec-non-logical-if~
 %endif
+
+%patch990 -p1 -b .implicits
+%patch991 -p1 -b .c99-fixes-1
+%patch992 -p1 -b .c99-fixes-2
 
 %ifarch %{arm}
 rm -f gcc/testsuite/go.test/test/fixedbugs/issue19182.go

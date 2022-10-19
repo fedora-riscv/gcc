@@ -1,0 +1,118 @@
+Log implicit ints/implicit function declarations to /var/log/gcc-errors
+
+Only do so for C99 and later language modes.  Both features were part
+of C89.
+
+A corresponding change to redhat-rpm-config reads /var/log/gcc-errors
+and may fail the build if critical errors have been logged.
+
+diff --git a/gcc/c/c-decl.cc b/gcc/c/c-decl.cc
+index c701f07befe..2010621ab78 100644
+--- a/gcc/c/c-decl.cc
++++ b/gcc/c/c-decl.cc
+@@ -3368,6 +3368,14 @@ pushdecl (tree x)
+ static void
+ implicit_decl_warning (location_t loc, tree id, tree olddecl)
+ {
++  if (flag_isoc99)
++    {
++      log_error_to_directory (loc, "implicit function declaration",
++			      IDENTIFIER_POINTER (id));
++      error_at (loc, "implicit declaration of function %qE", id);
++      return;
++    }
++
+   if (!warn_implicit_function_declaration)
+     return;
+ 
+@@ -6402,7 +6410,15 @@ grokdeclarator (const struct c_declarator *declarator,
+ 
+   /* Diagnose defaulting to "int".  */
+ 
+-  if (declspecs->default_int_p && !in_system_header_at (input_location))
++  if (declspecs->default_int_p && flag_isoc99)
++    {
++      log_error_to_directory (loc, "defaulting to int");
++      if (name)
++	error_at (loc, "type defaults to %<int%> in declaration of %qE", name);
++      else
++	error_at (loc, "type defaults to %<int%> in type name");
++    }
++  else if (declspecs->default_int_p && !in_system_header_at (input_location))
+     {
+       /* Issue a warning if this is an ISO C 99 program or if
+ 	 -Wreturn-type and this is a function, or if -Wimplicit;
+@@ -9887,9 +9903,12 @@ store_parm_decls_oldstyle (tree fndecl, const struct c_arg_info *arg_info)
+ 	  warn_if_shadowing (decl);
+ 
+ 	  if (flag_isoc99)
+-	    pedwarn (DECL_SOURCE_LOCATION (decl),
+-		     OPT_Wimplicit_int, "type of %qD defaults to %<int%>",
+-		     decl);
++	    {
++	      log_error_to_directory (DECL_SOURCE_LOCATION (decl),
++				      "type defaults to int");
++	      error_at (DECL_SOURCE_LOCATION (decl),
++			"type of %qD defaults to %<int%>", decl);
++	    }
+ 	  else
+ 	    warning_at (DECL_SOURCE_LOCATION (decl),
+ 			OPT_Wmissing_parameter_type,
+diff --git a/gcc/diagnostic.cc b/gcc/diagnostic.cc
+index 73324a728fe..5ec5ba6d60e 100644
+--- a/gcc/diagnostic.cc
++++ b/gcc/diagnostic.cc
+@@ -2492,3 +2492,38 @@ c_diagnostic_cc_tests ()
+ #if __GNUC__ >= 10
+ #  pragma GCC diagnostic pop
+ #endif
++
++/* Magic code to emit diagnostics to a log directory.  */
++void
++log_error_to_directory (location_t loc, const char *message,
++			const char *identifier)
++{
++  static const char magic_path[] = "/var/log/gcc-errors";
++
++  // Do not log anything if the directory does not exist.
++  if (access (magic_path, R_OK | W_OK | X_OK) < 0)
++    return;
++
++  char *templ = xasprintf ("%s/gccXXXXXX", magic_path);
++  int fd = mkstemp (templ);
++  if (fd < 0)
++    abort();
++
++  auto exploc = expand_location (loc);
++  const char *file = exploc.file;
++  if (file == nullptr)
++    file = "<unknown>";
++  char *formatted;
++  if (identifier != nullptr)
++    formatted = xasprintf ("%s:%d: %s: %s\n",
++			   file, exploc.line, message, identifier);
++  else
++    formatted = xasprintf ("%s:%d: %s\n", file, exploc.line, message);
++  ssize_t len = strlen (formatted);
++  if (write (fd, formatted, len) != len
++      || close (fd) < 0)
++    abort ();
++
++  free (formatted);
++  free (templ);
++}
+diff --git a/gcc/diagnostic.h b/gcc/diagnostic.h
+index 3ca32979dde..4122a875c0b 100644
+--- a/gcc/diagnostic.h
++++ b/gcc/diagnostic.h
+@@ -587,4 +587,7 @@ extern json::value *json_from_expanded_location (diagnostic_context *context,
+ 
+ extern bool warning_enabled_at (location_t, int);
+ 
++void log_error_to_directory (location_t loc, const char *message,
++			     const char *identifier = nullptr);
++
+ #endif /* ! GCC_DIAGNOSTIC_H */
+-- 
+2.37.3
+

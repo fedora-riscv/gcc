@@ -1,0 +1,62 @@
+Submitted upstream as:
+
+commit 6be2672e4ee41c566a9e072088cccca263bab5f7
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Tue Oct 18 16:58:48 2022 +0200
+
+    libsanitizer: Avoid implicit function declaration in configure test
+    
+    libsanitizer/
+    
+            * configure.ac (sanitizer_supported): Include <unistd.h> for
+            syscall prototype.
+            * configure: Regenerate.
+
+
+diff --git a/libsanitizer/configure b/libsanitizer/configure
+index 771b135573a..6ef90d80eec 100755
+--- a/libsanitizer/configure
++++ b/libsanitizer/configure
+@@ -12359,7 +12359,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12362 "configure"
++#line 12374 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -12465,7 +12465,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 12468 "configure"
++#line 12480 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -16028,6 +16028,7 @@ case "$target" in
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <sys/syscall.h>
++#include <unistd.h>
+ int
+ main ()
+ {
+diff --git a/libsanitizer/configure.ac b/libsanitizer/configure.ac
+index 7f1ef3979c4..ad49f29db7e 100644
+--- a/libsanitizer/configure.ac
++++ b/libsanitizer/configure.ac
+@@ -161,7 +161,8 @@ case "$target" in
+   *-*-linux*)
+     # Some old Linux distributions miss required syscalls.
+     sanitizer_supported=no
+-    AC_TRY_COMPILE([#include <sys/syscall.h>],[
++    AC_TRY_COMPILE([#include <sys/syscall.h>
++#include <unistd.h>],[
+       syscall (__NR_gettid);
+       syscall (__NR_futex);
+       syscall (__NR_exit_group);
+-- 
+2.37.3
+
