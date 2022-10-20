@@ -1,10 +1,15 @@
-Log implicit ints/implicit function declarations to /var/log/gcc-errors
+commit 23c1e6ba35f3f0c6ea0ff825c0b5cb35cd11a160
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Tue Oct 18 16:28:33 2022 +0200
 
-Only do so for C99 and later language modes.  Both features were part
-of C89.
-
-A corresponding change to redhat-rpm-config reads /var/log/gcc-errors
-and may fail the build if critical errors have been logged.
+    Log implicit ints/implicit function declarations to /usr/lib/gcc/errors
+    
+    Only do so for C99 and later language modes, both features were part
+    of C89.
+    
+    The directory and the file name prefix for files within can be
+    controlled using the GCC_ERROR_LOG_DIRECTORY and GCC_ERROR_LOG_PREFIX
+    environment variables.
 
 diff --git a/gcc/c/c-decl.cc b/gcc/c/c-decl.cc
 index c701f07befe..2010621ab78 100644
@@ -59,10 +64,10 @@ index c701f07befe..2010621ab78 100644
  	    warning_at (DECL_SOURCE_LOCATION (decl),
  			OPT_Wmissing_parameter_type,
 diff --git a/gcc/diagnostic.cc b/gcc/diagnostic.cc
-index 73324a728fe..5ec5ba6d60e 100644
+index 73324a728fe..6e79903259d 100644
 --- a/gcc/diagnostic.cc
 +++ b/gcc/diagnostic.cc
-@@ -2492,3 +2492,38 @@ c_diagnostic_cc_tests ()
+@@ -2492,3 +2492,44 @@ c_diagnostic_cc_tests ()
  #if __GNUC__ >= 10
  #  pragma GCC diagnostic pop
  #endif
@@ -72,13 +77,19 @@ index 73324a728fe..5ec5ba6d60e 100644
 +log_error_to_directory (location_t loc, const char *message,
 +			const char *identifier)
 +{
-+  static const char magic_path[] = "/var/log/gcc-errors";
++  const char *magic_path = getenv ("GCC_ERROR_LOG_DIRECTORY");
++  if (magic_path == nullptr)
++    magic_path = "/usr/lib/gcc/errors";
 +
 +  // Do not log anything if the directory does not exist.
 +  if (access (magic_path, R_OK | W_OK | X_OK) < 0)
 +    return;
 +
-+  char *templ = xasprintf ("%s/gccXXXXXX", magic_path);
++  const char *log_prefix = getenv ("GCC_ERROR_LOG_PREFIX");
++  if (log_prefix == nullptr)
++    log_prefix = "gcc";
++
++  char *templ = xasprintf ("%s/%sXXXXXX", magic_path, log_prefix);
 +  int fd = mkstemp (templ);
 +  if (fd < 0)
 +    abort();
@@ -113,6 +124,3 @@ index 3ca32979dde..4122a875c0b 100644
 +			     const char *identifier = nullptr);
 +
  #endif /* ! GCC_DIAGNOSTIC_H */
--- 
-2.37.3
-
