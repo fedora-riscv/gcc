@@ -1,6 +1,3 @@
-Submitted upstream as:
-
-commit 885b6660c17fb91980b5682514ef54668e544b02
 Author: Florian Weimer <fweimer@redhat.com>
 Date:   Tue Oct 18 16:58:48 2022 +0200
 
@@ -16,21 +13,23 @@ Date:   Tue Oct 18 16:58:48 2022 +0200
             main, find_stack_direction.  Include <stdlib.h> for exit
             prototype.
             * configure: Regenerate.
-
+    
+    (cherry picked from commit 885b6660c17fb91980b5682514ef54668e544b02)
 
 diff --git a/libiberty/acinclude.m4 b/libiberty/acinclude.m4
-index 6bd127e9826..6e23ae906fc 100644
+index 6bd127e9826..6bb690597bf 100644
 --- a/libiberty/acinclude.m4
 +++ b/libiberty/acinclude.m4
-@@ -24,6 +24,7 @@ AC_CACHE_CHECK([for working strncmp], ac_cv_func_strncmp_works,
+@@ -24,6 +24,8 @@ AC_CACHE_CHECK([for working strncmp], ac_cv_func_strncmp_works,
  [AC_TRY_RUN([
  /* Test by Jim Wilson and Kaveh Ghazi.
     Check whether strncmp reads past the end of its string parameters. */
++#include <stdlib.h>
 +#include <string.h>
  #include <sys/types.h>
  
  #ifdef HAVE_FCNTL_H
-@@ -51,7 +52,8 @@ AC_CACHE_CHECK([for working strncmp], ac_cv_func_strncmp_works,
+@@ -51,7 +53,8 @@ AC_CACHE_CHECK([for working strncmp], ac_cv_func_strncmp_works,
  
  #define MAP_LEN 0x10000
  
@@ -40,64 +39,66 @@ index 6bd127e9826..6e23ae906fc 100644
  {
  #if defined(HAVE_MMAP) || defined(HAVE_MMAP_ANYWHERE)
    char *p;
-@@ -59,7 +61,7 @@ main ()
+@@ -157,7 +160,10 @@ if test $ac_cv_os_cray = yes; then
+ fi
  
-   dev_zero = open ("/dev/zero", O_RDONLY);
-   if (dev_zero < 0)
--    exit (1);
-+    return 1;
- 
-   p = (char *) mmap (0, MAP_LEN, PROT_READ|PROT_WRITE,
- 		     MAP_ANON|MAP_PRIVATE, dev_zero, 0);
-@@ -67,7 +69,7 @@ main ()
-     p = (char *) mmap (0, MAP_LEN, PROT_READ|PROT_WRITE,
- 		       MAP_ANON|MAP_PRIVATE, -1, 0);
-   if (p == (char *)-1)
--    exit (2);
-+    return 2;
-   else
-     {
-       char *string = "__si_type_info";
-@@ -79,7 +81,7 @@ main ()
-       strncmp (r, q, 14);
-     }
- #endif /* HAVE_MMAP || HAVE_MMAP_ANYWHERE */
--  exit (0);
-+  return 0;
- }
- ], ac_cv_func_strncmp_works=yes, ac_cv_func_strncmp_works=no,
-   ac_cv_func_strncmp_works=yes)
-@@ -171,7 +173,7 @@ AC_CACHE_CHECK(stack direction for C alloca, ac_cv_c_stack_direction,
- }
- main ()
+ AC_CACHE_CHECK(stack direction for C alloca, ac_cv_c_stack_direction,
+-[AC_TRY_RUN([find_stack_direction ()
++[AC_TRY_RUN([#include <stdlib.h>
++
++int
++find_stack_direction (void)
  {
--  exit (find_stack_direction() < 0);
-+  return find_stack_direction() < 0;
+   static char *addr = 0;
+   auto char dummy;
+@@ -169,7 +175,9 @@ AC_CACHE_CHECK(stack direction for C alloca, ac_cv_c_stack_direction,
+   else
+     return (&dummy > addr) ? 1 : -1;
+ }
+-main ()
++
++int
++main (void)
+ {
+   exit (find_stack_direction() < 0);
  }],
-   ac_cv_c_stack_direction=1,
-   ac_cv_c_stack_direction=-1,
 diff --git a/libiberty/configure b/libiberty/configure
-index 0a797255c70..fba4e7b307d 100755
+index 0a797255c70..ca83f89da6d 100755
 --- a/libiberty/configure
 +++ b/libiberty/configure
-@@ -6794,7 +6794,7 @@ find_stack_direction ()
- }
- main ()
+@@ -6780,7 +6780,10 @@ else
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-find_stack_direction ()
++#include <stdlib.h>
++
++int
++find_stack_direction (void)
  {
--  exit (find_stack_direction() < 0);
-+  return find_stack_direction() < 0;
+   static char *addr = 0;
+   auto char dummy;
+@@ -6792,7 +6795,9 @@ find_stack_direction ()
+   else
+     return (&dummy > addr) ? 1 : -1;
  }
- _ACEOF
- if ac_fn_c_try_run "$LINENO"; then :
-@@ -7617,6 +7617,7 @@ else
+-main ()
++
++int
++main (void)
+ {
+   exit (find_stack_direction() < 0);
+ }
+@@ -7617,6 +7622,8 @@ else
  
  /* Test by Jim Wilson and Kaveh Ghazi.
     Check whether strncmp reads past the end of its string parameters. */
++#include <stdlib.h>
 +#include <string.h>
  #include <sys/types.h>
  
  #ifdef HAVE_FCNTL_H
-@@ -7644,7 +7645,8 @@ else
+@@ -7644,7 +7651,8 @@ else
  
  #define MAP_LEN 0x10000
  
@@ -107,33 +108,3 @@ index 0a797255c70..fba4e7b307d 100755
  {
  #if defined(HAVE_MMAP) || defined(HAVE_MMAP_ANYWHERE)
    char *p;
-@@ -7652,7 +7654,7 @@ main ()
- 
-   dev_zero = open ("/dev/zero", O_RDONLY);
-   if (dev_zero < 0)
--    exit (1);
-+    return 1;
- 
-   p = (char *) mmap (0, MAP_LEN, PROT_READ|PROT_WRITE,
- 		     MAP_ANON|MAP_PRIVATE, dev_zero, 0);
-@@ -7660,7 +7662,7 @@ main ()
-     p = (char *) mmap (0, MAP_LEN, PROT_READ|PROT_WRITE,
- 		       MAP_ANON|MAP_PRIVATE, -1, 0);
-   if (p == (char *)-1)
--    exit (2);
-+    return 2;
-   else
-     {
-       char *string = "__si_type_info";
-@@ -7672,7 +7674,7 @@ main ()
-       strncmp (r, q, 14);
-     }
- #endif /* HAVE_MMAP || HAVE_MMAP_ANYWHERE */
--  exit (0);
-+  return 0;
- }
- 
- _ACEOF
--- 
-2.37.3
-
