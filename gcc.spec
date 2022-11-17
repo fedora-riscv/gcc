@@ -2050,62 +2050,6 @@ ln -sf gcc-annobin.so.0.0.0 $FULLPATH/plugin/gcc-annobin.so.0
 ln -sf gcc-annobin.so.0.0.0 $FULLPATH/plugin/gcc-annobin.so
 %endif
 
-%check
-cd obj-%{gcc_target_platform}
-
-# run the tests.
-LC_ALL=C make %{?_smp_mflags} -k check ALT_CC_UNDER_TEST=gcc ALT_CXX_UNDER_TEST=g++ \
-%if 0%{?fedora} >= 20 || 0%{?rhel} > 7
-     RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector-strong}'" || :
-%else
-     RUNTESTFLAGS="--target_board=unix/'{,-fstack-protector}'" || :
-%endif
-%if !%{build_annobin_plugin}
-if [ -f %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/annobin.so ]; then
-  # Test whether current annobin plugin won't fail miserably with the newly built gcc.
-  echo -e '#include <stdio.h>\nint main () { printf ("Hello, world!\\n"); return 0; }' > annobin-test.c
-  echo -e '#include <iostream>\nint main () { std::cout << "Hello, world!" << std::endl; return 0; }' > annobin-test.C
-  `%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cc` \
-  -O2 -g -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS \
-  -fexceptions -fstack-protector-strong -grecord-gcc-switches -o annobin-test{c,.c} \
-  -Wl,-rpath,%{gcc_target_platform}/libgcc/ \
-  -fplugin=%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/annobin.so \
-  2> ANNOBINOUT1 || echo Annobin test 1 FAIL > ANNOBINOUT2;
-  `%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cxx` \
-  `%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-includes` \
-  -O2 -g -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS \
-  -fexceptions -fstack-protector-strong -grecord-gcc-switches -o annobin-test{C,.C} \
-  -Wl,-rpath,%{gcc_target_platform}/libgcc/:%{gcc_target_platform}/libstdc++-v3/src/.libs/ \
-  -fplugin=%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/plugin/annobin.so \
-  -B %{gcc_target_platform}/libstdc++-v3/src/.libs/ \
-  2> ANNOBINOUT3 || echo Annobin test 2 FAIL > ANNOBINOUT4;
-  [ -f ./annobin-testc ] || echo Annobin test 1 MISSING > ANNOBINOUT5;
-  [ -f ./annobin-testc ] && \
-  ( ./annobin-testc > ANNOBINRES1 2>&1 || echo Annobin test 1 RUNFAIL > ANNOBINOUT6 );
-  [ -f ./annobin-testC ] || echo Annobin test 2 MISSING > ANNOBINOUT7;
-  [ -f ./annobin-testC ] && \
-  ( ./annobin-testC > ANNOBINRES2 2>&1 || echo Annobin test 2 RUNFAIL > ANNOBINOUT8 );
-  cat ANNOBINOUT[1-8] > ANNOBINOUT
-  touch ANNOBINRES1 ANNOBINRES2
-  [ -s ANNOBINOUT ] && echo Annobin testing FAILed > ANNOBINRES
-  cat ANNOBINOUT ANNOBINRES[12] >> ANNOBINRES
-  rm -f ANNOBINOUT* ANNOBINRES[12] annobin-test{c,C}
-fi
-%endif
-echo ====================TESTING=========================
-( LC_ALL=C ../contrib/test_summary || : ) 2>&1 | sed -n '/^cat.*EOF/,/^EOF/{/^cat.*EOF/d;/^EOF/d;/^LAST_UPDATED:/d;p;}'
-%if !%{build_annobin_plugin}
-[ -f ANNOBINRES ] && cat ANNOBINRES
-%endif
-echo ====================TESTING END=====================
-mkdir testlogs-%{_target_platform}-%{version}-%{release}
-for i in `find . -name \*.log | grep -F testsuite/ | grep -v 'config.log\|acats.*/tests/'`; do
-  ln $i testlogs-%{_target_platform}-%{version}-%{release}/ || :
-done
-tar cf - testlogs-%{_target_platform}-%{version}-%{release} | xz -9e \
-  | uuencode testlogs-%{_target_platform}.tar.xz || :
-rm -rf testlogs-%{_target_platform}-%{version}-%{release}
-
 %post go
 %{_sbindir}/update-alternatives --install \
   %{_prefix}/bin/go go %{_prefix}/bin/go.gcc 92 \
