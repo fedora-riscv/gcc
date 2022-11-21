@@ -856,6 +856,9 @@ fi
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
 
 %build
+# Do not write the failures anywhere.  Currently required for rebuilding
+# with an instrumented GCC.
+export GCC_ERROR_LOG_DIRECTORY=/disabled
 
 # Undo the broken autoconf change in recent Fedora versions
 export CONFIG_SITE=NONE
