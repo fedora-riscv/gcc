@@ -1,10 +1,10 @@
-%global DATE 20220421
-%global gitrev 1d3172725999deb0dca93ac70393ed9a0ad0da3f
+%global DATE 20221121
+%global gitrev 643e61c61b308f9c572da4ccd5f730fb8ae7de1d
 %global gcc_version 11.3.1
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 2
+%global gcc_release 3
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -271,7 +271,6 @@ Patch14: gcc11-libgcc-link.patch
 Patch15: gcc11-pr101786.patch
 Patch16: gcc11-stringify-__VA_OPT__.patch
 Patch17: gcc11-stringify-__VA_OPT__-2.patch
-Patch18: gcc11-pr105331.patch
 
 Patch100: gcc11-fortran-fdec-duplicates.patch
 Patch101: gcc11-fortran-flogical-as-integer.patch
@@ -801,7 +800,6 @@ to NVidia PTX capable devices if available.
 %patch15 -p0 -b .pr101786~
 %patch16 -p0 -b .stringify-__VA_OPT__~
 %patch17 -p0 -b .stringify-__VA_OPT__-2~
-%patch18 -p0 -b .pr105331~
 
 %if 0%{?rhel} >= 9
 %patch100 -p1 -b .fortran-fdec-duplicates~
@@ -3150,6 +3148,61 @@ end
 %endif
 
 %changelog
+* Mon Nov 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-3
+- update from releases/gcc-11-branch
+  - PRs analyzer/105252, analyzer/105365, analyzer/105366, c++/65211,
+	c++/82980, c++/86193, c++/90107, c++/97296, c++/101442, c++/101698,
+	c++/102071, c++/102177, c++/102300, c++/102307, c++/102479,
+	c++/102629, c++/104066, c++/104142, c++/104646, c++/104669,
+	c++/105245, c++/105265, c++/105289, c++/105304, c++/105321,
+	c++/105386, c++/105398, c++/105725, c++/105761, c++/105774,
+	c++/105795, c++/105852, c++/105925, c++/106024, c++/106361,
+	c++/107358, c/41041, c/106016, c/106981, c/107001, d/106139,
+	d/106638, debug/106261, fortran/82868, fortran/100029, fortran/100040,
+	fortran/100097, fortran/100098, fortran/100132, fortran/100136,
+	fortran/100245, fortran/103413, fortran/103504, fortran/103693,
+	fortran/103694, fortran/104313, fortran/104849, fortran/105012,
+	fortran/105230, fortran/105243, fortran/105310, fortran/105633,
+	fortran/105691, fortran/105813, fortran/105954, fortran/106121,
+	fortran/106817, fortran/106857, fortran/106985, fortran/106986,
+	fortran/107054, ipa/100413, ipa/105600, ipa/105739, libgomp/106045,
+	libstdc++/65018, libstdc++/84110, libstdc++/93602, libstdc++/96592,
+	libstdc++/99290, libstdc++/100823, libstdc++/101709, libstdc++/102447,
+	libstdc++/103664, libstdc++/103848, libstdc++/103853,
+	libstdc++/103911, libstdc++/103992, libstdc++/104217,
+	libstdc++/104443, libstdc++/104602, libstdc++/104731,
+	libstdc++/105128, libstdc++/105284, libstdc++/105375,
+	libstdc++/105502, libstdc++/105671, libstdc++/105915,
+	libstdc++/106162, libstdc++/106248, libstdc++/106320,
+	libstdc++/106607, libstdc++/106695, lto/106334, lto/106540,
+	middle-end/103193, middle-end/104869, middle-end/104966,
+	middle-end/105140, middle-end/105998, middle-end/106027,
+	middle-end/106030, middle-end/106144, middle-end/106331,
+	middle-end/106492, preprocessor/97498, preprocessor/105732,
+	rtl-optimization/104637, rtl-optimization/105041,
+	rtl-optimization/105333, rtl-optimization/105559,
+	rtl-optimization/106032, rtl-optimization/106187, sanitizer/105396,
+	sanitizer/105729, target/96072, target/99184, target/99685,
+	target/101322, target/101891, target/102059, target/102146,
+	target/103197, target/103353, target/104257, target/104829,
+	target/105147, target/105162, target/105209, target/105292,
+	target/105339, target/105349, target/105463, target/105472,
+	target/105854, target/105879, target/105970, target/105981,
+	target/106017, target/106091, target/106355, target/106491,
+	target/106721, target/107061, target/107064, target/107183,
+	target/107248, target/107304, target/107364, target/107748,
+	testsuite/105095, testsuite/105266, testsuite/105433,
+	testsuite/106345, tree-optimization/103116, tree-optimization/105148,
+	tree-optimization/105163, tree-optimization/105173,
+	tree-optimization/105250, tree-optimization/105263,
+	tree-optimization/105312, tree-optimization/105368,
+	tree-optimization/105431, tree-optimization/105437,
+	tree-optimization/105528, tree-optimization/105618,
+	tree-optimization/105726, tree-optimization/105860,
+	tree-optimization/106112, tree-optimization/106131,
+	tree-optimization/106189, tree-optimization/106513,
+	tree-optimization/106892, tree-optimization/106934
+
 * Thu Apr 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-2
 - update from releases/gcc-11-branch
   - PRs debug/105203, gcov-profile/105282, libstdc++/105324, target/105257
