@@ -4,7 +4,7 @@
 %global gcc_major 11
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 3
+%global gcc_release 4
 %global nvptx_tools_gitrev 5f6f343a302d620b0868edab376c00b15741e39e
 %global newlib_cygwin_gitrev 50e2a63b04bdd018484605fbb954fd1bd5147fa0
 %global _unpackaged_files_terminate_build 0
@@ -45,7 +45,7 @@
 %else
 %global build_go 0
 %endif
-%ifarch %{ix86} x86_64 %{arm} %{mips} s390 s390x riscv64
+%ifarch %{ix86} x86_64 %{arm} aarch64 %{mips} s390 s390x riscv64
 %global build_d 1
 %else
 %global build_d 0
@@ -3148,7 +3148,7 @@ end
 %endif
 
 %changelog
-* Mon Nov 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-3
+* Mon Nov 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-4
 - update from releases/gcc-11-branch
   - PRs analyzer/105252, analyzer/105365, analyzer/105366, c++/65211,
 	c++/82980, c++/86193, c++/90107, c++/97296, c++/101442, c++/101698,
@@ -3202,6 +3202,9 @@ end
 	tree-optimization/106112, tree-optimization/106131,
 	tree-optimization/106189, tree-optimization/106513,
 	tree-optimization/106892, tree-optimization/106934
+
+* Wed Sep 07 2022 Kalev Lember <klember@redhat.com> 11.3.1-3
+- enable GDC on aarch64
 
 * Thu Apr 21 2022 Jakub Jelinek <jakub@redhat.com> 11.3.1-2
 - update from releases/gcc-11-branch
