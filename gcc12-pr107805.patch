@@ -1,0 +1,60 @@
+commit 117188f89471d19cd6c985201da5efc1bb3efb61
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Tue Nov 22 13:17:42 2022 +0100
+
+    c: Propagate erroneous types to declaration specifiers [PR107805]
+    
+    Without this change, finish_declspecs cannot tell that whether there
+    was an erroneous type specified, or no type at all.  This may result
+    in additional diagnostics for implicit ints, or missing diagnostics
+    for multiple types.
+    
+            PR c/107805
+    
+    gcc/c/
+            * c-decl.cc (declspecs_add_type): Propagate error_mark_bode
+            from type to specs.
+    
+    gcc/testsuite/
+            * gcc.dg/pr107805-1.c: New test.
+            * gcc.dg/pr107805-1.c: Likewise.
+
+diff --git a/gcc/c/c-decl.cc b/gcc/c/c-decl.cc
+index 2010621ab78..ef585fb97cb 100644
+--- a/gcc/c/c-decl.cc
++++ b/gcc/c/c-decl.cc
+@@ -11678,11 +11678,9 @@ declspecs_add_type (location_t loc, struct c_declspecs *specs,
+     error_at (loc, "two or more data types in declaration specifiers");
+   else if (TREE_CODE (type) == TYPE_DECL)
+     {
+-      if (TREE_TYPE (type) == error_mark_node)
+-	; /* Allow the type to default to int to avoid cascading errors.  */
+-      else
++      specs->type = TREE_TYPE (type);
++      if (TREE_TYPE (type) != error_mark_node)
+ 	{
+-	  specs->type = TREE_TYPE (type);
+ 	  specs->decl_attr = DECL_ATTRIBUTES (type);
+ 	  specs->typedef_p = true;
+ 	  specs->explicit_signed_p = C_TYPEDEF_EXPLICITLY_SIGNED (type);
+diff --git a/gcc/testsuite/gcc.dg/pr107805-1.c b/gcc/testsuite/gcc.dg/pr107805-1.c
+new file mode 100644
+index 00000000000..559b6a5586e
+--- /dev/null
++++ b/gcc/testsuite/gcc.dg/pr107805-1.c
+@@ -0,0 +1,5 @@
++/* { dg-do compile } */
++typedef int t;
++typedef struct { double a; int b; } t; /* { dg-error "conflicting types" } */
++t x; /* No warning here.  */
++
+diff --git a/gcc/testsuite/gcc.dg/pr107805-2.c b/gcc/testsuite/gcc.dg/pr107805-2.c
+new file mode 100644
+index 00000000000..fa5fa4ce273
+--- /dev/null
++++ b/gcc/testsuite/gcc.dg/pr107805-2.c
+@@ -0,0 +1,4 @@
++/* { dg-do compile } */
++typedef int t;
++typedef struct { double a; int b; } t; /* { dg-error "conflicting types" } */
++t char x; /* { dg-error "two or more data types" } */

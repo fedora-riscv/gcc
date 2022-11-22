@@ -125,7 +125,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.implicits.3%{?dist}
+Release: %{gcc_release}.implicits.4%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -285,6 +285,8 @@ Patch103: gcc12-fortran-fdec-non-logical-if.patch
 Patch990: gcc12-implicits.patch
 Patch991: gcc12-c99-fixes-1.patch
 Patch992: gcc12-c99-fixes-2.patch
+Patch993: gcc12-declspec-keyword.patch
+Patch994: gcc12-pr107805.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -819,6 +821,8 @@ so that there cannot be any synchronization problems.
 %patch990 -p1 -b .implicits
 %patch991 -p1 -b .c99-fixes-1
 %patch992 -p1 -b .c99-fixes-2
+%patch993 -p1 -b .declspec-keyword
+%patch994 -p1 -b .pr107805
 
 %ifarch %{arm}
 rm -f gcc/testsuite/go.test/test/fixedbugs/issue19182.go

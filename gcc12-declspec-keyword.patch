@@ -1,0 +1,38 @@
+commit 48ec7dc1792d4e80e9b3b43783f4d013c64498d7
+Author: Florian Weimer <fweimer@redhat.com>
+Date:   Tue Nov 22 10:50:09 2022 +0100
+
+    Turn __declspec into a keyword
+    
+    This avoids diagnosing
+    
+    __declspec(thread) int foo;
+    
+    as an old-style function definition with an implicit int.
+
+diff --git a/gcc/c-family/c-common.cc b/gcc/c-family/c-common.cc
+index bb0544eeaea..f688944a986 100644
+--- a/gcc/c-family/c-common.cc
++++ b/gcc/c-family/c-common.cc
+@@ -455,6 +455,7 @@ const struct c_common_resword c_common_reswords[] =
+   { "__GIMPLE",		RID_GIMPLE,	D_CONLY },
+   { "__PHI",		RID_PHI,	D_CONLY },
+   { "__RTL",		RID_RTL,	D_CONLY },
++  { "__declspec",	RID_DECLTYPE,	D_CONLY },
+   { "alignas",		RID_ALIGNAS,	D_CXXONLY | D_CXX11 | D_CXXWARN },
+   { "alignof",		RID_ALIGNOF,	D_CXXONLY | D_CXX11 | D_CXXWARN },
+   { "asm",		RID_ASM,	D_ASM },
+diff --git a/gcc/c-family/c-common.h b/gcc/c-family/c-common.h
+index 52a85bfb783..44f35574b80 100644
+--- a/gcc/c-family/c-common.h
++++ b/gcc/c-family/c-common.h
+@@ -135,6 +135,9 @@ enum rid
+   /* "__RTL", for the RTL-parsing extension to the C frontend.  */
+   RID_RTL,
+ 
++  /* MSVC extension.  */
++  RID_DECLSPEC,
++
+   /* C11 */
+   RID_ALIGNAS, RID_GENERIC,
+ 
