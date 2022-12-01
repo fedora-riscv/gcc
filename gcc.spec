@@ -63,7 +63,7 @@
 %else
 %global build_libquadmath 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 riscv64
 %global build_libasan 1
 %else
 %global build_libasan 0
@@ -83,7 +83,7 @@
 %else
 %global build_liblsan 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 riscv64
 %global build_libubsan 1
 %else
 %global build_libubsan 0
@@ -104,7 +104,7 @@
 %global build_isl 1
 %endif
 %global build_libstdcxx_docs 1
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips} riscv64
 %global attr_ifunc 1
 %else
 %global attr_ifunc 0
@@ -136,7 +136,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}.rv64%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -178,6 +178,10 @@ URL: http://gcc.gnu.org
 # Need binutils which support -plugin
 # Need binutils which support .loc view >= 2.30
 # Need binutils which support --generate-missing-build-notes=yes >= 2.31
+
+# Patch for annobin plugin on riscv64
+Source4: 0001-PATCH-Temporary-fix-POINTER_SIZE-error-with-riscv64.patch
+
 %if 0%{?fedora} >= 29 || 0%{?rhel} > 7
 BuildRequires: binutils >= 2.31
 %else
@@ -910,6 +914,11 @@ fi
 # This test causes fork failures, because it spawns way too many threads
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
 
+%ifarch riscv64
+find . -name 'config.guess' -exec cp -vf /usr/lib/rpm/%{_vendor}/config.guess {} \;
+find . -name 'config.sub' -exec cp -vf /usr/lib/rpm/%{_vendor}/config.sub {} \;
+%endif
+
 %build
 
 # Undo the broken autoconf change in recent Fedora versions
@@ -1298,6 +1307,9 @@ mkdir annobin-plugin
 cd annobin-plugin
 tar xf %{_usrsrc}/annobin/latest-annobin.tar.xz
 cd annobin*
+%ifarch riscv64
+/usr/bin/patch -p1 -s --fuzz=0 --no-backup-if-mismatch < %{SOURCE4}
+%endif
 touch aclocal.m4 configure Makefile.in */configure */config.h.in */Makefile.in
 ANNOBIN_FLAGS=../../obj-%{gcc_target_platform}/%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags
 ANNOBIN_CFLAGS1="%build_cflags -I %{_builddir}/gcc-%{version}-%{DATE}/gcc"
