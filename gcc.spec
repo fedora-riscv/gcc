@@ -16,6 +16,10 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+# rpath check failed due to lp64d in path on riscv64
+%ifarch riscv64
+%global __brp_check_rpaths /usr/bin/true
+%endif
 # Strip will fail on nvptx-none *.a archives and the brp-* scripts will
 # fail randomly depending on what is stripped last.
 %if 0%{?__brp_strip_static_archive:1}
@@ -3519,6 +3523,151 @@ end
 	target/109384, tree-optimization/109304, tree-optimization/109386
 
 * Sat Apr  1 2023 Jakub Jelinek <jakub@redhat.com> 13.0.1-0.12
+
+* Wed Jan 4 2023 Liu Yang <Yang.Liu.sn@gmail.com> 12.2.1-4.rv64
+- Add riscv64 support.
+
+* Mon Nov 21 2022 Jakub Jelinek <jakub@redhat.com> 12.2.1-4
+- update from releases/gcc-12 branch
+  - PRs c++/104066, c++/105774, c++/106829, c++/107358, c/41041, c/106981,
+	c/107001, libstdc++/95048, libstdc++/103295, target/104688,
+	target/107183, target/107304, target/107404, target/107713,
+	target/107748, tree-optimization/107121, tree-optimization/107206
+- fix up std::from_chars behavior in rounding modes other than FE_TONEAREST
+  (PR libstdc++/107468)
+
+* Thu Nov  3 2022 Jakub Jelinek <jakub@redhat.com> 12.2.1-3
+- update from releases/gcc-12 branch
+  - PRs c++/93259, c++/105774, c++/106759, c++/106829, c++/106893, c++/106925,
+	c++/107358, c/106947, c/106981, c/107001, fortran/82868,
+	fortran/100029, fortran/100040, fortran/100097, fortran/100098,
+	fortran/100103, fortran/100132, fortran/100136, fortran/100245,
+	fortran/103413, fortran/103694, fortran/105012, fortran/105633,
+	fortran/106566, fortran/106579, fortran/106817, fortran/106857,
+	fortran/106985, fortran/106986, fortran/107054, libstdc++/105678,
+	libstdc++/106320, libstdc++/106589, libstdc++/106607,
+	libstdc++/106695, lto/107418, middle-end/106548, middle-end/106982,
+	other/106782, rtl-optimization/106187, target/96072, target/99184,
+	target/99685, target/100645, target/101322, target/103353,
+	target/104482, target/105421, target/105463, target/105485,
+	target/106017, target/106355, target/106459, target/106491,
+	target/106524, target/106704, target/106714, target/106721,
+	target/107061, target/107064, target/107248, target/107364,
+	tree-optimization/102892, tree-optimization/105937,
+	tree-optimization/106322, tree-optimization/106809,
+	tree-optimization/106841, tree-optimization/106860,
+	tree-optimization/106892, tree-optimization/106922,
+	tree-optimization/106934, tree-optimization/107107,
+	tree-optimization/107121, tree-optimization/107160,
+	tree-optimization/107212, tree-optimization/107254,
+	tree-optimization/107323
+
+* Wed Sep  7 2022 Kalev Lember <klember@redhat.com> 12.2.1-2
+- enable GDC on aarch64
+
+* Fri Aug 19 2022 Jakub Jelinek <jakub@redhat.com> 12.2.1-1
+- update from releases/gcc-12 branch
+  - GCC 12.2 release
+  - PRs c++/67048, c++/106369, c/106016, d/106623, d/106638, lto/106334,
+	lto/106540, middle-end/106492, tree-optimization/106513
+- fix an if-conversion wrong-code bug (PR rtl-optimization/106590)
+- implement C++23 P2327R1 - de-deprecating volatile compound operations - as
+  a DR
+
+* Wed Aug 10 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-4
+- update from releases/gcc-12 branch
+  - PRs analyzer/105285, analyzer/106204, analyzer/106225, c++/53164,
+	c++/96363, c++/100374, c++/105541, c++/105626, c++/105634, c++/105637,
+	c++/105758, c++/105842, c++/105848, c++/105912, c++/106024,
+	c++/106102, c++/106230, c++/106311, c++/106361, d/106139, d/106555,
+	d/106563, debug/106261, fortran/101330, fortran/103137,
+	fortran/103138, fortran/103504, fortran/103693, fortran/104313,
+	fortran/105243, fortran/105691, fortran/105813, fortran/105954,
+	fortran/106121, libfortran/106079, libstdc++/88881, libstdc++/100823,
+	libstdc++/104443, libstdc++/105844, libstdc++/105880,
+	libstdc++/105957, libstdc++/105995, libstdc++/106162,
+	libstdc++/106248, lto/106129, middle-end/105965, middle-end/106027,
+	middle-end/106144, middle-end/106331, middle-end/106449,
+	preprocessor/97498, rtl-optimization/105041, rtl-optimization/106032,
+	target/103722, target/105459, target/105930, target/105991,
+	target/106091, target/106097, target/106122, testsuite/106345,
+	tree-optimization/105665, tree-optimization/105860,
+	tree-optimization/105946, tree-optimization/105969,
+	tree-optimization/105971, tree-optimization/106063,
+	tree-optimization/106087, tree-optimization/106112,
+	tree-optimization/106114, tree-optimization/106131,
+	tree-optimization/106189
+
+* Thu Jun 30 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-3
+- fix up libtsan on s390x
+
+* Tue Jun 28 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-2
+- update from releases/gcc-12 branch
+  - PRs c++/49387, c++/102307, c++/102651, c++/104470, c++/105491, c++/105589,
+	c++/105623, c++/105652, c++/105655, c++/105725, c++/105734,
+	c++/105756, c++/105761, c++/105779, c++/105795, c++/105852,
+	c++/105871, c++/105885, c++/105908, c++/105925, c++/105931,
+	c++/105964, c++/106001, c/105635, d/105544, fortran/105230,
+	gcov-profile/105535, ipa/100413, ipa/105600, ipa/105639, ipa/105739,
+	libgomp/105745, libgomp/106045, libstdc++/104731, libstdc++/105284,
+	libstdc++/105671, libstdc++/105681, middle-end/105537,
+	middle-end/105604, middle-end/105711, middle-end/105951,
+	middle-end/105998, middle-end/106030, other/105527,
+	preprocessor/105732, rtl-optimization/105455, rtl-optimization/105559,
+	rtl-optimization/105577, sanitizer/105714, sanitizer/105729,
+	target/101891, target/104871, target/105162, target/105209,
+	target/105292, target/105472, target/105556, target/105599,
+	target/105854, target/105879, target/105953, target/105960,
+	target/105970, target/105981, target/106096, tree-optimization/103116,
+	tree-optimization/105431, tree-optimization/105458,
+	tree-optimization/105528, tree-optimization/105562,
+	tree-optimization/105618, tree-optimization/105726,
+	tree-optimization/105736, tree-optimization/105786,
+	tree-optimization/105940
+- enable tsan and lsan on s390x (#2101610)
+- trim RHEL fortran patches
+- fix nvptx build (PRs bootstrap/105551, target/105938)
+
+* Sat May  7 2022 Jakub Jelinek <jakub@redhat.com> 12.1.1-1
+- update from releases/gcc-12 branch
+  - GCC 12.1 release
+  - PRs c++/105476, libstdc++/103911, libstdc++/105441, libstdc++/105502,
+	middle-end/105376, middle-end/105461, target/102059, testsuite/105433,
+	tree-optimization/105394, tree-optimization/105437,
+	tree-optimization/105484
+
+* Thu May  5 2022 Stephen Gallagher <sgallagh@redhat.com> 12.0.1-0.18
+- fix annobin plugin conditional to build for ELN
+
+* Fri Apr 29 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.17
+- update from trunk and releases/gcc-12 branch
+  - GCC 12.1-rc1
+  - PRs analyzer/105252, analyzer/105264, analyzer/105365, analyzer/105366,
+	c++/65211, c++/82980, c++/86193, c++/90107, c++/97219, c++/100838,
+	c++/101442, c++/101698, c++/102629, c++/102804, c++/102987,
+	c++/103868, c++/104051, c++/104624, c++/104646, c++/104996,
+	c++/105256, c++/105265, c++/105268, c++/105287, c++/105289,
+	c++/105297, c++/105301, c++/105304, c++/105321, c++/105322,
+	c++/105353, c++/105386, c++/105398, c++/105425, c++/105426,
+	debug/105089, debug/105203, fortran/70673, fortran/78054,
+	fortran/102043, fortran/103662, fortran/104717, fortran/105242,
+	fortran/105310, fortran/105379, fortran/105381, gcov-profile/105282,
+	ipa/103818, ipa/105306, libgomp/105358, libstdc++/93602,
+	libstdc++/99290, libstdc++/102994, libstdc++/104858,
+	libstdc++/105269, libstdc++/105324, libstdc++/105375,
+	libstdc++/105417, lto/105364, lto/105399, middle-end/104492,
+	rtl-optimization/105231, rtl-optimization/105314,
+	rtl-optimization/105333, sanitizer/105396, target/89125,
+	target/103197, target/104676, target/105247, target/105257,
+	target/105271, target/105331, target/105334, target/105338,
+	target/105339, target/105349, target/105367, testsuite/105266,
+	tree-optimization/100810, tree-optimization/103941,
+	tree-optimization/104010, tree-optimization/105219,
+	tree-optimization/105254, tree-optimization/105276,
+	tree-optimization/105312, tree-optimization/105368,
+	tree-optimization/105374
+
+* Wed Apr 13 2022 Jakub Jelinek <jakub@redhat.com> 12.0.1-0.16
 - update from trunk
   - PRs analyzer/107396, bootstrap/101834, c++/101118, c++/105221, c++/105452,
 	c++/107897, c++/108887, c++/109278, c++/109319, libstdc++/109242,
