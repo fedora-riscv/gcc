@@ -16,6 +16,10 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+# rpath check failed due to lp64d in path on riscv64
+%ifarch riscv64
+%global __brp_check_rpaths /usr/bin/true
+%endif
 # Strip will fail on nvptx-none *.a archives and the brp-* scripts will
 # fail randomly depending on what is stripped last.
 %if 0%{?__brp_strip_static_archive:1}
@@ -3227,6 +3231,9 @@ end
 %endif
 
 %changelog
+* Wed Jan 4 2023 Liu Yang <Yang.Liu.sn@gmail.com> 12.2.1-4.rv64
+- Add riscv64 support.
+
 * Mon Nov 21 2022 Jakub Jelinek <jakub@redhat.com> 12.2.1-4
 - update from releases/gcc-12 branch
   - PRs c++/104066, c++/105774, c++/106829, c++/107358, c/41041, c/106981,
