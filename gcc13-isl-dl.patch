@@ -629,7 +629,7 @@
 --- gcc/graphite.cc.jj	2015-11-04 14:15:32.000000000 +0100
 +++ gcc/graphite.cc	2015-11-04 14:56:02.645536409 +0100
 @@ -60,6 +60,35 @@ along with GCC; see the file COPYING3.
- #include "tree-into-ssa.h"
+ #include "tree-ssa-propagate.h"
  #include "graphite.h"
  
 +__typeof (isl_pointers__) isl_pointers__;
@@ -664,7 +664,7 @@
  /* Print global statistics to FILE.  */
  
  static void
-@@ -365,6 +394,15 @@ graphite_transform_loops (void)
+@@ -424,6 +453,15 @@ graphite_transform_loops (void)
    if (parallelized_function_p (cfun->decl))
      return;
  
@@ -680,7 +680,7 @@
    calculate_dominance_info (CDI_DOMINATORS);
  
    /* We rely on post-dominators during merging of SESE regions so those
-@@ -455,6 +493,14 @@ graphite_transform_loops (void)
+@@ -519,6 +557,14 @@ graphite_transform_loops (void)
      }
  }
  

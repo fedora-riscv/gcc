@@ -1,0 +1,14 @@
+PR108411 workaround
+
+--- gcc/config/aarch64/aarch64.cc	2023-01-15 13:20:00.569241815 +0100
++++ gcc/config/aarch64/aarch64.cc	2023-01-15 13:30:05.061513817 +0100
+@@ -7707,8 +7707,7 @@ aarch64_layout_arg (cumulative_args_t pc
+   unsigned int alignment
+     = aarch64_function_arg_alignment (mode, type, &abi_break,
+ 				      &abi_break_packed);
+-  gcc_assert (alignment <= 16 * BITS_PER_UNIT
+-	      && (!alignment || abi_break < alignment)
++  gcc_assert ((!alignment || abi_break < alignment)
+ 	      && (!abi_break_packed || alignment < abi_break_packed));
+ 
+   pcum->aapcs_arg_processed = true;
