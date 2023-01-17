@@ -287,8 +287,7 @@ Patch9: gcc13-Wno-format-security.patch
 Patch10: gcc13-rh1574936.patch
 Patch11: gcc13-d-shared-libphobos.patch
 Patch12: gcc13-pr107678.patch
-Patch13: gcc13-pr107608.patch
-Patch14: gcc13-pr108411.patch
+Patch13: gcc13-pr108411.patch
 
 Patch50: isl-rh2155127.patch
 
@@ -864,8 +863,7 @@ so that there cannot be any synchronization problems.
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
 %patch12 -p0 -b .pr107678~
-%patch13 -p0 -b .pr107608~
-%patch14 -p0 -b .pr108411~
+%patch13 -p0 -b .pr108411~
 
 %patch50 -p0 -b .rh2155127~
 touch -r isl-0.24/m4/ax_prog_cxx_for_build.m4 isl-0.24/m4/ax_prog_cc_for_build.m4
@@ -3467,7 +3465,7 @@ end
   - PRs c++/105593, fortran/108421, go/108426, ipa/106077, libstdc++/108288,
 	libstdc++/108413, other/108413, target/55522, target/96795,
 	target/105980, target/107515, target/108272, tree-optimization/94793,
-	tree-optimization/106523, tree-optimization/107608
+	tree-optimization/106523
 - don't build ppc64le unwinder with -fno-omit-frame-pointer (#2161595)
 
 * Sun Jan 15 2023 Jakub Jelinek <jakub@redhat.com> 13.0.0-0.9
