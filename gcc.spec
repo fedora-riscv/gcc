@@ -380,6 +380,7 @@ including templates and exception handling.
 Summary: GNU Standard C++ Library
 Autoreq: true
 Requires: glibc >= 2.10.90-7
+BuildRequires: tzdata >= 2017c
 Requires: tzdata >= 2017c
 
 %description -n libstdc++
@@ -1095,7 +1096,7 @@ CONFIGURE_OPTS="\
 %endif
 %endif
 %ifarch ppc64le
-%if 0%{?rhel} == 9
+%if 0%{?rhel} >= 9
 	--with-cpu-32=power9 --with-tune-32=power9 --with-cpu-64=power9 --with-tune-64=power9 \
 %else
 	--with-cpu-32=power8 --with-tune-32=power8 --with-cpu-64=power8 --with-tune-64=power8 \
@@ -1130,7 +1131,7 @@ CONFIGURE_OPTS="\
 %if 0%{?rhel} >= 7
 %if 0%{?rhel} > 7
 %if 0%{?rhel} > 8
-%if 0%{?rhel} == 9
+%if 0%{?rhel} >= 9
 	--with-arch=z14 --with-tune=z15 \
 %else
 	--with-arch=z13 --with-tune=arch13 \
@@ -1145,7 +1146,11 @@ CONFIGURE_OPTS="\
 %if 0%{?fedora} >= 38
 	--with-arch=z13 --with-tune=z14 \
 %else
+%if 0%{?fedora} >= 26
 	--with-arch=zEC12 --with-tune=z13 \
+%else
+	--with-arch=z9-109 --with-tune=z10 \
+%endif
 %endif
 %endif
 	--enable-decimal-float \
