@@ -1143,7 +1143,11 @@ CONFIGURE_OPTS="\
 %endif
 %else
 %if 0%{?fedora} >= 26
+%if 0%{?fedora} >= 38
+	--with-arch=z13 --with-tune=z14 \
+%else
 	--with-arch=zEC12 --with-tune=z13 \
+%endif
 %else
 	--with-arch=z9-109 --with-tune=z10 \
 %endif
