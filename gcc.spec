@@ -1,6 +1,6 @@
-%global DATE 20230115
-%global gitrev 7699a0a3101bf1315fb8e350ac718d1f7b3f7816
-%global gcc_version 13.0.0
+%global DATE 20230117
+%global gitrev fedc064ac31b465edcfd22884b94bbdd05312224
+%global gcc_version 13.0.1
 %global gcc_major 13
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
@@ -136,7 +136,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.9%{?dist}
+Release: %{gcc_release}.1%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -929,7 +929,7 @@ OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-flto=auto//g;s/-flto//g;s/-ffat-lto-object
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-m64//g;s/-m32//g;s/-m31//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mfpmath=sse/-mfpmath=sse -msse2/g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/ -pipe / /g'`
-OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-fno-omit-frame-pointer //g;s/-mbackchain //g;s/-mno-omit-leaf-frame-pointer //g'`
+OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-fno-omit-frame-pointer//g;s/-mbackchain//g;s/-mno-omit-leaf-frame-pointer//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-Werror=format-security/-Wformat-security/g'`
 %ifarch sparc
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-mcpu=ultrasparc/-mtune=ultrasparc/g;s/-mcpu=v[78]//g'`
@@ -3462,5 +3462,13 @@ end
 %endif
 
 %changelog
+* Tue Jan 17 2023 Jakub Jelinek <jakub@redhat.com> 13.0.1-0.1
+- update from trunk
+  - PRs c++/105593, fortran/108421, go/108426, ipa/106077, libstdc++/108288,
+	libstdc++/108413, other/108413, target/55522, target/96795,
+	target/105980, target/107515, target/108272, tree-optimization/94793,
+	tree-optimization/106523, tree-optimization/107608
+- don't build ppc64le unwinder with -fno-omit-frame-pointer (#2161595)
+
 * Sun Jan 15 2023 Jakub Jelinek <jakub@redhat.com> 13.0.0-0.9
 - new package
