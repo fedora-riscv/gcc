@@ -3,7 +3,7 @@ summary: Check to see if g++ throws unused parameter warnings with standard libr
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Regression/unused_parameter_warning
 framework: beakerlib
 require:

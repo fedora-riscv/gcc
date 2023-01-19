@@ -10,7 +10,7 @@ description: |
 contact: Vaclav Kadlcik <vkadlcik@redhat.com>
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 framework: beakerlib
 require:
   - gcc

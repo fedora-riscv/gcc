@@ -15,7 +15,7 @@ description: |+
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Regression/465974-DW_TAG_common_block-has-incorrect-placement-scope
 framework: beakerlib
 require:
