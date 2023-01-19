@@ -4,7 +4,7 @@ description: |
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Regression/394271-gcc-optimization-error-for-neg-number-abs
 framework: beakerlib
 require:

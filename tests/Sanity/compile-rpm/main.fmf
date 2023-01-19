@@ -3,7 +3,7 @@ description: ''
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Sanity/compile-rpm
 framework: beakerlib
 require:

@@ -14,7 +14,7 @@ contact: Michael Petlan <mpetlan@redhat.com>
 component:
   - gcc
   - gcc-libraries
-test: ./runtest.sh
+test: bash ./runtest.sh
 framework: beakerlib
 require:
   - gcc
