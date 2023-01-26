@@ -3,7 +3,7 @@ class X
 {
   T p;
 public:
-  template <class U> auto f() -> decltype(+p) { }
+  template <class U> auto f() -> decltype(+p) { return p; }
 };
 
 struct A
