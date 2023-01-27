@@ -1,12 +1,12 @@
-%global DATE 20230117
-%global gitrev fedc064ac31b465edcfd22884b94bbdd05312224
+%global DATE 20230127
+%global gitrev 4faac89a6b542c0d94019eeadc333ef789f37c9d
 %global gcc_version 13.0.1
 %global gcc_major 13
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
 %global gcc_release 0
 %global nvptx_tools_gitrev 472b6e78b3ba918d727698f79911360b7c808247
-%global newlib_cygwin_gitrev a8526cb52bedabd4d6ba4b227a5185627f871aa1
+%global newlib_cygwin_gitrev 9e09d6ed83cce4777a5950412647ccc603040409
 %global _unpackaged_files_terminate_build 0
 %global _performance_build 1
 # Hardening slows the compiler way too much.
@@ -136,7 +136,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.1%{?dist}
+Release: %{gcc_release}.2%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -286,8 +286,7 @@ Patch8: gcc13-no-add-needed.patch
 Patch9: gcc13-Wno-format-security.patch
 Patch10: gcc13-rh1574936.patch
 Patch11: gcc13-d-shared-libphobos.patch
-Patch12: gcc13-pr107678.patch
-Patch13: gcc13-pr108411.patch
+Patch12: gcc13-pr106746-revert.patch
 
 Patch50: isl-rh2155127.patch
 
@@ -862,8 +861,7 @@ so that there cannot be any synchronization problems.
 %patch10 -p0 -b .rh1574936~
 %endif
 %patch11 -p0 -b .d-shared-libphobos~
-%patch12 -p0 -b .pr107678~
-%patch13 -p0 -b .pr108411~
+%patch12 -p0 -b .pr106746-revert~
 
 %patch50 -p0 -b .rh2155127~
 touch -r isl-0.24/m4/ax_prog_cxx_for_build.m4 isl-0.24/m4/ax_prog_cc_for_build.m4
