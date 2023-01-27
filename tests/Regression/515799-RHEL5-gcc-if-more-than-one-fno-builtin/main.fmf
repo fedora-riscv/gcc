@@ -11,7 +11,7 @@ description: |
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Regression/515799-RHEL5-gcc-if-more-than-one-fno-builtin
 framework: beakerlib
 require:

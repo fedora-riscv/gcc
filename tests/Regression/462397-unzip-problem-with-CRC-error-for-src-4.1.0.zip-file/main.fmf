@@ -7,7 +7,7 @@ description: |
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 framework: beakerlib
 require:
   - gcc

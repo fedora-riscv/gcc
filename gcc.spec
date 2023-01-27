@@ -3458,6 +3458,30 @@ end
 %endif
 
 %changelog
+* Sat Jan 28 2023 Jakub Jelinek <jakub@redhat.com> 13.0.1-0.2
+- update from trunk
+  - PRs analyzer/108455, analyzer/108507, analyzer/108524, bootstrap/90543,
+	c++/53288, c++/53932, c++/105300, c++/107267, c++/107303, c++/107329,
+	c++/107797, c++/108195, c++/108437, c++/108474, c++/108496,
+	c++/108503, c++/108504, c++/108525, c++/108526, c/108424,
+	fortran/102331, fortran/102595, fortran/108420, fortran/108434,
+	fortran/108501, fortran/108502, fortran/108528, fortran/108529,
+	fortran/108544, fortran/108558, ipa/106061, ipa/107944,
+	libstdc++/102301, libstdc++/108530, libstdc++/108554,
+	libstdc++/108568, lto/108445, middle-end/108086, middle-end/108459,
+	middle-end/108543, modula2/102343, modula2/108144, modula2/108182,
+	modula2/108405, modula2/108480, modula2/108553, modula2/108555,
+	other/108560, target/107568, target/107678, target/107731,
+	target/108177, target/108348, target/108396, target/108411,
+	target/108436, target/108442, target/108505, testsuite/104756,
+	testsuite/107808, testsuite/108533, tree-optimization/96373,
+	tree-optimization/108306, tree-optimization/108440,
+	tree-optimization/108447, tree-optimization/108449,
+	tree-optimization/108457, tree-optimization/108482,
+	tree-optimization/108498, tree-optimization/108500,
+	tree-optimization/108522, tree-optimization/108523,
+	tree-optimization/108540, tree-optimization/108547
+
 * Tue Jan 17 2023 Jakub Jelinek <jakub@redhat.com> 13.0.1-0.1
 - update from trunk
   - PRs c++/105593, fortran/108421, go/108426, ipa/106077, libstdc++/108288,

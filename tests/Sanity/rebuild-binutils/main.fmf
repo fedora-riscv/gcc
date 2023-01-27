@@ -3,7 +3,7 @@ description: ''
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Sanity/rebuild-binutils
 framework: beakerlib
 require:

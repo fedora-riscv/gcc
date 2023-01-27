@@ -3,7 +3,7 @@ description: ''
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Sanity/test-m32-m64-options
 framework: beakerlib
 require:

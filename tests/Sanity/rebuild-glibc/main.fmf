@@ -4,7 +4,7 @@ summary: Rebuild glibc
 contact: mcermak@redhat.com
 component:
   - gcc
-test: ./runtest.sh
+test: bash ./runtest.sh
 path: /tests/Sanity/rebuild-glibc
 framework: beakerlib
 require:
