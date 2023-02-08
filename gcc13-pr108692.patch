@@ -1,0 +1,74 @@
+2023-02-07  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/108692
+	* tree-vect-patterns.cc (vect_widened_op_tree): If rhs_code is
+	widened_code which is different from code, don't call
+	vect_look_through_possible_promotion but instead just check op is
+	SSA_NAME with integral type for which vect_is_simple_use is true
+	and call set_op on this_unprom.
+
+	* gcc.dg/pr108692.c: New test.
+
+--- gcc/tree-vect-patterns.cc.jj	2023-01-02 09:32:45.635949342 +0100
++++ gcc/tree-vect-patterns.cc	2023-02-07 15:27:33.214608837 +0100
+@@ -601,7 +601,25 @@ vect_widened_op_tree (vec_info *vinfo, s
+ 	  if (shift_p && i == 1)
+ 	    return 0;
+ 
+-	  if (!vect_look_through_possible_promotion (vinfo, op, this_unprom))
++	  if (rhs_code != code)
++	    {
++	      /* If rhs_code is widened_code, don't look through further
++		 possible promotions, there is a promotion already embedded
++		 in the WIDEN_*_EXPR.  */
++	      if (TREE_CODE (op) != SSA_NAME
++		  || !INTEGRAL_TYPE_P (TREE_TYPE (op)))
++		return 0;
++
++	      stmt_vec_info def_stmt_info;
++	      gimple *def_stmt;
++	      vect_def_type dt;
++	      if (!vect_is_simple_use (op, vinfo, &dt, &def_stmt_info,
++				       &def_stmt))
++		return 0;
++	      this_unprom->set_op (op, dt, NULL);
++	    }
++	  else if (!vect_look_through_possible_promotion (vinfo, op,
++							  this_unprom))
+ 	    return 0;
+ 
+ 	  if (TYPE_PRECISION (this_unprom->type) == TYPE_PRECISION (type))
+--- gcc/testsuite/gcc.dg/pr108692.c.jj	2023-02-07 15:47:20.329076264 +0100
++++ gcc/testsuite/gcc.dg/pr108692.c	2023-02-07 15:46:15.623031983 +0100
+@@ -0,0 +1,31 @@
++/* PR tree-optimization/108692 */
++/* { dg-do compile } */
++/* { dg-options "-O2 -ftree-vectorize" } */
++
++__attribute__((noipa)) int
++foo (signed char *x, signed char *y, int n)
++{
++  int i, r = 0;
++  signed char a, b;
++  for (i = 0; i < n; i++)
++    {
++      a = x[i];
++      b = y[i];
++      int c = (unsigned char) a - (unsigned char) b;
++      r = r + (c < 0 ? -c : c);
++    }
++  return r;
++}
++
++int
++main ()
++{
++  signed char x[64] = {}, y[64] = {};
++  if (__CHAR_BIT__ != 8 || __SIZEOF_INT__ != 4)
++    return 0;
++  x[32] = -128;
++  y[32] = 1;
++  if (foo (x, y, 64) != 127)
++    __builtin_abort ();
++  return 0;
++}
