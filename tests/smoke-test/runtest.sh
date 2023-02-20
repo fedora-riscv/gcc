@@ -26,6 +26,8 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# A testing change.
+
 # Include Beaker environment
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
