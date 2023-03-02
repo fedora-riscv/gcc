@@ -10,7 +10,9 @@ framework: beakerlib
 require:
   - audit-libs-devel
   - binutils
+  - bison
   - gcc
+  - gcc-c++
   - gd-devel
   - glibc-devel
   - glibc-static
@@ -26,8 +28,11 @@ require:
   - nss-devel
   - nss-softokn-devel
   - nss-util-devel
+  - python3-devel
   - rpm-build
   - systemtap-sdt-devel
+  - texinfo
+  - valgrind
   - yum-utils
 recommend:
   - glibc-devel.ppc
@@ -64,6 +69,9 @@ adjust:
     - libstdc++-static.i686
     - libstdc++-static.x86_64
     when: arch == x86_64
+  - require-:
+    - python3-devel
+    when: distro < rhel-8
   - enabled: false
     when: collection is defined
     continue: false
