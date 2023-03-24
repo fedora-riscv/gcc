@@ -1,6 +1,0 @@
-summary: Setup task
-prepare:
-    script: ./plans/ci/prepare/prepare.sh
-require:
-- koji
-- dnf-utils

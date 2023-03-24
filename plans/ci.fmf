@@ -2,5 +2,9 @@ summary: CI Gating Plan
 discover:
     how: fmf
     directory: tests
+prepare:
+    - name: prepare
+      how: shell
+      script: ./plans/prepare.sh
 execute:
     how: tmt
