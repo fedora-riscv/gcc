@@ -8,16 +8,16 @@
 
 --- gcc/match.pd.jj	2023-04-18 11:01:38.867871375 +0200
 +++ gcc/match.pd	2023-04-21 13:26:01.250166206 +0200
-@@ -8103,7 +8103,8 @@ and,
- 	poly_uint64 wide_nunits;
- 	scalar_mode inner_mode = GET_MODE_INNER (vec_mode);
-       }
--      (if (sel.series_p (0, 2, 0, 2)
-+      (if (VECTOR_MODE_P (vec_mode)
-+	   && sel.series_p (0, 2, 0, 2)
- 	   && sel.series_p (1, 2, nelts + 1, 2)
- 	   && GET_MODE_2XWIDER_MODE (inner_mode).exists (&wide_elt_mode)
- 	   && multiple_p (GET_MODE_NUNITS (vec_mode), 2, &wide_nunits)
+@@ -8095,7 +8095,8 @@ and,
+        poly_uint64 wide_nunits;
+        scalar_mode inner_mode = GET_MODE_INNER (vec_mode);
+      }
+-     (if (sel.series_p (0, 2, 0, 2)
++     (if (VECTOR_MODE_P (vec_mode)
++	  && sel.series_p (0, 2, 0, 2)
+ 	  && sel.series_p (1, 2, nelts + 1, 2)
+ 	  && GET_MODE_2XWIDER_MODE (inner_mode).exists (&wide_elt_mode)
+ 	  && multiple_p (GET_MODE_NUNITS (vec_mode), 2, &wide_nunits)
 --- gcc/testsuite/gcc.dg/pr109583.c.jj	2023-04-21 13:28:36.462911138 +0200
 +++ gcc/testsuite/gcc.dg/pr109583.c	2023-04-21 13:28:06.746342736 +0200
 @@ -0,0 +1,25 @@
