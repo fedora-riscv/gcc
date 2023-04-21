@@ -1,0 +1,48 @@
+2023-04-21  Jakub Jelinek  <jakub@redhat.com>
+
+	PR tree-optimization/109583
+	* match.pd (fneg/fadd simplify): Don't call related_vector_mode
+	if vec_mode is not VECTOR_MODE_P.
+
+	* gcc.dg/pr109583.c: New test.
+
+--- gcc/match.pd.jj	2023-04-18 11:01:38.867871375 +0200
++++ gcc/match.pd	2023-04-21 13:26:01.250166206 +0200
+@@ -8103,7 +8103,8 @@ and,
+ 	poly_uint64 wide_nunits;
+ 	scalar_mode inner_mode = GET_MODE_INNER (vec_mode);
+       }
+-      (if (sel.series_p (0, 2, 0, 2)
++      (if (VECTOR_MODE_P (vec_mode)
++	   && sel.series_p (0, 2, 0, 2)
+ 	   && sel.series_p (1, 2, nelts + 1, 2)
+ 	   && GET_MODE_2XWIDER_MODE (inner_mode).exists (&wide_elt_mode)
+ 	   && multiple_p (GET_MODE_NUNITS (vec_mode), 2, &wide_nunits)
+--- gcc/testsuite/gcc.dg/pr109583.c.jj	2023-04-21 13:28:36.462911138 +0200
++++ gcc/testsuite/gcc.dg/pr109583.c	2023-04-21 13:28:06.746342736 +0200
+@@ -0,0 +1,25 @@
++/* PR tree-optimization/109583 */
++/* { dg-do compile } */
++/* { dg-options "-O1 -Wno-psabi" } */
++/* { dg-additional-options "-mno-avx" { target i?86-*-* x86_64-*-* } } */
++
++typedef float v8sf __attribute__((vector_size (8 * sizeof (float))));
++typedef int v8si __attribute__((vector_size (8 * sizeof (int))));
++
++#if __SIZEOF_INT__ == __SIZEOF_FLOAT__
++v8sf
++foo (v8sf x, v8sf y)
++{
++  v8sf a = x - y;
++  v8sf b = x + y;
++  return __builtin_shuffle (a, b, (v8si) { 0, 9, 2, 11, 4, 13, 6, 15 });
++}
++
++v8sf
++bar (v8sf x, v8sf y)
++{
++  v8sf a = x + y;
++  v8sf b = x - y;
++  return __builtin_shuffle (a, b, (v8si) { 0, 9, 2, 11, 4, 13, 6, 15 });
++}
++#endif
