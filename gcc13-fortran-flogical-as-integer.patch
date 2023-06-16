@@ -44,7 +44,7 @@ diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index c075d0fa0c4..4b90cb59902 100644
 --- a/gcc/fortran/resolve.cc
 +++ b/gcc/fortran/resolve.cc
-@@ -3915,7 +3915,6 @@ lookup_uop_fuzzy (const char *op, gfc_symtree *uop)
+@@ -4035,7 +4035,6 @@ lookup_uop_fuzzy (const char *op, gfc_sy
    return gfc_closest_fuzzy_match (op, candidates);
  }
  
@@ -52,7 +52,7 @@ index c075d0fa0c4..4b90cb59902 100644
  /* Callback finding an impure function as an operand to an .and. or
     .or.  expression.  Remember the last function warned about to
     avoid double warnings when recursing.  */
-@@ -3975,6 +3974,22 @@ convert_hollerith_to_character (gfc_expr *e)
+@@ -4095,6 +4094,22 @@ convert_hollerith_to_character (gfc_expr
      }
  }
  
@@ -75,7 +75,7 @@ index c075d0fa0c4..4b90cb59902 100644
  /* Convert to numeric and issue a warning for the conversion.  */
  
  static void
-@@ -3987,6 +4002,22 @@ convert_to_numeric (gfc_expr *a, gfc_expr *b)
+@@ -4107,6 +4122,22 @@ convert_to_numeric (gfc_expr *a, gfc_exp
    gfc_convert_type_warn (a, &t, 2, 1);
  }
  
@@ -98,7 +98,7 @@ index c075d0fa0c4..4b90cb59902 100644
  /* Resolve an operator expression node.  This can involve replacing the
     operation with a user defined function call.  */
  
-@@ -4072,6 +4103,12 @@ resolve_operator (gfc_expr *e)
+@@ -4198,6 +4229,12 @@ resolve_operator (gfc_expr *e)
      case INTRINSIC_TIMES:
      case INTRINSIC_DIVIDE:
      case INTRINSIC_POWER:
@@ -110,8 +110,8 @@ index c075d0fa0c4..4b90cb59902 100644
 +
        if (gfc_numeric_ts (&op1->ts) && gfc_numeric_ts (&op2->ts))
  	{
- 	  gfc_type_convert_binary (e, 1);
-@@ -4108,6 +4145,13 @@ resolve_operator (gfc_expr *e)
+ 	  /* Do not perform conversions if operands are not conformable as
+@@ -4245,6 +4282,13 @@ resolve_operator (gfc_expr *e)
      case INTRINSIC_OR:
      case INTRINSIC_EQV:
      case INTRINSIC_NEQV:
@@ -125,7 +125,7 @@ index c075d0fa0c4..4b90cb59902 100644
        if (op1->ts.type == BT_LOGICAL && op2->ts.type == BT_LOGICAL)
  	{
  	  e->ts.type = BT_LOGICAL;
-@@ -4158,6 +4202,9 @@ resolve_operator (gfc_expr *e)
+@@ -4296,6 +4340,9 @@ resolve_operator (gfc_expr *e)
  	  goto simplify_op;
  	}
  
@@ -135,7 +135,7 @@ index c075d0fa0c4..4b90cb59902 100644
        if (op1->ts.type == BT_LOGICAL)
  	{
  	  e->ts.type = BT_LOGICAL;
-@@ -4198,6 +4245,12 @@ resolve_operator (gfc_expr *e)
+@@ -4336,6 +4383,12 @@ resolve_operator (gfc_expr *e)
  	  convert_hollerith_to_character (op2);
  	}
  

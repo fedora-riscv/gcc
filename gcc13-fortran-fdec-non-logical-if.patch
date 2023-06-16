@@ -53,7 +53,7 @@ diff --git a/gcc/fortran/resolve.cc b/gcc/fortran/resolve.cc
 index bc0df0fdb99..07dd039f3bf 100644
 --- a/gcc/fortran/resolve.cc
 +++ b/gcc/fortran/resolve.cc
-@@ -10789,10 +10789,31 @@ gfc_resolve_blocks (gfc_code *b, gfc_namespace *ns)
+@@ -11030,10 +11030,31 @@ gfc_resolve_blocks (gfc_code *b, gfc_nam
        switch (b->op)
  	{
  	case EXEC_IF:
@@ -89,7 +89,7 @@ index bc0df0fdb99..07dd039f3bf 100644
  	  break;
  
  	case EXEC_WHERE:
-@@ -12093,11 +12114,32 @@ start:
+@@ -12585,11 +12606,32 @@ start:
  	  break;
  
  	case EXEC_IF:
