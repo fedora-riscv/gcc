@@ -1,10 +1,10 @@
-%global DATE 20230614
-%global gitrev 0d7019741b037c7e9c4e57d6de3bce6bb2ed8026
-%global gcc_version 13.1.1
+%global DATE 20230728
+%global gitrev 8a3e2d71f2a0309540e68c79dadd66a06ca3da73
+%global gcc_version 13.2.1
 %global gcc_major 13
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 4
+%global gcc_release 1
 %global nvptx_tools_gitrev 93e00909ceb9cbbc104f0fcba56c0361ffb3ca4b
 %global newlib_cygwin_gitrev 9e09d6ed83cce4777a5950412647ccc603040409
 %global _unpackaged_files_terminate_build 0
@@ -298,9 +298,6 @@ Patch11: gcc13-d-shared-libphobos.patch
 Patch50: isl-rh2155127.patch
 
 Patch100: gcc13-fortran-fdec-duplicates.patch
-Patch101: gcc13-fortran-flogical-as-integer.patch
-Patch102: gcc13-fortran-fdec-override-kind.patch
-Patch103: gcc13-fortran-fdec-non-logical-if.patch
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -876,9 +873,6 @@ touch -r isl-0.24/m4/ax_prog_cxx_for_build.m4 isl-0.24/m4/ax_prog_cc_for_build.m
 
 %if 0%{?rhel} >= 9
 %patch -P100 -p1 -b .fortran-fdec-duplicates~
-%patch -P101 -p1 -b .fortran-flogical-as-integer~
-%patch -P102 -p1 -b .fortran-fdec-override-kind~
-%patch -P103 -p1 -b .fortran-fdec-non-logical-if~
 %endif
 
 %ifarch %{arm}
@@ -3475,6 +3469,37 @@ end
 %endif
 
 %changelog
+* Fri Jul 28 2023 Jakub Jelinek <jakub@redhat.com> 13.2.1-1
+- update from releases/gcc-13 branch
+  - GCC 13.2 release
+  - PRs c++/109247, c++/110102, c++/110122, c++/110463, c++/110468,
+	c++/110524, c++/110535, c++/110595, c++/110809, d/103944, d/106977,
+	d/108842, d/108962, d/110113, d/110359, d/110471, d/110514, d/110516,
+	debug/110295, fortran/86277, fortran/95947, fortran/100297,
+	fortran/110288, fortran/110585, fortran/110658, ipa/109983,
+	ipa/110276, libgcc/109712, libgcc/110179, libstdc++/95048,
+	libstdc++/100285, libstdc++/104299, libstdc++/109741,
+	libstdc++/109921, libstdc++/110149, libstdc++/110239,
+	libstdc++/110432, libstdc++/110542, libstdc++/110574,
+	middle-end/98619, middle-end/103979, middle-end/110055,
+	middle-end/110420, modula2/108121, modula2/109586, modula2/109675,
+	modula2/109729, modula2/110246, rtl-optimization/110237,
+	target/101469, target/105325, target/106966, target/108743,
+	target/109932, target/110011, target/110100, target/110132,
+	target/110136, target/110206, target/110264, target/110309,
+	target/110406, target/110560, target/110624, testsuite/66005,
+	testsuite/83904, testsuite/110230, tree-optimization/109143,
+	tree-optimization/110228, tree-optimization/110298,
+	tree-optimization/110381, tree-optimization/110392,
+	tree-optimization/110515, tree-optimization/110556,
+	tree-optimization/110557, tree-optimization/110669,
+	tree-optimization/110731, tree-optimization/110755,
+	tree-optimization/110766, tree-optimization/110799,
+	tree-optimization/110829
+
+* Wed Jul 19 2023 Fedora Release Engineering <releng@fedoraproject.org> - 13.1.1-4.1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
 * Wed Jun 14 2023 Jakub Jelinek <jakub@redhat.com> 13.1.1-4
 - update from releases/gcc-13 branch
   - PRs bootstrap/110085, c++/109871, fortran/100607, libgcc/109670,
