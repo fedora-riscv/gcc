@@ -16,6 +16,9 @@
 # Until annobin is fixed (#1519165).
 %undefine _annotated_build
 %endif
+%ifarch riscv64
+%global __brp_check_rpaths /usr/bin/true
+%endif
 # Strip will fail on nvptx-none *.a archives and the brp-* scripts will
 # fail randomly depending on what is stripped last.
 %if 0%{?__brp_strip_static_archive:1}
@@ -63,7 +66,7 @@
 %else
 %global build_libquadmath 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 riscv64
 %global build_libasan 1
 %else
 %global build_libasan 0
@@ -83,7 +86,7 @@
 %else
 %global build_liblsan 0
 %endif
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 riscv64
 %global build_libubsan 1
 %else
 %global build_libubsan 0
@@ -104,7 +107,7 @@
 %global build_isl 1
 %endif
 %global build_libstdcxx_docs 1
-%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips}
+%ifarch %{ix86} x86_64 ppc ppc64 ppc64le ppc64p7 s390 s390x %{arm} aarch64 %{mips} riscv64
 %global attr_ifunc 1
 %else
 %global attr_ifunc 0
@@ -136,7 +139,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}%{?dist}
+Release: %{gcc_release}.rv64%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -909,6 +912,11 @@ fi
 
 # This test causes fork failures, because it spawns way too many threads
 rm -f gcc/testsuite/go.test/test/chan/goroutines.go
+
+%ifarch riscv64
+find . -name 'config.guess' -exec cp -vf /usr/lib/rpm/%{_vendor}/config.guess {} \;
+find . -name 'config.sub' -exec cp -vf /usr/lib/rpm/%{_vendor}/config.sub {} \;
+%endif
 
 %build
 
@@ -3459,6 +3467,9 @@ end
 %endif
 
 %changelog
+* Tue Nov 28 2023 Milkice Qiu <milkice@milkice.me> - 13.2.1-5.rv64
+- Add riscv64 support
+
 * Mon Nov 13 2023 Jakub Jelinek <jakub@redhat.com> 13.2.1-5
 - update from releases/gcc-13 branch
   - PRs c++/89038, c/111884, d/110712, d/112270, fortran/67740, fortran/97245,
