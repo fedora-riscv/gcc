@@ -139,7 +139,7 @@
 Summary: Various compilers (C, C++, Objective-C, ...)
 Name: gcc
 Version: %{gcc_version}
-Release: %{gcc_release}.rv64%{?dist}
+Release: %{gcc_release}.rv64.2%{?dist}
 # libgcc, libgfortran, libgomp, libstdc++ and crtstuff have
 # GCC Runtime Exception.
 License: GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
@@ -2551,6 +2551,9 @@ end
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/htmxlintrin.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/vecintrin.h
 %endif
+%ifarch riscv64
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/riscv_vector.h
+%endif
 %if %{build_libasan}
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/sanitizer
 %endif
@@ -3467,6 +3470,9 @@ end
 %endif
 
 %changelog
+* Mon Jan 22 2024 Guoguo <i@qwq.trade> - 13.2.1-5.rv64.2
+- Add riscv_vector.h in gcc
+
 * Tue Nov 28 2023 Milkice Qiu <milkice@milkice.me> - 13.2.1-5.rv64
 - Add riscv64 support
 
